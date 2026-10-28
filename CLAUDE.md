@@ -55,7 +55,7 @@ Método único (Addy Osmani), nesta ordem: `spec-driven-development` → `planni
 
 - Pronto significa o que está em `.claude/references/definition-of-done.md`.
 - Fatias pequenas, um commit por fatia, mensagem em português no imperativo.
-- Antes de qualquer PR: rodar testes, lint e `tsc`. Usar os agentes `revisor-seguranca-lgpd`, `revisor-de-prazos` e `qa-responsivo` conforme a mudança.
+- Antes de qualquer PR: rodar testes, lint e `pnpm typecheck`. Usar os agentes `revisor-seguranca-lgpd`, `revisor-de-prazos` e `qa-responsivo` conforme a mudança.
 - Não adicionar dependência sem checar licença e custo.
 
 ## Divisão da equipe

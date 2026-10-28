@@ -20,8 +20,8 @@ Fica de fora da base-A, de propósito: `DATABASE_URL` no schema do zod, a pasta 
 ## Decisões de arquitetura
 
 - **Teste primeiro no que é lógica** (config, logger, scheduler, fakes, regras de lint): escrever o teste, vê-lo falhar, escrever o código (`test-driven-development`). Para scaffold e configuração, a verificação é o comando rodar.
-- **Fatias horizontais aqui são aceitáveis.** O `base` não tem fluxo de usuário; cada tarefa deixa o repositório num estado em que `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam.
-- **Uma tarefa, um commit**, em português, no imperativo, feito quando o Vitor pedir. Antes de cada commit: `pnpm lint && pnpm tsc --noEmit && pnpm test && pnpm build`.
+- **Fatias horizontais aqui são aceitáveis.** O `base` não tem fluxo de usuário; cada tarefa deixa o repositório num estado em que `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam.
+- **Uma tarefa, um commit**, em português, no imperativo, feito quando o Vitor pedir. Antes de cada commit: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
 - **Config é uma função pura mais um cache.** `lerConfig(env)` valida um objeto e é o que os testes usam; `getConfig()` lê `process.env` na primeira chamada e guarda o resultado. O build não chama `getConfig()` (senão o build do CI e do Docker quebraria sem segredos).
 - **Drivers só aceitam `fake` na base-A.** Valores reais (`smtp`, `s3`, `gemini`) entram no schema junto com o adaptador real, no módulo que o usar.
 - **Redação de segredos no logger por nome de campo**, não por valor, e testada.
@@ -43,7 +43,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - sem Cache Components e sem React Compiler;
   - `package.json` tem `"packageManager": "pnpm@12.16.1"`, `engines` e `.nvmrc` com `24.22.1`;
   - `pnpm install --frozen-lockfile` passa com o `pnpm-lock.yaml` gerado.
-- Verificação: `pnpm install --frozen-lockfile && pnpm lint && pnpm tsc --noEmit && pnpm build`; `pnpm dev` responde em `http://localhost:3000`.
+- Verificação: `pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm build`; `pnpm dev` responde em `http://localhost:3000`.
 - Depende de: P1 (e P2, recomendado)
 - Arquivos: `package.json`, `pnpm-lock.yaml`, `.nvmrc`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `src/app/*` (scaffold)
 - Se falhar: o `create-next-app` recusa pasta não vazia → gerar numa pasta temporária no scratchpad e mover só os arquivos novos, conferindo cada um.
@@ -52,7 +52,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - **Scripts de instalação no pnpm 12:** o `create-next-app` criou `pnpm-workspace.yaml` com `allowBuilds` bloqueando `sharp` e `unrs-resolver` (`false`). O `pnpm install` terminou sem pedir aprovação e sem rodar esses scripts; lint, `tsc`, build e dev passaram assim. Qualquer pacote novo com script de instalação precisa de entrada explícita nessa lista.
   - Removidos do `next.config.ts`: `cacheComponents` e `partialPrefetching` (vinham ligados). Acrescentado `agentRules: false`, porque o `next dev` gerava `AGENTS.md` sozinho.
   - `@types/node` ajustado de `^20` para `^24`; `engines` e `.nvmrc` criados.
-  - **`tsc` numa pasta limpa exige `pnpm exec next typegen` antes** (o tipo global `LayoutProps` é gerado pelo Next). Vale para o A5. Script `typecheck` ainda não decidido.
+  - **`tsc` numa pasta limpa exige `pnpm exec next typegen` antes** (o tipo global `LayoutProps` é gerado pelo Next). Vale para o A5. Decidido pelo Vitor: script `"typecheck": "next typegen && tsc --noEmit"` no `package.json` (forma confirmada em https://nextjs.org/docs/app/api-reference/cli/next#next-typegen-options); o CI e todos os comandos de verificação usam `pnpm typecheck`.
   - **Telemetria do Next: desabilitada** (decisão do Vitor). Localmente com `pnpm exec next telemetry --disable` (a ajuda da CLI 16.4.3 lista `--disable`; o status passou a `Disabled`, gravado na configuração do usuário, fora do repositório). **O CI (A5) e o Dockerfile (base-B) devem definir `NEXT_TELEMETRY_DISABLED=1`**, build e execução.
   - Pendente de decisão do Vitor: aviso de depreciação do `eslint@9.39.5`.
   - Divergência da documentação: o Tailwind veio por `@tailwindcss/turbopack`, não por PostCSS como na página de instalação do Tailwind.
@@ -72,7 +72,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 **A3. Estrutura de pastas, shadcn/ui e página inicial em português** (S)
 - Descrição: rodar `pnpm dlx shadcn@latest init` (base `radix`, sem alterar o que o scaffold fez), adicionar `button`, criar `src/modules/` (com `.gitkeep`) e escrever a página inicial com título e um botão, `<html lang="pt-BR">`.
 - Aceite: `components.json`, `src/lib/utils.ts` (`cn`) e `src/components/ui/button.tsx` existem; a página mostra texto em português e o botão; sem rolagem horizontal em 360, 768 e 1280 px.
-- Verificação: `pnpm lint && pnpm tsc --noEmit && pnpm build`; conferência visual nas três larguras com as ferramentas do navegador.
+- Verificação: `pnpm lint && pnpm typecheck && pnpm build`; conferência visual nas três larguras com as ferramentas do navegador.
 - Depende de: A1
 - Arquivos: `components.json`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `src/components/ui/button.tsx`, `src/lib/utils.ts`, `src/modules/.gitkeep`
 
@@ -84,7 +84,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Arquivos: `vitest.config.mts`, `package.json`, `pnpm-lock.yaml`, `src/lib/utils.test.ts`
 
 ### Checkpoint 1: ferramentas
-- [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test`, `pnpm build` passam
+- [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` passam
 - [ ] Versões fixadas conferidas (`node -v`, `pnpm -v`) e registradas
 - [ ] Revisão cruzada do Vini no PR de A1 (a base de tudo)
 - [ ] Vini e Vitor já conseguem trabalhar em paralelo
