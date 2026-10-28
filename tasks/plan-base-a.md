@@ -75,6 +75,13 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Verificação: `pnpm lint && pnpm typecheck && pnpm build`; conferência visual nas três larguras com as ferramentas do navegador.
 - Depende de: A1
 - Arquivos: `components.json`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `src/components/ui/button.tsx`, `src/lib/utils.ts`, `src/modules/.gitkeep`
+- **Registro da execução (28/10/2026):**
+  - `shadcn@4.23.0`: `init --base radix --preset nova --yes --no-monorepo --no-rtl` (sem `--preset` ele pergunta de forma interativa). Preset Nova (Lucide + Geist).
+  - **Dependências novas trazidas pelo shadcn:** `class-variance-authority`, `lucide-react`, `radix-ui`, `shadcn`, `tw-animate-css` e **`cn ^0.5.0`**. O `src/lib/utils.ts` ficou `export { cn } from "cn"` (em vez de `clsx` + `tailwind-merge`). Procedência do `cn` conferida no registro npm: MIT, repositório `shadcn-ui/cn`, mantenedor `shadcn`, e o pacote `shadcn@4.23.0` depende dele. Ressalva: o nome `cn` existe no npm desde 2013 e o conteúdo atual vem de 09/2026 (0.5.0 de 16/10/2026). Alternativa conservadora, se o Vitor preferir: `clsx` + `tailwind-merge` em `utils.ts`.
+  - O `init` deixou `--font-sans: var(--font-sans)` circular no `globals.css`; corrigido no `layout.tsx` (a Geist agora define `--font-sans`). O tema ficou só claro (o `.dark` existe, mas nada o ativa).
+  - **Tamanhos do botão do preset Nova ficam abaixo de 44 px** (`default` 32 px, `lg` 36 px). A tela usa `min-h-11`. Decisão pendente: ajustar os tamanhos em `button.tsx` ou aplicar `min-h-11` caso a caso.
+  - Removidos os cinco SVGs de exemplo de `public/` e criado `public/.gitkeep` (o Dockerfile da base-B copia `public/`).
+  - Conferência visual (Chrome, iframes de 360, 768 e 1280 px): `lang="pt-BR"`, título e botão renderizados, botão com 44 px de altura, `scrollWidth == clientWidth` nas três larguras. Screenshot real só na largura da janela do navegador (cerca de 1568 px); 360 e 768 foram medidos por iframe, não por janela redimensionada.
 
 **A4. Vitest configurado** (S)
 - Descrição: instalar `vitest` e `vite-tsconfig-paths`; `vitest.config.mts` com ambiente `node` e alias `@/`; scripts `test` (`vitest run`) e `test:watch`; primeiro teste real sobre `cn` (A3).
