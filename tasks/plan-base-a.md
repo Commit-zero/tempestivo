@@ -80,7 +80,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - **Dependências novas trazidas pelo shadcn:** `class-variance-authority`, `lucide-react`, `radix-ui`, `shadcn`, `tw-animate-css` e **`cn ^0.5.0`**. O `src/lib/utils.ts` ficou `export { cn } from "cn"` (em vez de `clsx` + `tailwind-merge`). Procedência do `cn` conferida no registro npm: MIT, repositório `shadcn-ui/cn`, mantenedor `shadcn`, e o pacote `shadcn@4.23.0` depende dele. Ressalva: o nome `cn` existe no npm desde 2013 e o conteúdo atual vem de 09/2026 (0.5.0 de 16/10/2026). Alternativa conservadora, se o Vitor preferir: `clsx` + `tailwind-merge` em `utils.ts`.
   - **Decisão do Vitor (Checkpoint 1):** manter o `cn`, com a versão **exata** (`"cn": "0.5.0"`, sem `^`). O `cn` entra na revisão de dependências do Checkpoint 2.
   - O `init` deixou `--font-sans: var(--font-sans)` circular no `globals.css`; corrigido no `layout.tsx` (a Geist agora define `--font-sans`). O tema ficou só claro (o `.dark` existe, mas nada o ativa).
-  - **Tamanhos do botão do preset Nova ficam abaixo de 44 px** (`default` 32 px, `lg` 36 px). A tela usa `min-h-11`. Decisão pendente: ajustar os tamanhos em `button.tsx` ou aplicar `min-h-11` caso a caso.
+  - **Tamanhos do botão do preset Nova ficam abaixo de 44 px** (`default` 32 px, `lg` 36 px). A tela usa `min-h-11`. **Decisão do Vitor (Checkpoint 1):** ajustar `button.tsx` uma vez, mobile-first: `default` e `lg` com `h-11` (44 px) no celular e `md:h-8` / `md:h-9` a partir de `md`; o `min-h-11` avulso saiu da página inicial. Os tamanhos `xs`, `sm` e `icon*` continuam abaixo de 44 px; quem os usar em tela de toque deve tratar a área de toque.
   - Removidos os cinco SVGs de exemplo de `public/` e criado `public/.gitkeep` (o Dockerfile da base-B copia `public/`).
   - Conferência visual (Chrome, iframes de 360, 768 e 1280 px): `lang="pt-BR"`, título e botão renderizados, botão com 44 px de altura, `scrollWidth == clientWidth` nas três larguras. Screenshot real só na largura da janela do navegador (cerca de 1568 px); 360 e 768 foram medidos por iframe, não por janela redimensionada.
 
@@ -93,6 +93,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - **Registro da execução (28/10/2026):**
   - `vitest@5.0.5` (MIT). Teste escrito antes: primeiro com asserção errada de propósito (vermelho: `expected 'a c' to be 'a-b-c'`), depois corrigido (verde, 2 testes). O teste importa `@/lib/utils`, o que prova o alias.
   - **`vite-tsconfig-paths` não entrou.** Foi instalado e removido: o Vitest avisou que o Vite resolve `paths` nativamente, e a documentação do Vite confirma `resolve.tsconfigPaths` (padrão `false`, vale para arquivos incluídos pelo `tsconfig.json`; https://vite.dev/config/shared-options). Uma dependência a menos, e a subdependência depreciada `tsconfck` saiu junto. A página de testes com Vitest do Next.js ainda cita o plugin; a divergência fica registrada.
+  - **Remoção do `vite-tsconfig-paths` aceita pelo Vitor (Checkpoint 1).** Fonte: documentação do Vite, `resolve.tsconfigPaths` (https://vite.dev/config/shared-options). O alias `@/` é provado pelo teste, que importa `@/lib/utils`.
 
 ### Checkpoint 1: ferramentas
 - [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` passam
