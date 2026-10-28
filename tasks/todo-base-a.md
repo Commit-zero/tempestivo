@@ -24,10 +24,10 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [x] A5. CI de qualidade: lint, `tsc`, testes, build (M)
 
 ## Fase 3: Núcleo das portas (teste primeiro)
-- [ ] A6. Porta `config` com zod e `.env.example` (M)
-- [ ] A7. Validar a configuração ao subir o servidor (S)
-- [ ] A8. Porta `logger` (S)
-- [ ] A9. Porta `scheduler` (S)
+- [x] A6. Porta `config` com zod e `.env.example` (M)
+- [ ] A7. Validar a configuração ao subir o servidor (S) — PARADA: o servidor não encerra quando `register` lança erro; decisão do Vitor pendente (ver plano)
+- [x] A8. Porta `logger` (S)
+- [x] A9. Porta `scheduler` (S)
 
 ### Checkpoint 2: núcleo
 - [ ] Testes, `tsc`, lint, build e CI verdes

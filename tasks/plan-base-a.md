@@ -143,6 +143,14 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Verificação: os três comandos acima, anotando o resultado no PR.
 - Depende de: A6
 - Arquivos: `src/instrumentation.ts`
+- **Registro da execução (28/10/2026): A7 PARADA, desenho não sustentado integralmente; nada commitado.**
+  - Fonte lida antes de escrever (documentação que acompanha o Next 16.4.3, `node_modules/next/dist/docs/01-app/...`: `03-api-reference/03-file-conventions/instrumentation.md` e `02-guides/instrumentation.md`). **Sustenta:** arquivo `instrumentation.ts` em `src/`; `register` (pode ser `async`) é chamada **uma vez** quando a instância do servidor inicia e "must complete before the server is ready to handle requests"; recomenda `await import()` dentro de `register`; `NEXT_RUNTIME` distingue `nodejs` e `edge`. **Não diz** o que acontece quando `register` lança erro nem se o `next build` a chama.
+  - Protótipo testado e descartado (`register` chamando `getConfig()` só quando `NEXT_RUNTIME === "nodejs"`):
+    - `pnpm build` **sem `.env`** passa: o build não chama `register`. OK.
+    - `next start` com ambiente válido sobe e responde HTTP 200. OK.
+    - `next start` com `JOBS_SECRET` ausente imprime `Configuração inválida. Corrija as variáveis: JOBS_SECRET.` (sem valores), **mas o processo não encerra**: fica escutando, responde **HTTP 500** a toda requisição e repete o erro a cada uma. O Next envolve o erro em `Failed to prepare server ... An error occurred while loading instrumentation hook:`.
+  - **Divergência:** o RF4 da spec diz que variável inválida "derruba a subida". Na prática o servidor sobe quebrado (falha fechada, mas sem sair). Em contêiner isso não aciona reinício nem alerta; só o futuro `/api/health` acusaria.
+  - Alternativas para o Vitor decidir: (1) aceitar o comportamento (falha fechada com 500 e mensagem clara) e ajustar a redação do RF4 e do aceite de A7; (2) no `register`, capturar `ErroDeConfiguracao`, imprimir a mensagem e chamar `process.exit(1)` só no runtime `nodejs` (faz o servidor cair de verdade; é decisão de projeto, porque encerrar o processo dentro de um hook do framework não está documentado); (3) validar também num script de entrada do contêiner na base-B (`node -e` ou `server.js` próprio), mantendo `instrumentation.ts` só como rede de segurança.
 
 **A8. Porta `logger`** (S)
 - Descrição: interface `Logger` (spec), `json-logger` (uma linha JSON com `nivel`, `msg`, `em` em ISO e contexto), `fake-logger` (guarda o que recebeu) e fábrica `criarLogger(config)`.
