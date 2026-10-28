@@ -20,7 +20,7 @@ Entregar o esqueleto técnico do Tempestivo: um projeto que sobe, testa, compila
 Usuários deste módulo: Vitor e Vini (desenvolvedores). Sucesso significa que:
 
 1. uma pessoa nova clona o repositório e roda o app em até 10 minutos, seguindo só o README;
-2. `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam local e no CI;
+2. `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam local e no CI;
 3. trocar de hospedagem exige só variáveis de ambiente e, no máximo, um adaptador;
 4. nenhum item exige cartão, plano pago ou serviço pago.
 
@@ -223,13 +223,13 @@ Válidos depois que cada entrega existir. Em Windows, rodar no PowerShell ou no 
 Instalar:        pnpm install --frozen-lockfile
 Dev:             pnpm dev                          # http://localhost:3000
 Lint:            pnpm lint
-Tipos:           pnpm tsc --noEmit
+Tipos:           pnpm typecheck
 Teste:           pnpm test                         # vitest run (uma vez, sem watch)
 Teste (watch):   pnpm test:watch
 E2E:             pnpm e2e                          # playwright test (Chromium)
 Build:           pnpm build
 Produção local:  pnpm start
-Tudo (antes do PR): pnpm lint && pnpm tsc --noEmit && pnpm test && pnpm build
+Tudo (antes do PR): pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
 **base-B**
@@ -408,7 +408,7 @@ Fluxo: `test-driven-development` para config, logger e scheduler (teste primeiro
 **base-A**
 
 - [ ] Em máquina limpa, README → app rodando em até 10 minutos (testado por Vini).
-- [ ] `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam local e no CI.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam local e no CI.
 - [ ] `pnpm e2e` passa nas três larguras, em Chromium, sem rolagem horizontal.
 - [ ] Subir com `JOBS_SECRET` curto ou ausente falha com mensagem em português que nomeia a variável e não mostra o valor.
 - [ ] Import proibido (módulo interno, Prisma em `src/app`, `@vercel/*`) falha o lint.

@@ -66,7 +66,7 @@ Válidos depois que o módulo `base` existir:
 Dev:        pnpm dev
 Teste:      pnpm vitest run src/modules/prazos
 Teste tudo: pnpm test
-Tipos:      pnpm tsc --noEmit
+Tipos:      pnpm typecheck
 Lint:       pnpm lint
 Migração:   pnpm prisma migrate dev --name <nome>
 Build:      pnpm build
