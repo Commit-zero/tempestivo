@@ -113,6 +113,10 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Verificação: abrir PRs de teste no repositório privado.
 - Depende de: A4, P3
 - Arquivos: `.github/workflows/ci.yml`
+- **Registro da execução (28/10/2026):**
+  - Versões conferidas nos repositórios oficiais (`gh api`): `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0 (tags completas, como decidido) e `pnpm/action-setup` v6.1.0, fixada pelo hash do commit `ea17c68df8912ef543352723c149a84f56e3d413` (a tag é anotada; o objeto da tag aponta para esse commit). O README da `pnpm/action-setup` diz que ela suporta pnpm v12 e que lê `packageManager` do `package.json` quando `version` é omitido.
+  - `setup-node` lê o Node de `.nvmrc` (`node-version-file`) e cacheia o armazenamento do pnpm (`cache: pnpm`, que exige o pnpm já instalado; por isso `pnpm/action-setup` vem antes).
+  - `checkout` com `persist-credentials: false`; `timeout-minutes: 10`; `NEXT_TELEMETRY_DISABLED=1` e variáveis falsas no nível do job.
 
 ### Fase 3: Núcleo das portas (teste primeiro)
 
@@ -268,5 +272,5 @@ Divisão (decidida pelo Vitor em 28/10/2026): **Vitor** A1, A2, A4, A5, A6, A7, 
 Decididas pelo Vitor em 28/10/2026: commit inicial da documentação (P2) feito antes de A1; datas de 30/10 e 04/11; actions fixadas por tag completa (GitHub) e hash (terceiros); divisão Vitor/Vini como acima.
 
 Pendente:
-- O Vitor confirma que `Commit-zero/tempestivo` é privado (P3).
+- ~~O Vitor confirma que `Commit-zero/tempestivo` é privado (P3).~~ Confirmado em 28/10/2026 (`gh repo view` devolveu `PRIVATE`).
 - O Vini aceita o convite e instala Node e pnpm (P4).
