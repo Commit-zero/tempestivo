@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
 
 # next.js
 /.next/
@@ -30,8 +34,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# variáveis de ambiente: nunca commitar; só o modelo .env.example entra
 .env*
+!.env.example
+
+# cliente Prisma gerado (base-B)
+/src/generated/
+
+# configuração local do Claude Code
+.claude/settings.local.json
 
 # vercel
 .vercel
