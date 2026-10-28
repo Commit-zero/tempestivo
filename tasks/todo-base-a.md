@@ -5,14 +5,14 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 ## Pré-requisitos (fora das tarefas)
 - [ ] P1. Reabrir o Claude Code; `node -v` = v24.22.1 e `pnpm -v` = 12.16.1 (Vitor)
 - [x] P2. Commit inicial só com a documentação existente, a pedido do Vitor (28/10/2026)
-- [ ] P3. Repositório `Commit-zero/tempestivo` confirmado como privado (Vitor; `origin` já existe; necessário para A5 e A15)
+- [x] P3. Repositório `Commit-zero/tempestivo` confirmado como privado (Vitor; `origin` já existe; necessário para A5 e A15)
 - [ ] P4. Vini convidado na organização e com Node 24.22.1 e pnpm 12.16.1 instalados
 
 ## Fase 1: Projeto e ferramentas
-- [ ] A1. Criar o projeto Next.js e fixar as versões (M, exceção de arquivos)
-- [ ] A2. Higiene do repositório: `.gitignore` e `.gitattributes` (XS)
-- [ ] A3. Estrutura de pastas, shadcn/ui e página inicial em português (S)
-- [ ] A4. Vitest configurado (S)
+- [x] A1. Criar o projeto Next.js e fixar as versões (M, exceção de arquivos)
+- [x] A2. Higiene do repositório: `.gitignore` e `.gitattributes` (XS)
+- [x] A3. Estrutura de pastas, shadcn/ui e página inicial em português (S)
+- [x] A4. Vitest configurado (S)
 
 ### Checkpoint 1: ferramentas
 - [ ] `pnpm install --frozen-lockfile`, lint, `tsc`, testes e build passam

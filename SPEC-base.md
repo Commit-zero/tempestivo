@@ -20,7 +20,7 @@ Entregar o esqueleto técnico do Tempestivo: um projeto que sobe, testa, compila
 Usuários deste módulo: Vitor e Vini (desenvolvedores). Sucesso significa que:
 
 1. uma pessoa nova clona o repositório e roda o app em até 10 minutos, seguindo só o README;
-2. `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam local e no CI;
+2. `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam local e no CI;
 3. trocar de hospedagem exige só variáveis de ambiente e, no máximo, um adaptador;
 4. nenhum item exige cartão, plano pago ou serviço pago.
 
@@ -167,6 +167,13 @@ Cada requisito pertence a uma entrega.
 
 Mudança em relação à versão anterior: o servidor S3 local saiu; o RF de configuração e o logger passaram a ser da entrega A; `DATABASE_URL` entra no schema do zod só na entrega B, para a entrega A não exigir banco.
 
+### Notas para a base-B (registradas na execução da A1)
+
+- **`sharp` e `next/image`:** o pnpm 12 bloqueia scripts de instalação por `allowBuilds` em `pnpm-workspace.yaml`, e hoje `sharp` e `unrs-resolver` estão como `false`. Se a imagem Docker usar `next/image` em produção, **liberar o `sharp` (`true`) ou evitar o recurso** (por exemplo `images.unoptimized`). Decidir e verificar na tarefa do Dockerfile, com a imagem rodando.
+- **Prisma:** os pacotes do Prisma com script de instalação provavelmente precisarão de entrada em `allowBuilds`. Conferir na primeira instalação da base-B e registrar.
+- **Tipos no Docker e no CI:** `tsc` exige `next typegen` antes numa pasta limpa; usar o script `pnpm typecheck`.
+- **Telemetria:** o Dockerfile (estágios `builder` e `runner`) define `NEXT_TELEMETRY_DISABLED=1`, como no exemplo oficial https://github.com/vercel/next.js/tree/canary/examples/with-docker. O CI também (ver A5).
+
 ## Requisitos não funcionais
 
 - **Custo zero:** só ferramentas gratuitas de licença permissiva (MIT, Apache-2.0, BSD). Cada dependência nova é listada no PR com a licença.
@@ -216,13 +223,13 @@ Válidos depois que cada entrega existir. Em Windows, rodar no PowerShell ou no 
 Instalar:        pnpm install --frozen-lockfile
 Dev:             pnpm dev                          # http://localhost:3000
 Lint:            pnpm lint
-Tipos:           pnpm tsc --noEmit
+Tipos:           pnpm typecheck
 Teste:           pnpm test                         # vitest run (uma vez, sem watch)
 Teste (watch):   pnpm test:watch
 E2E:             pnpm e2e                          # playwright test (Chromium)
 Build:           pnpm build
 Produção local:  pnpm start
-Tudo (antes do PR): pnpm lint && pnpm tsc --noEmit && pnpm test && pnpm build
+Tudo (antes do PR): pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
 **base-B**
@@ -247,7 +254,7 @@ Criação do projeto (**só no turno de implementação**, depois de aprovada a 
 pnpm create next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-pnpm
 pnpm dlx shadcn@latest init
 pnpm add zod
-pnpm add -D vitest vite-tsconfig-paths @playwright/test
+pnpm add -D vitest @playwright/test         # alias @/ via resolve.tsconfigPaths do Vite (sem vite-tsconfig-paths)
 pnpm exec playwright install chromium        # no CI (Linux): acrescentar --with-deps
 
 # base-B
@@ -401,7 +408,7 @@ Fluxo: `test-driven-development` para config, logger e scheduler (teste primeiro
 **base-A**
 
 - [ ] Em máquina limpa, README → app rodando em até 10 minutos (testado por Vini).
-- [ ] `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam local e no CI.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam local e no CI.
 - [ ] `pnpm e2e` passa nas três larguras, em Chromium, sem rolagem horizontal.
 - [ ] Subir com `JOBS_SECRET` curto ou ausente falha com mensagem em português que nomeia a variável e não mostra o valor.
 - [ ] Import proibido (módulo interno, Prisma em `src/app`, `@vercel/*`) falha o lint.

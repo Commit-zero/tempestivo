@@ -20,13 +20,13 @@ Fica de fora da base-A, de propósito: `DATABASE_URL` no schema do zod, a pasta 
 ## Decisões de arquitetura
 
 - **Teste primeiro no que é lógica** (config, logger, scheduler, fakes, regras de lint): escrever o teste, vê-lo falhar, escrever o código (`test-driven-development`). Para scaffold e configuração, a verificação é o comando rodar.
-- **Fatias horizontais aqui são aceitáveis.** O `base` não tem fluxo de usuário; cada tarefa deixa o repositório num estado em que `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test` e `pnpm build` passam.
-- **Uma tarefa, um commit**, em português, no imperativo, feito quando o Vitor pedir. Antes de cada commit: `pnpm lint && pnpm tsc --noEmit && pnpm test && pnpm build`.
+- **Fatias horizontais aqui são aceitáveis.** O `base` não tem fluxo de usuário; cada tarefa deixa o repositório num estado em que `pnpm lint`, `pnpm typecheck`, `pnpm test` e `pnpm build` passam.
+- **Uma tarefa, um commit**, em português, no imperativo, feito quando o Vitor pedir. Antes de cada commit: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
 - **Config é uma função pura mais um cache.** `lerConfig(env)` valida um objeto e é o que os testes usam; `getConfig()` lê `process.env` na primeira chamada e guarda o resultado. O build não chama `getConfig()` (senão o build do CI e do Docker quebraria sem segredos).
 - **Drivers só aceitam `fake` na base-A.** Valores reais (`smtp`, `s3`, `gemini`) entram no schema junto com o adaptador real, no módulo que o usar.
 - **Redação de segredos no logger por nome de campo**, não por valor, e testada.
 - **Fronteiras testadas como código:** a regra de lint é verificada por um teste Vitest que usa a API do ESLint sobre trechos de código, para a regra não quebrar sem aviso.
-- **Sem dependência fora da tabela de stack da spec.** Nesta entrega entram: `zod`, `vitest`, `vite-tsconfig-paths`, `@playwright/test` e o que `create-next-app` e `shadcn` trazem.
+- **Sem dependência fora da tabela de stack da spec.** Nesta entrega entram: `zod`, `vitest`, `@playwright/test` e o que `create-next-app` e `shadcn` trazem.
 - **`package.json` e `pnpm-lock.yaml` são pontos de conflito entre Vitor e Vini.** Quem instala dependência faz o PR pequeno e o outro dá `rebase` logo em seguida.
 
 ## Lista de tarefas
@@ -43,10 +43,19 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - sem Cache Components e sem React Compiler;
   - `package.json` tem `"packageManager": "pnpm@12.16.1"`, `engines` e `.nvmrc` com `24.22.1`;
   - `pnpm install --frozen-lockfile` passa com o `pnpm-lock.yaml` gerado.
-- Verificação: `pnpm install --frozen-lockfile && pnpm lint && pnpm tsc --noEmit && pnpm build`; `pnpm dev` responde em `http://localhost:3000`.
+- Verificação: `pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm build`; `pnpm dev` responde em `http://localhost:3000`.
 - Depende de: P1 (e P2, recomendado)
 - Arquivos: `package.json`, `pnpm-lock.yaml`, `.nvmrc`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `src/app/*` (scaffold)
 - Se falhar: o `create-next-app` recusa pasta não vazia → gerar numa pasta temporária no scratchpad e mover só os arquivos novos, conferindo cada um.
+- **Registro da execução (28/10/2026, aceita pelo Vitor):**
+  - `create-next-app` 16.4.3 recusou a raiz (arquivos que poderiam conflitar); foi usado o plano B (gerar em pasta temporária com `--skip-install` e copiar só os arquivos novos, sem o `README.md` genérico). As flags `--no-agents-md`, `--no-agent-feedback` e `--disable-git` foram aceitas.
+  - **Scripts de instalação no pnpm 12:** o `create-next-app` criou `pnpm-workspace.yaml` com `allowBuilds` bloqueando `sharp` e `unrs-resolver` (`false`). O `pnpm install` terminou sem pedir aprovação e sem rodar esses scripts; lint, `tsc`, build e dev passaram assim. Qualquer pacote novo com script de instalação precisa de entrada explícita nessa lista.
+  - Removidos do `next.config.ts`: `cacheComponents` e `partialPrefetching` (vinham ligados). Acrescentado `agentRules: false`, porque o `next dev` gerava `AGENTS.md` sozinho.
+  - `@types/node` ajustado de `^20` para `^24`; `engines` e `.nvmrc` criados.
+  - **`tsc` numa pasta limpa exige `pnpm exec next typegen` antes** (o tipo global `LayoutProps` é gerado pelo Next). Vale para o A5. Decidido pelo Vitor: script `"typecheck": "next typegen && tsc --noEmit"` no `package.json` (forma confirmada em https://nextjs.org/docs/app/api-reference/cli/next#next-typegen-options); o CI e todos os comandos de verificação usam `pnpm typecheck`.
+  - **Telemetria do Next: desabilitada** (decisão do Vitor). Localmente com `pnpm exec next telemetry --disable` (a ajuda da CLI 16.4.3 lista `--disable`; o status passou a `Disabled`, gravado na configuração do usuário, fora do repositório). **O CI (A5) e o Dockerfile (base-B) devem definir `NEXT_TELEMETRY_DISABLED=1`**, build e execução.
+  - Pendente de decisão do Vitor: aviso de depreciação do `eslint@9.39.5`.
+  - Divergência da documentação: o Tailwind veio por `@tailwindcss/turbopack`, não por PostCSS como na página de instalação do Tailwind.
 
 **A2. Higiene do repositório** (XS)
 - Descrição: `.gitignore` e `.gitattributes` conforme RF8.
@@ -63,31 +72,51 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 **A3. Estrutura de pastas, shadcn/ui e página inicial em português** (S)
 - Descrição: rodar `pnpm dlx shadcn@latest init` (base `radix`, sem alterar o que o scaffold fez), adicionar `button`, criar `src/modules/` (com `.gitkeep`) e escrever a página inicial com título e um botão, `<html lang="pt-BR">`.
 - Aceite: `components.json`, `src/lib/utils.ts` (`cn`) e `src/components/ui/button.tsx` existem; a página mostra texto em português e o botão; sem rolagem horizontal em 360, 768 e 1280 px.
-- Verificação: `pnpm lint && pnpm tsc --noEmit && pnpm build`; conferência visual nas três larguras com as ferramentas do navegador.
+- Verificação: `pnpm lint && pnpm typecheck && pnpm build`; conferência visual nas três larguras com as ferramentas do navegador.
 - Depende de: A1
 - Arquivos: `components.json`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `src/components/ui/button.tsx`, `src/lib/utils.ts`, `src/modules/.gitkeep`
+- **Registro da execução (28/10/2026):**
+  - `shadcn@4.23.0`: `init --base radix --preset nova --yes --no-monorepo --no-rtl` (sem `--preset` ele pergunta de forma interativa). Preset Nova (Lucide + Geist).
+  - **Dependências novas trazidas pelo shadcn:** `class-variance-authority`, `lucide-react`, `radix-ui`, `shadcn`, `tw-animate-css` e **`cn ^0.5.0`**. O `src/lib/utils.ts` ficou `export { cn } from "cn"` (em vez de `clsx` + `tailwind-merge`). Procedência do `cn` conferida no registro npm: MIT, repositório `shadcn-ui/cn`, mantenedor `shadcn`, e o pacote `shadcn@4.23.0` depende dele. Ressalva: o nome `cn` existe no npm desde 2013 e o conteúdo atual vem de 09/2026 (0.5.0 de 16/10/2026). Alternativa conservadora, se o Vitor preferir: `clsx` + `tailwind-merge` em `utils.ts`.
+  - **Decisão do Vitor (Checkpoint 1):** manter o `cn`, com a versão **exata** (`"cn": "0.5.0"`, sem `^`). O `cn` entra na revisão de dependências do Checkpoint 2.
+  - O `init` deixou `--font-sans: var(--font-sans)` circular no `globals.css`; corrigido no `layout.tsx` (a Geist agora define `--font-sans`). O tema ficou só claro (o `.dark` existe, mas nada o ativa).
+  - **Tamanhos do botão do preset Nova ficam abaixo de 44 px** (`default` 32 px, `lg` 36 px). A tela usa `min-h-11`. **Decisão do Vitor (Checkpoint 1):** ajustar `button.tsx` uma vez, mobile-first: `default` e `lg` com `h-11` (44 px) no celular e `md:h-8` / `md:h-9` a partir de `md`; o `min-h-11` avulso saiu da página inicial. Os tamanhos `xs`, `sm` e `icon*` continuam abaixo de 44 px; quem os usar em tela de toque deve tratar a área de toque.
+  - Removidos os cinco SVGs de exemplo de `public/` e criado `public/.gitkeep` (o Dockerfile da base-B copia `public/`).
+  - Conferência visual (Chrome, iframes de 360, 768 e 1280 px): `lang="pt-BR"`, título e botão renderizados, botão com 44 px de altura, `scrollWidth == clientWidth` nas três larguras. Screenshot real só na largura da janela do navegador (cerca de 1568 px); 360 e 768 foram medidos por iframe, não por janela redimensionada.
 
 **A4. Vitest configurado** (S)
-- Descrição: instalar `vitest` e `vite-tsconfig-paths`; `vitest.config.mts` com ambiente `node` e alias `@/`; scripts `test` (`vitest run`) e `test:watch`; primeiro teste real sobre `cn` (A3).
+- Descrição: instalar `vitest`; `vitest.config.mts` com ambiente `node` e alias `@/` (por `resolve.tsconfigPaths: true`, ver o registro abaixo); scripts `test` (`vitest run`) e `test:watch`; primeiro teste real sobre `cn` (A3).
 - Aceite: `pnpm test` roda uma vez e termina; o alias `@/` funciona dentro de teste; trocar a asserção por uma errada faz o comando falhar (verificado e revertido).
 - Verificação: `pnpm test`.
 - Depende de: A1, A3
 - Arquivos: `vitest.config.mts`, `package.json`, `pnpm-lock.yaml`, `src/lib/utils.test.ts`
+- **Registro da execução (28/10/2026):**
+  - `vitest@5.0.5` (MIT). Teste escrito antes: primeiro com asserção errada de propósito (vermelho: `expected 'a c' to be 'a-b-c'`), depois corrigido (verde, 2 testes). O teste importa `@/lib/utils`, o que prova o alias.
+  - **`vite-tsconfig-paths` não entrou.** Foi instalado e removido: o Vitest avisou que o Vite resolve `paths` nativamente, e a documentação do Vite confirma `resolve.tsconfigPaths` (padrão `false`, vale para arquivos incluídos pelo `tsconfig.json`; https://vite.dev/config/shared-options). Uma dependência a menos, e a subdependência depreciada `tsconfck` saiu junto. A página de testes com Vitest do Next.js ainda cita o plugin; a divergência fica registrada.
+  - **Remoção do `vite-tsconfig-paths` aceita pelo Vitor (Checkpoint 1).** Fonte: documentação do Vite, `resolve.tsconfigPaths` (https://vite.dev/config/shared-options). O alias `@/` é provado pelo teste, que importa `@/lib/utils`.
 
 ### Checkpoint 1: ferramentas
-- [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm tsc --noEmit`, `pnpm test`, `pnpm build` passam
+- [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` passam
 - [ ] Versões fixadas conferidas (`node -v`, `pnpm -v`) e registradas
 - [ ] Revisão cruzada do Vini no PR de A1 (a base de tudo)
 - [ ] Vini e Vitor já conseguem trabalhar em paralelo
 
+**Pendências conhecidas (decididas pelo Vitor no Checkpoint 1; deixadas como estão):**
+- Aviso de depreciação do `eslint@9.39.5`: manter por ora.
+- Tema só claro: o `.dark` existe no `globals.css`, mas nada o ativa.
+
 ### Fase 2: Integração contínua
 
 **A5. CI de qualidade** (M)
-- Descrição: `.github/workflows/ci.yml` com um job `qualidade` (instalar com `--frozen-lockfile`, lint, `tsc`, testes, build), em `pull_request` e em `push` na `main`. Antes de escrever, consultar a documentação oficial do GitHub Actions e do pnpm 12 para: instalar o pnpm na versão exata do `packageManager`, ler o Node de `.nvmrc` e cachear o armazenamento do pnpm. **Fixação das actions (decisão do Vitor):** tag de versão completa (por exemplo `v4.2.1`, nunca só `v4`) para as da GitHub (`actions/*`) e **hash de commit** para as de terceiros (por exemplo `pnpm/action-setup`), com o hash e a tag de origem em comentário e ambos conferidos na documentação ou no repositório oficial da action. `permissions: contents: read`; `concurrency` cancelando execuções antigas do mesmo PR. Variáveis de ambiente do CI são **valores falsos**, nunca segredos.
+- Descrição: `.github/workflows/ci.yml` com um job `qualidade` (instalar com `--frozen-lockfile`, lint, `tsc`, testes, build), em `pull_request` e em `push` na `main`. Antes de escrever, consultar a documentação oficial do GitHub Actions e do pnpm 12 para: instalar o pnpm na versão exata do `packageManager`, ler o Node de `.nvmrc` e cachear o armazenamento do pnpm. **Fixação das actions (decisão do Vitor):** tag de versão completa (por exemplo `v4.2.1`, nunca só `v4`) para as da GitHub (`actions/*`) e **hash de commit** para as de terceiros (por exemplo `pnpm/action-setup`), com o hash e a tag de origem em comentário e ambos conferidos na documentação ou no repositório oficial da action. `permissions: contents: read`; `concurrency` cancelando execuções antigas do mesmo PR. Variáveis de ambiente do CI são **valores falsos**, nunca segredos. O workflow define `NEXT_TELEMETRY_DISABLED=1` no nível do job.
 - Aceite: PR com mudança trivial fica verde; PR com um teste quebrado de propósito fica vermelho (verificado numa branch descartável); duração do job de qualidade até 4 minutos (meta, o total de CI da spec é 8).
 - Verificação: abrir PRs de teste no repositório privado.
 - Depende de: A4, P3
 - Arquivos: `.github/workflows/ci.yml`
+- **Registro da execução (28/10/2026):**
+  - Versões conferidas nos repositórios oficiais (`gh api`): `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0 (tags completas, como decidido) e `pnpm/action-setup` v6.1.0, fixada pelo hash do commit `ea17c68df8912ef543352723c149a84f56e3d413` (a tag é anotada; o objeto da tag aponta para esse commit). O README da `pnpm/action-setup` diz que ela suporta pnpm v12 e que lê `packageManager` do `package.json` quando `version` é omitido.
+  - `setup-node` lê o Node de `.nvmrc` (`node-version-file`) e cacheia o armazenamento do pnpm (`cache: pnpm`, que exige o pnpm já instalado; por isso `pnpm/action-setup` vem antes).
+  - `checkout` com `persist-credentials: false`; `timeout-minutes: 10`; `NEXT_TELEMETRY_DISABLED=1` e variáveis falsas no nível do job.
 
 ### Fase 3: Núcleo das portas (teste primeiro)
 
@@ -125,6 +154,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Arquivos: `src/platform/scheduler/scheduler.ts`, `scheduler-http.ts`, `fake-scheduler.ts`, `index.ts`, `scheduler.test.ts`
 
 ### Checkpoint 2: núcleo
+- [ ] Revisão de dependências: reavaliar o `cn` (versão exata `0.5.0`; alternativa `clsx` + `tailwind-merge`)
 - [ ] Todos os testes passam; `tsc`, lint e build limpos; CI verde
 - [ ] `revisor-seguranca-lgpd` sem achados críticos ou altos em config, logger e scheduler
 - [ ] Nenhum valor de segredo aparece em mensagem de erro nem em log (conferido nos testes)
@@ -242,5 +272,5 @@ Divisão (decidida pelo Vitor em 28/10/2026): **Vitor** A1, A2, A4, A5, A6, A7, 
 Decididas pelo Vitor em 28/10/2026: commit inicial da documentação (P2) feito antes de A1; datas de 30/10 e 04/11; actions fixadas por tag completa (GitHub) e hash (terceiros); divisão Vitor/Vini como acima.
 
 Pendente:
-- O Vitor confirma que `Commit-zero/tempestivo` é privado (P3).
+- ~~O Vitor confirma que `Commit-zero/tempestivo` é privado (P3).~~ Confirmado em 28/10/2026 (`gh repo view` devolveu `PRIVATE`).
 - O Vini aceita o convite e instala Node e pnpm (P4).
