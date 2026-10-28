@@ -171,7 +171,8 @@ Mudança em relação à versão anterior: o servidor S3 local saiu; o RF de con
 
 - **`sharp` e `next/image`:** o pnpm 12 bloqueia scripts de instalação por `allowBuilds` em `pnpm-workspace.yaml`, e hoje `sharp` e `unrs-resolver` estão como `false`. Se a imagem Docker usar `next/image` em produção, **liberar o `sharp` (`true`) ou evitar o recurso** (por exemplo `images.unoptimized`). Decidir e verificar na tarefa do Dockerfile, com a imagem rodando.
 - **Prisma:** os pacotes do Prisma com script de instalação provavelmente precisarão de entrada em `allowBuilds`. Conferir na primeira instalação da base-B e registrar.
-- **Tipos no Docker e no CI:** `tsc` exige `pnpm exec next typegen` antes numa pasta limpa.
+- **Tipos no Docker e no CI:** `tsc` exige `next typegen` antes numa pasta limpa; usar o script `pnpm typecheck`.
+- **Telemetria:** o Dockerfile (estágios `builder` e `runner`) define `NEXT_TELEMETRY_DISABLED=1`, como no exemplo oficial https://github.com/vercel/next.js/tree/canary/examples/with-docker. O CI também (ver A5).
 
 ## Requisitos não funcionais
 

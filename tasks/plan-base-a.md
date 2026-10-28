@@ -53,7 +53,8 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - Removidos do `next.config.ts`: `cacheComponents` e `partialPrefetching` (vinham ligados). Acrescentado `agentRules: false`, porque o `next dev` gerava `AGENTS.md` sozinho.
   - `@types/node` ajustado de `^20` para `^24`; `engines` e `.nvmrc` criados.
   - **`tsc` numa pasta limpa exige `pnpm exec next typegen` antes** (o tipo global `LayoutProps` é gerado pelo Next). Vale para o A5. Script `typecheck` ainda não decidido.
-  - Pendentes de decisão do Vitor: telemetria anônima do Next; aviso de depreciação do `eslint@9.39.5`.
+  - **Telemetria do Next: desabilitada** (decisão do Vitor). Localmente com `pnpm exec next telemetry --disable` (a ajuda da CLI 16.4.3 lista `--disable`; o status passou a `Disabled`, gravado na configuração do usuário, fora do repositório). **O CI (A5) e o Dockerfile (base-B) devem definir `NEXT_TELEMETRY_DISABLED=1`**, build e execução.
+  - Pendente de decisão do Vitor: aviso de depreciação do `eslint@9.39.5`.
   - Divergência da documentação: o Tailwind veio por `@tailwindcss/turbopack`, não por PostCSS como na página de instalação do Tailwind.
 
 **A2. Higiene do repositório** (XS)
@@ -91,7 +92,7 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 ### Fase 2: Integração contínua
 
 **A5. CI de qualidade** (M)
-- Descrição: `.github/workflows/ci.yml` com um job `qualidade` (instalar com `--frozen-lockfile`, lint, `tsc`, testes, build), em `pull_request` e em `push` na `main`. Antes de escrever, consultar a documentação oficial do GitHub Actions e do pnpm 12 para: instalar o pnpm na versão exata do `packageManager`, ler o Node de `.nvmrc` e cachear o armazenamento do pnpm. **Fixação das actions (decisão do Vitor):** tag de versão completa (por exemplo `v4.2.1`, nunca só `v4`) para as da GitHub (`actions/*`) e **hash de commit** para as de terceiros (por exemplo `pnpm/action-setup`), com o hash e a tag de origem em comentário e ambos conferidos na documentação ou no repositório oficial da action. `permissions: contents: read`; `concurrency` cancelando execuções antigas do mesmo PR. Variáveis de ambiente do CI são **valores falsos**, nunca segredos.
+- Descrição: `.github/workflows/ci.yml` com um job `qualidade` (instalar com `--frozen-lockfile`, lint, `tsc`, testes, build), em `pull_request` e em `push` na `main`. Antes de escrever, consultar a documentação oficial do GitHub Actions e do pnpm 12 para: instalar o pnpm na versão exata do `packageManager`, ler o Node de `.nvmrc` e cachear o armazenamento do pnpm. **Fixação das actions (decisão do Vitor):** tag de versão completa (por exemplo `v4.2.1`, nunca só `v4`) para as da GitHub (`actions/*`) e **hash de commit** para as de terceiros (por exemplo `pnpm/action-setup`), com o hash e a tag de origem em comentário e ambos conferidos na documentação ou no repositório oficial da action. `permissions: contents: read`; `concurrency` cancelando execuções antigas do mesmo PR. Variáveis de ambiente do CI são **valores falsos**, nunca segredos. O workflow define `NEXT_TELEMETRY_DISABLED=1` no nível do job.
 - Aceite: PR com mudança trivial fica verde; PR com um teste quebrado de propósito fica vermelho (verificado numa branch descartável); duração do job de qualidade até 4 minutos (meta, o total de CI da spec é 8).
 - Verificação: abrir PRs de teste no repositório privado.
 - Depende de: A4, P3
