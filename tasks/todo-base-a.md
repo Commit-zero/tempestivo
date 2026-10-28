@@ -21,7 +21,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Vini e Vitor já trabalham em paralelo
 
 ## Fase 2: Integração contínua
-- [ ] A5. CI de qualidade: lint, `tsc`, testes, build (M)
+- [x] A5. CI de qualidade: lint, `tsc`, testes, build (M)
 
 ## Fase 3: Núcleo das portas (teste primeiro)
 - [ ] A6. Porta `config` com zod e `.env.example` (M)

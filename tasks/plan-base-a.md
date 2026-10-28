@@ -117,6 +117,11 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - Versões conferidas nos repositórios oficiais (`gh api`): `actions/checkout` v7.0.1, `actions/setup-node` v7.1.0 (tags completas, como decidido) e `pnpm/action-setup` v6.1.0, fixada pelo hash do commit `ea17c68df8912ef543352723c149a84f56e3d413` (a tag é anotada; o objeto da tag aponta para esse commit). O README da `pnpm/action-setup` diz que ela suporta pnpm v12 e que lê `packageManager` do `package.json` quando `version` é omitido.
   - `setup-node` lê o Node de `.nvmrc` (`node-version-file`) e cacheia o armazenamento do pnpm (`cache: pnpm`, que exige o pnpm já instalado; por isso `pnpm/action-setup` vem antes).
   - `checkout` com `persist-credentials: false`; `timeout-minutes: 10`; `NEXT_TELEMETRY_DISABLED=1` e variáveis falsas no nível do job.
+  - **Aceite do Vitor (28/10/2026).** Tempos reais do job `qualidade` (do início ao fim, pela API do GitHub): **39 s no verde** (PR #1, execução 40759060755) e **22 s no vermelho** (PR #2, descartável, execução 40759212360), bem abaixo da meta de 4 minutos. A primeira execução não tinha cache do pnpm para restaurar.
+  - **Prova do vermelho:** o PR #2 (`descartavel/ci-vermelho`, já fechado) tinha um teste quebrado de propósito. O job falhou no passo `pnpm test`; `pnpm build` ficou como `skipped`. Lint e `typecheck` passaram antes.
+  - **Proteção da branch `main`:** `gh api repos/Commit-zero/tempestivo/branches/main/protection` respondeu HTTP 403 ("Upgrade to GitHub Pro or make this repository public to enable this feature"). A proteção não está disponível no plano gratuito com repositório privado. Consequência: a regra "`main` protegida" do `CLAUDE.md` vale só por combinação da equipe (PR e revisão cruzada), sem trava técnica. Nada foi alterado.
+  - **Mudança de configuração feita no GitHub:** a branch padrão do repositório passou a ser `main`.
+  - **Pendente:** conferir no log da próxima execução verde se o cache do pnpm foi restaurado e registrar aqui.
 
 ### Fase 3: Núcleo das portas (teste primeiro)
 
