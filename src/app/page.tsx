@@ -9,7 +9,7 @@ export default function Home() {
       <p className="text-base text-muted-foreground sm:text-lg">
         Nunca perca um prazo e receba seus honorários.
       </p>
-      <Button className="min-h-11" disabled>
+      <Button disabled>
         Cadastro em breve
       </Button>
     </main>
