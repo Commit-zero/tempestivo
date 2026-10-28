@@ -167,6 +167,12 @@ Cada requisito pertence a uma entrega.
 
 Mudança em relação à versão anterior: o servidor S3 local saiu; o RF de configuração e o logger passaram a ser da entrega A; `DATABASE_URL` entra no schema do zod só na entrega B, para a entrega A não exigir banco.
 
+### Notas para a base-B (registradas na execução da A1)
+
+- **`sharp` e `next/image`:** o pnpm 12 bloqueia scripts de instalação por `allowBuilds` em `pnpm-workspace.yaml`, e hoje `sharp` e `unrs-resolver` estão como `false`. Se a imagem Docker usar `next/image` em produção, **liberar o `sharp` (`true`) ou evitar o recurso** (por exemplo `images.unoptimized`). Decidir e verificar na tarefa do Dockerfile, com a imagem rodando.
+- **Prisma:** os pacotes do Prisma com script de instalação provavelmente precisarão de entrada em `allowBuilds`. Conferir na primeira instalação da base-B e registrar.
+- **Tipos no Docker e no CI:** `tsc` exige `pnpm exec next typegen` antes numa pasta limpa.
+
 ## Requisitos não funcionais
 
 - **Custo zero:** só ferramentas gratuitas de licença permissiva (MIT, Apache-2.0, BSD). Cada dependência nova é listada no PR com a licença.

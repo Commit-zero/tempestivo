@@ -47,6 +47,14 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - Depende de: P1 (e P2, recomendado)
 - Arquivos: `package.json`, `pnpm-lock.yaml`, `.nvmrc`, `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `src/app/*` (scaffold)
 - Se falhar: o `create-next-app` recusa pasta não vazia → gerar numa pasta temporária no scratchpad e mover só os arquivos novos, conferindo cada um.
+- **Registro da execução (28/10/2026, aceita pelo Vitor):**
+  - `create-next-app` 16.4.3 recusou a raiz (arquivos que poderiam conflitar); foi usado o plano B (gerar em pasta temporária com `--skip-install` e copiar só os arquivos novos, sem o `README.md` genérico). As flags `--no-agents-md`, `--no-agent-feedback` e `--disable-git` foram aceitas.
+  - **Scripts de instalação no pnpm 12:** o `create-next-app` criou `pnpm-workspace.yaml` com `allowBuilds` bloqueando `sharp` e `unrs-resolver` (`false`). O `pnpm install` terminou sem pedir aprovação e sem rodar esses scripts; lint, `tsc`, build e dev passaram assim. Qualquer pacote novo com script de instalação precisa de entrada explícita nessa lista.
+  - Removidos do `next.config.ts`: `cacheComponents` e `partialPrefetching` (vinham ligados). Acrescentado `agentRules: false`, porque o `next dev` gerava `AGENTS.md` sozinho.
+  - `@types/node` ajustado de `^20` para `^24`; `engines` e `.nvmrc` criados.
+  - **`tsc` numa pasta limpa exige `pnpm exec next typegen` antes** (o tipo global `LayoutProps` é gerado pelo Next). Vale para o A5. Script `typecheck` ainda não decidido.
+  - Pendentes de decisão do Vitor: telemetria anônima do Next; aviso de depreciação do `eslint@9.39.5`.
+  - Divergência da documentação: o Tailwind veio por `@tailwindcss/turbopack`, não por PostCSS como na página de instalação do Tailwind.
 
 **A2. Higiene do repositório** (XS)
 - Descrição: `.gitignore` e `.gitattributes` conforme RF8.
