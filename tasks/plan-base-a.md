@@ -101,6 +101,10 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
 - [ ] Revisão cruzada do Vini no PR de A1 (a base de tudo)
 - [ ] Vini e Vitor já conseguem trabalhar em paralelo
 
+**Pendências conhecidas (decididas pelo Vitor no Checkpoint 1; deixadas como estão):**
+- Aviso de depreciação do `eslint@9.39.5`: manter por ora.
+- Tema só claro: o `.dark` existe no `globals.css`, mas nada o ativa.
+
 ### Fase 2: Integração contínua
 
 **A5. CI de qualidade** (M)
