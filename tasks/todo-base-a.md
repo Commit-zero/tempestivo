@@ -12,7 +12,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [x] A1. Criar o projeto Next.js e fixar as versões (M, exceção de arquivos)
 - [x] A2. Higiene do repositório: `.gitignore` e `.gitattributes` (XS)
 - [x] A3. Estrutura de pastas, shadcn/ui e página inicial em português (S)
-- [ ] A4. Vitest configurado (S)
+- [x] A4. Vitest configurado (S)
 
 ### Checkpoint 1: ferramentas
 - [ ] `pnpm install --frozen-lockfile`, lint, `tsc`, testes e build passam

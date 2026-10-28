@@ -26,7 +26,7 @@ Fica de fora da base-A, de propósito: `DATABASE_URL` no schema do zod, a pasta 
 - **Drivers só aceitam `fake` na base-A.** Valores reais (`smtp`, `s3`, `gemini`) entram no schema junto com o adaptador real, no módulo que o usar.
 - **Redação de segredos no logger por nome de campo**, não por valor, e testada.
 - **Fronteiras testadas como código:** a regra de lint é verificada por um teste Vitest que usa a API do ESLint sobre trechos de código, para a regra não quebrar sem aviso.
-- **Sem dependência fora da tabela de stack da spec.** Nesta entrega entram: `zod`, `vitest`, `vite-tsconfig-paths`, `@playwright/test` e o que `create-next-app` e `shadcn` trazem.
+- **Sem dependência fora da tabela de stack da spec.** Nesta entrega entram: `zod`, `vitest`, `@playwright/test` e o que `create-next-app` e `shadcn` trazem.
 - **`package.json` e `pnpm-lock.yaml` são pontos de conflito entre Vitor e Vini.** Quem instala dependência faz o PR pequeno e o outro dá `rebase` logo em seguida.
 
 ## Lista de tarefas
@@ -84,11 +84,14 @@ Os ids usam o prefixo `A` para não colidir com os `T` do plano de `prazos`. Tam
   - Conferência visual (Chrome, iframes de 360, 768 e 1280 px): `lang="pt-BR"`, título e botão renderizados, botão com 44 px de altura, `scrollWidth == clientWidth` nas três larguras. Screenshot real só na largura da janela do navegador (cerca de 1568 px); 360 e 768 foram medidos por iframe, não por janela redimensionada.
 
 **A4. Vitest configurado** (S)
-- Descrição: instalar `vitest` e `vite-tsconfig-paths`; `vitest.config.mts` com ambiente `node` e alias `@/`; scripts `test` (`vitest run`) e `test:watch`; primeiro teste real sobre `cn` (A3).
+- Descrição: instalar `vitest`; `vitest.config.mts` com ambiente `node` e alias `@/` (por `resolve.tsconfigPaths: true`, ver o registro abaixo); scripts `test` (`vitest run`) e `test:watch`; primeiro teste real sobre `cn` (A3).
 - Aceite: `pnpm test` roda uma vez e termina; o alias `@/` funciona dentro de teste; trocar a asserção por uma errada faz o comando falhar (verificado e revertido).
 - Verificação: `pnpm test`.
 - Depende de: A1, A3
 - Arquivos: `vitest.config.mts`, `package.json`, `pnpm-lock.yaml`, `src/lib/utils.test.ts`
+- **Registro da execução (28/10/2026):**
+  - `vitest@5.0.5` (MIT). Teste escrito antes: primeiro com asserção errada de propósito (vermelho: `expected 'a c' to be 'a-b-c'`), depois corrigido (verde, 2 testes). O teste importa `@/lib/utils`, o que prova o alias.
+  - **`vite-tsconfig-paths` não entrou.** Foi instalado e removido: o Vitest avisou que o Vite resolve `paths` nativamente, e a documentação do Vite confirma `resolve.tsconfigPaths` (padrão `false`, vale para arquivos incluídos pelo `tsconfig.json`; https://vite.dev/config/shared-options). Uma dependência a menos, e a subdependência depreciada `tsconfck` saiu junto. A página de testes com Vitest do Next.js ainda cita o plugin; a divergência fica registrada.
 
 ### Checkpoint 1: ferramentas
 - [ ] `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` passam

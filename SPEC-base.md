@@ -254,7 +254,7 @@ Criação do projeto (**só no turno de implementação**, depois de aprovada a 
 pnpm create next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-pnpm
 pnpm dlx shadcn@latest init
 pnpm add zod
-pnpm add -D vitest vite-tsconfig-paths @playwright/test
+pnpm add -D vitest @playwright/test         # alias @/ via resolve.tsconfigPaths do Vite (sem vite-tsconfig-paths)
 pnpm exec playwright install chromium        # no CI (Linux): acrescentar --with-deps
 
 # base-B
