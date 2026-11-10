@@ -53,7 +53,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 ### Checkpoint 4: CI completo
 - [ ] `pnpm e2e` passa em 360, 768 e 1280 px; job `e2e` verde
 - [ ] CI total dentro de 8 minutos
-- [ ] `qa-responsivo` sem falhas na página inicial
+- [x] `qa-responsivo` sem falhas na página inicial (10/11/2026, com Edge; foco por teclado não testável: nenhum elemento ativo ainda; botões ativos futuros: `text-base` no celular)
 
 ## Fase 6: Documentação e fechamento
 - [x] A16. README e percurso de máquina limpa (S) — clone limpo: install 1m10s, página em 89s no total; falta o teste do Vini
