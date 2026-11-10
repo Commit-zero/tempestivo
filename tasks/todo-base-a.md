@@ -37,7 +37,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 
 ## Fase 4: Demais portas
 - [x] A10. Porta `storage` (S)
-- [ ] A11. Porta `mailer` (S)
+- [x] A11. Porta `mailer` (S)
 - [ ] A12. Porta `notifier` (S)
 - [ ] A13. Porta `ai` / `Extrator` (S)
 
