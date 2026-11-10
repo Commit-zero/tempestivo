@@ -39,7 +39,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [x] A10. Porta `storage` (S)
 - [x] A11. Porta `mailer` (S)
 - [x] A12. Porta `notifier` (S)
-- [ ] A13. Porta `ai` / `Extrator` (S)
+- [x] A13. Porta `ai` / `Extrator` (S)
 
 ### Checkpoint 3: portas completas
 - [ ] As sete portas têm interface, fake, fábrica e teste
