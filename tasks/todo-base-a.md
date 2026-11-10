@@ -36,7 +36,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Revisão cruzada do Vini
 
 ## Fase 4: Demais portas
-- [ ] A10. Porta `storage` (S)
+- [x] A10. Porta `storage` (S)
 - [ ] A11. Porta `mailer` (S)
 - [ ] A12. Porta `notifier` (S)
 - [ ] A13. Porta `ai` / `Extrator` (S)
