@@ -47,7 +47,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Revisão cruzada do Vini
 
 ## Fase 5: Fronteiras e e2e
-- [ ] A14. Fronteiras impostas por lint, com teste (M)
+- [x] A14. Fronteiras impostas por lint, com teste (M)
 - [ ] A15. Playwright, e2e nas três larguras e job no CI (M)
 
 ### Checkpoint 4: CI completo
