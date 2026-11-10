@@ -21,13 +21,13 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Vini e Vitor já trabalham em paralelo
 
 ## Fase 2: Integração contínua
-- [ ] A5. CI de qualidade: lint, `tsc`, testes, build (M)
+- [x] A5. CI de qualidade: lint, `tsc`, testes, build (M)
 
 ## Fase 3: Núcleo das portas (teste primeiro)
-- [ ] A6. Porta `config` com zod e `.env.example` (M)
-- [ ] A7. Validar a configuração ao subir o servidor (S)
-- [ ] A8. Porta `logger` (S)
-- [ ] A9. Porta `scheduler` (S)
+- [x] A6. Porta `config` com zod e `.env.example` (M)
+- [x] A7. Validar a configuração ao subir o servidor (S) — opção 2: `process.exit(1)` no `register`, só no runtime nodejs
+- [x] A8. Porta `logger` (S)
+- [x] A9. Porta `scheduler` (S)
 
 ### Checkpoint 2: núcleo
 - [ ] Testes, `tsc`, lint, build e CI verdes
@@ -36,10 +36,10 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Revisão cruzada do Vini
 
 ## Fase 4: Demais portas
-- [ ] A10. Porta `storage` (S)
-- [ ] A11. Porta `mailer` (S)
-- [ ] A12. Porta `notifier` (S)
-- [ ] A13. Porta `ai` / `Extrator` (S)
+- [x] A10. Porta `storage` (S)
+- [x] A11. Porta `mailer` (S)
+- [x] A12. Porta `notifier` (S)
+- [x] A13. Porta `ai` / `Extrator` (S)
 
 ### Checkpoint 3: portas completas
 - [ ] As sete portas têm interface, fake, fábrica e teste
@@ -47,16 +47,16 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] Revisão cruzada do Vini
 
 ## Fase 5: Fronteiras e e2e
-- [ ] A14. Fronteiras impostas por lint, com teste (M)
-- [ ] A15. Playwright, e2e nas três larguras e job no CI (M)
+- [x] A14. Fronteiras impostas por lint, com teste (M)
+- [x] A15. Playwright, e2e nas três larguras e job no CI (M) — job `e2e` ainda não rodou no GitHub; local só com `PLAYWRIGHT_CHANNEL=msedge`
 
 ### Checkpoint 4: CI completo
 - [ ] `pnpm e2e` passa em 360, 768 e 1280 px; job `e2e` verde
 - [ ] CI total dentro de 8 minutos
-- [ ] `qa-responsivo` sem falhas na página inicial
+- [x] `qa-responsivo` sem falhas na página inicial (10/11/2026, com Edge; foco por teclado não testável: nenhum elemento ativo ainda; botões ativos futuros: `text-base` no celular)
 
 ## Fase 6: Documentação e fechamento
-- [ ] A16. README e percurso de máquina limpa (S)
+- [x] A16. README e percurso de máquina limpa (S) — clone limpo: install 1m10s, página em 89s no total; falta o teste do Vini
 
 ### Checkpoint final: base-A
 - [ ] Critérios de sucesso da base-A na spec marcados, com evidência
