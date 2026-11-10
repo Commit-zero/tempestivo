@@ -288,3 +288,14 @@ Decididas pelo Vitor em 28/10/2026: commit inicial da documentação (P2) feito 
 Pendente:
 - ~~O Vitor confirma que `Commit-zero/tempestivo` é privado (P3).~~ Confirmado em 28/10/2026 (`gh repo view` devolveu `PRIVATE`).
 - O Vini aceita o convite e instala Node e pnpm (P4).
+
+## Pendências para a base-B (revisão de segurança, 10/11/2026)
+
+`revisor-seguranca-lgpd` na branch `base-a/a6-nucleo`: nenhum achado crítico ou alto. Tratado agora: lista de redação do logger ampliada com dados pessoais (`cpf`, `cnpj`, `telefone`, `celular`, `email`, `texto`, `conteudo`, `intimacao`, `api_key`). Fica para a base-B:
+- Falhar na subida se `NODE_ENV=production` e algum `*_DRIVER=fake` (o fake de IA guardaria texto real de intimação em memória).
+- `JOBS_SECRET`: em produção, rejeitar valor de baixa entropia ou o segredo falso do CI.
+- Mensagem de erro dos jobs: registrar só tipo e código, sem a mensagem bruta, ou ampliar a redação; o campo `msg` do logger não é redigido.
+- Storage real: `contaId` compondo a chave, sanitizar chave, validar tipo e tamanho.
+- Cada rota `/api/jobs/*` deve chamar `autorizado` antes de `executar` (revisar quando as rotas existirem).
+- Relatório do Playwright fica 7 dias: com login e dados no e2e, usar só dados fictícios.
+- Item do revisor sobre actions "sem hash" não se aplica: a decisão de 28/10 é tag completa para actions do GitHub e hash para terceiros.

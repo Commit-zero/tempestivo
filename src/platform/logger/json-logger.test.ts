@@ -114,6 +114,18 @@ describe("criarJsonLogger", () => {
       "Authorization",
       "set-cookie",
       "novaSenha",
+      // Dados pessoais de clientes (LGPD): nunca vão para o log.
+      "cpf",
+      "cnpj",
+      "telefone",
+      "celular",
+      "email",
+      "emailDoCliente",
+      "texto",
+      "conteudo",
+      "intimacao",
+      "api_key",
+      "apiKey",
     ];
 
     it.each(camposSensiveis)("oculta o campo %s", (campo) => {

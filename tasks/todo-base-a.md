@@ -56,7 +56,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 - [ ] `qa-responsivo` sem falhas na página inicial
 
 ## Fase 6: Documentação e fechamento
-- [ ] A16. README e percurso de máquina limpa (S)
+- [x] A16. README e percurso de máquina limpa (S) — clone limpo: install 1m10s, página em 89s no total; falta o teste do Vini
 
 ### Checkpoint final: base-A
 - [ ] Critérios de sucesso da base-A na spec marcados, com evidência

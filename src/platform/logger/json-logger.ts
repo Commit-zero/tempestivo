@@ -3,7 +3,11 @@ import { ordemDosNiveis, type Contexto, type Logger, type NivelLog } from "./log
 const OCULTO = "[oculto]";
 const OMITIDO = "[omitido]";
 
-const trechosSensiveis = ["senha", "password", "token", "secret", "authorization", "cookie", "database_url"];
+// Segredos e dados pessoais (LGPD). A redação é por nome de campo; o texto de `msg` não é vigiado.
+const trechosSensiveis = [
+  "senha", "password", "token", "secret", "authorization", "cookie", "database_url",
+  "cpf", "cnpj", "telefone", "celular", "email", "texto", "conteudo", "intimacao", "api_key", "apikey",
+];
 
 function nomeSensivel(nome: string): boolean {
   const minusculo = nome.toLowerCase();
