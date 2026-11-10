@@ -48,7 +48,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 
 ## Fase 5: Fronteiras e e2e
 - [x] A14. Fronteiras impostas por lint, com teste (M)
-- [ ] A15. Playwright, e2e nas três larguras e job no CI (M)
+- [x] A15. Playwright, e2e nas três larguras e job no CI (M) — job `e2e` ainda não rodou no GitHub; local só com `PLAYWRIGHT_CHANNEL=msedge`
 
 ### Checkpoint 4: CI completo
 - [ ] `pnpm e2e` passa em 360, 768 e 1280 px; job `e2e` verde
