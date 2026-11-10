@@ -25,7 +25,7 @@ Detalhes, critérios de aceite e verificação de cada tarefa em `tasks/plan-bas
 
 ## Fase 3: Núcleo das portas (teste primeiro)
 - [x] A6. Porta `config` com zod e `.env.example` (M)
-- [ ] A7. Validar a configuração ao subir o servidor (S) — PARADA: o servidor não encerra quando `register` lança erro; decisão do Vitor pendente (ver plano)
+- [x] A7. Validar a configuração ao subir o servidor (S) — opção 2: `process.exit(1)` no `register`, só no runtime nodejs
 - [x] A8. Porta `logger` (S)
 - [x] A9. Porta `scheduler` (S)
 
