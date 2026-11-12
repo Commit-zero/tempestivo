@@ -44,12 +44,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Procurar segredos em todo o histórico
+      - name: Procurar segredos em todo o histórico do que está sendo integrado
         # --fail termina com erro se achar qualquer segredo, verificado ou não.
+        # --branch HEAD percorre cada commit que leva até a ponta em análise (o PR
+        # ou a main), sem herdar achados de branches alheias ao que será integrado.
         run: |
           docker run --rm -v "$PWD":/repo -w /repo \
             ghcr.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a \
-            git file:///repo --no-update --fail --github-actions --config /repo/.trufflehog.yml
+            git file:///repo --branch HEAD --no-update --fail --github-actions --config /repo/.trufflehog.yml
 
   dependencias:
     name: dependências (Trivy)
