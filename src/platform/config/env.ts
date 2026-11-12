@@ -6,6 +6,7 @@ export const schemaEnv = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   APP_URL: z.url(),
   JOBS_SECRET: z.string().min(32),
+  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   STORAGE_DRIVER: driver(),
   MAILER_DRIVER: driver(),

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { lerConfig } from "@/platform/config";
 import { criarFakeLogger } from "@/platform/logger";
 import { criarFakeScheduler } from "./fake-scheduler";
 import { criarSchedulerHttp } from "./scheduler-http";
@@ -121,8 +120,7 @@ describe("criarFakeScheduler", () => {
 
 describe("criarScheduler", () => {
   it("usa o JOBS_SECRET da configuração", () => {
-    const config = lerConfig({ NODE_ENV: "test", APP_URL: "http://localhost:3000", JOBS_SECRET: segredo });
-    const scheduler = criarScheduler(config, criarFakeLogger());
+    const scheduler = criarScheduler({ JOBS_SECRET: segredo }, criarFakeLogger());
 
     expect(scheduler.autorizado(cabecalhos(`Bearer ${segredo}`))).toBe(true);
     expect(scheduler.autorizado(cabecalhos("Bearer outro"))).toBe(false);

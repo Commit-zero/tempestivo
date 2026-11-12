@@ -20,14 +20,16 @@ export default defineConfig({
   ],
   webServer: {
     // No CI o build já foi feito antes; localmente usa o servidor de desenvolvimento.
-    command: noCI ? `pnpm start -p ${PORTA}` : `pnpm dev -p ${PORTA}`,
+    // `npx --no-install` usa o Next do projeto sem depender da versão global do pnpm.
+    command: `npx --no-install next ${noCI ? "start" : "dev"} -p ${PORTA}`,
     url: `http://localhost:${PORTA}`,
     reuseExistingServer: !noCI,
     timeout: 120_000,
     // Valores falsos: o e2e nunca usa segredos reais.
     env: {
       APP_URL: `http://localhost:${PORTA}`,
-      JOBS_SECRET: "segredo-falso-so-para-o-e2e-0123456789abcdef",
+      JOBS_SECRET: "segredo.falso.so.para.o.e2e.0123456789.abcdef",
+      DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:54329/tempestivo",
       LOG_LEVEL: "warn",
       NEXT_TELEMETRY_DISABLED: "1",
     },

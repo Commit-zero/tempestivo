@@ -1,0 +1,11 @@
+// Esquema do banco do Tempestivo. Todo registro de negócio pertence a uma `conta`.
+// Migrações: `pnpm prisma migrate dev --name <nome>` (dev) e `prisma migrate deploy` (produção).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -9,6 +9,7 @@ const ambienteValido = {
   NODE_ENV: "test",
   APP_URL: "http://localhost:3000",
   JOBS_SECRET: segredo,
+  DATABASE_URL: "postgresql://usuario:senha-de-teste@localhost:5432/banco",
 };
 
 function mensagemDoErro(env: Record<string, string | undefined>): string {
@@ -87,6 +88,16 @@ describe("lerConfig", () => {
 
   it("rejeita LOG_LEVEL desconhecido", () => {
     expect(mensagemDoErro({ ...ambienteValido, LOG_LEVEL: "verboso" })).toContain("LOG_LEVEL");
+  });
+
+  it("exige DATABASE_URL de PostgreSQL sem revelar a string de conexão", () => {
+    const outroBanco = "mysql://usuario:senha-secreta@localhost/banco";
+
+    const mensagem = mensagemDoErro({ ...ambienteValido, DATABASE_URL: outroBanco });
+
+    expect(mensagem).toContain("DATABASE_URL");
+    expect(mensagem).not.toContain("senha-secreta");
+    expect(mensagemDoErro({ ...ambienteValido, DATABASE_URL: undefined })).toContain("DATABASE_URL");
   });
 
   it("devolve uma configuração imutável", () => {
