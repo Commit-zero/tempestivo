@@ -1,0 +1,170 @@
+name: Segurança
+
+# Esteira DevSecOps, inspirada na do CirculaGov e adaptada ao orçamento de minutos
+# de um repositório privado:
+#
+#   1. Segredos (TruffleHog)   procura chaves e senhas em TODO o histórico do Git
+#   2. SCA (Trivy)             CVE nas dependências do pnpm-lock.yaml
+#   3. SAST (Semgrep)          falhas no código TypeScript/React/Next.js
+#   4. Imagem (Trivy)          CVE e SBOM CycloneDX da imagem de produção
+#
+# Política de bloqueio: achado de severidade ALTA ou CRÍTICA termina o job com erro.
+# Actions fixadas por SHA; imagens por digest; binários conferidos por sha256.
+# CodeQL fica de fora: em repositório privado ele exige o GitHub Advanced Security, que é pago.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # CVE novas aparecem sem que o código mude. A varredura semanal pega isso.
+  schedule:
+    - cron: "23 9 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seguranca-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TRIVY_VERSAO: 0.76.1
+  TRIVY_SHA256: c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+
+jobs:
+  segredos:
+    name: segredos (TruffleHog)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Histórico inteiro: um segredo apagado depois continua vazado nos commits antigos.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Procurar segredos em todo o histórico
+        # --fail termina com erro se achar qualquer segredo, verificado ou não.
+        run: |
+          docker run --rm -v "$PWD":/repo -w /repo \
+            ghcr.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a \
+            git file:///repo --no-update --fail --github-actions --config /repo/.trufflehog.yml
+
+  dependencias:
+    name: dependências (Trivy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Instalar o Trivy (release oficial, conferido por sha256)
+        run: |
+          curl -fsSL -o trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSAO}/trivy_${TRIVY_VERSAO}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  trivy.tar.gz" | sha256sum -c -
+          tar xzf trivy.tar.gz trivy && sudo mv trivy /usr/local/bin/trivy && rm trivy.tar.gz
+
+      - name: Gerar o relatório completo em JSON
+        run: trivy fs --scanners vuln --format json --output trivy-dependencias.json --exit-code 0 .
+
+      - name: Conferir que o Trivy leu o pnpm-lock.yaml
+        # Evita que um "0 vulnerabilidades" signifique, na verdade, "não li nada".
+        run: |
+          python3 - <<'PY'
+          import json
+          alvos = [r["Target"] for r in json.load(open("trivy-dependencias.json")).get("Results", [])]
+          print("arquivos lidos:", alvos)
+          assert any(a.endswith("pnpm-lock.yaml") for a in alvos), "o pnpm-lock.yaml não foi lido"
+          PY
+
+      - name: Bloquear se houver CVE alta ou crítica
+        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --ignorefile .trivyignore --show-suppressed --exit-code 1 .
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: trivy-dependencias
+          path: trivy-dependencias.json
+          retention-days: 14
+
+  codigo:
+    name: código (Semgrep)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Instalar o Semgrep (versão fixa)
+        run: pipx install semgrep==1.184.0
+
+      - name: Rodar o Semgrep (bloqueia em severidade ERROR)
+        # --metrics=off não envia dado nenhum ao serviço do Semgrep.
+        run: |
+          semgrep scan \
+            --config p/typescript --config p/react --config p/nextjs \
+            --config p/owasp-top-ten --config p/secrets \
+            --metrics=off --severity ERROR --error \
+            --exclude node_modules --exclude .next --exclude src/generated \
+            --json-output semgrep.json \
+            .
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: semgrep
+          path: semgrep.json
+          retention-days: 14
+
+  imagem:
+    name: imagem (Trivy e SBOM)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # A imagem só muda com código novo na main ou na varredura semanal; em PR o
+    # job `imagem` do CI já prova que ela constrói e sobe.
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Construir a imagem de produção
+        run: docker build --target runner -t tempestivo-ci:local .
+
+      - name: Instalar o Trivy (release oficial, conferido por sha256)
+        run: |
+          curl -fsSL -o trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSAO}/trivy_${TRIVY_VERSAO}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  trivy.tar.gz" | sha256sum -c -
+          tar xzf trivy.tar.gz trivy && sudo mv trivy /usr/local/bin/trivy && rm trivy.tar.gz
+
+      - name: Gerar o SBOM (CycloneDX)
+        run: trivy image --format cyclonedx --output sbom.cdx.json tempestivo-ci:local
+
+      - name: Conferir o conteúdo do SBOM
+        run: |
+          python3 - <<'PY'
+          import json
+          sbom = json.load(open("sbom.cdx.json"))
+          assert sbom["bomFormat"] == "CycloneDX"
+          componentes = sbom.get("components", [])
+          print(f"SBOM: CycloneDX {sbom['specVersion']}, {len(componentes)} componentes")
+          assert len(componentes) >= 50, "poucos componentes; build suspeito"
+          PY
+
+      - name: Bloquear se a imagem tiver CVE alta ou crítica com correção disponível
+        # --ignore-unfixed: CVE sem correção publicada depende da distribuição, não de nós.
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+            --ignorefile .trivyignore --show-suppressed --exit-code 1 tempestivo-ci:local
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          retention-days: 30

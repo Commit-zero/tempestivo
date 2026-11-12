@@ -1,0 +1,2 @@
+# Supressões justificadas do Trivy. Cada linha precisa de: identificador da CVE,
+# motivo e data de revisão. Hoje não há nenhuma.

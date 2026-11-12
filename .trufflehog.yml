@@ -1,0 +1,18 @@
+# Detectores próprios do TruffleHog para o Tempestivo.
+#
+# Os detectores padrão conhecem o formato de chaves de provedores (Google, AWS,
+# GitHub). Os segredos deste projeto são texto aleatório sem formato próprio,
+# então nenhum detector padrão os reconhece. Estes cobrem esse caso.
+# Usado por .github/workflows/seguranca.yml.
+detectors:
+  - name: segredo-do-tempestivo
+    keywords:
+      - JOBS_SECRET
+      - AUTH_SECRET
+      - SMTP_PASS
+      - S3_SECRET_ACCESS_KEY
+      - VAPID_PRIVATE_KEY
+    regex:
+      # Atribuição literal de um valor longo. Referências como ${{ secrets.X }} e os
+      # valores falsos do CI (escritos com pontos, fora do padrão) não casam.
+      valor: '(?:JOBS_SECRET|AUTH_SECRET|SMTP_PASS|S3_SECRET_ACCESS_KEY|VAPID_PRIVATE_KEY)\s*[=:]\s*[''"]?(?:[A-Za-z0-9+/_-]{32,})'
