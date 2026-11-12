@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tempestivo",
+  title: { default: "Tempestivo", template: "%s · Tempestivo" },
   description: "Nunca perca um prazo e receba seus honorários.",
 };
 

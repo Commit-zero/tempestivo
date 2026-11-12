@@ -140,6 +140,8 @@ describe("propriedades da contagem", () => {
   const eventos = ["intimacao", "disponibilizacao", "publicacao"] as const;
 
   it("nunca vence em dia sem expediente nem no recesso, e mais dias nunca antecipam a data", () => {
+    // As violações são juntadas e conferidas uma vez só: são mais de 26 mil cálculos.
+    const violacoes: string[] = [];
     for (let data = "2026-01-01"; data <= "2027-12-31"; data = somarDias(data, 1)) {
       for (const tribunal of ["TJSP", "TRT-2"] as const) {
         const calendario = calendarios[tribunal];
@@ -149,19 +151,22 @@ describe("propriedades da contagem", () => {
             const resultado = exigirOk(
               calcularPrazo({ tribunal, tipoEvento, dataEvento: data, dias, contagem: "uteis", emDobro: false }, calendario),
             );
-            const rotulo = `${tribunal} ${tipoEvento} ${data} ${dias}d`;
-            expect(calendario.motivoSemExpediente(resultado.dataFinal), rotulo).toBeNull();
-            expect(calendario.emRecesso(resultado.dataFinal), rotulo).toBe(false);
-            expect(calendario.motivoSemExpediente(resultado.dataInicio), rotulo).toBeNull();
-            expect(resultado.dataInicio > data, rotulo).toBe(true);
-            expect(resultado.dataFinal >= resultado.dataInicio, rotulo).toBe(true);
-            expect(resultado.dataFinal >= anterior, rotulo).toBe(true);
+            const valido =
+              calendario.motivoSemExpediente(resultado.dataFinal) === null &&
+              !calendario.emRecesso(resultado.dataFinal) &&
+              calendario.motivoSemExpediente(resultado.dataInicio) === null &&
+              !calendario.emRecesso(resultado.dataInicio) &&
+              resultado.dataInicio > data &&
+              resultado.dataFinal >= resultado.dataInicio &&
+              resultado.dataFinal >= anterior;
+            if (!valido) violacoes.push(`${tribunal} ${tipoEvento} ${data} ${dias}d -> ${resultado.dataFinal}`);
             anterior = resultado.dataFinal;
           }
         }
       }
     }
-  });
+    expect(violacoes).toEqual([]);
+  }, 20_000);
 
   it("dias corridos também nunca vencem em dia sem expediente", () => {
     const calendario = calendarios.TJSP;

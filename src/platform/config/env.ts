@@ -1,18 +1,35 @@
 import { z } from "zod";
 
-const driver = () => z.enum(["fake"]).default("fake");
+const segredo = () => z.string().min(32);
 
-export const schemaEnv = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]),
-  APP_URL: z.url(),
-  JOBS_SECRET: z.string().min(32),
-  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-  STORAGE_DRIVER: driver(),
-  MAILER_DRIVER: driver(),
-  NOTIFIER_DRIVER: driver(),
-  AI_DRIVER: driver(),
-});
+export const schemaEnv = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]),
+    APP_URL: z.url(),
+    JOBS_SECRET: segredo(),
+    AUTH_SECRET: segredo(),
+    DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+    STORAGE_DRIVER: z.enum(["fake"]).default("fake"),
+    MAILER_DRIVER: z.enum(["fake", "smtp"]).default("fake"),
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    EMAIL_REMETENTE: z.string().optional(),
+    NOTIFIER_DRIVER: z.enum(["fake"]).default("fake"),
+    AI_DRIVER: z.enum(["fake"]).default("fake"),
+  })
+  // Variáveis de um driver só são exigidas quando o driver está ativo.
+  .superRefine((env, contexto) => {
+    const exigir = (nome: "SMTP_HOST" | "EMAIL_REMETENTE") => {
+      if (!env[nome]) contexto.addIssue({ code: "custom", path: [nome], message: "obrigatória com o driver ativo" });
+    };
+    if (env.MAILER_DRIVER === "smtp") {
+      exigir("SMTP_HOST");
+      exigir("EMAIL_REMETENTE");
+    }
+  });
 
 export type Config = Readonly<z.infer<typeof schemaEnv>>;
 

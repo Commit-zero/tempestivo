@@ -54,3 +54,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# sessão fictícia dos testes de tela
+/e2e/.sessao/

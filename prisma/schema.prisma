@@ -1,5 +1,6 @@
 // Esquema do banco do Tempestivo. Todo registro de negócio pertence a uma `conta`.
-// Migrações: `pnpm prisma migrate dev --name <nome>` (dev) e `prisma migrate deploy` (produção).
+// Migrações: `pnpm db:migrar --name <nome>` (dev) e `pnpm db:aplicar` (produção).
+// Datas civis (prazo, vencimento) são texto 'AAAA-MM-DD': não têm hora nem fuso.
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +9,392 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Autenticação (tabelas do Better Auth; nomes e campos seguem o esquema dele)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  conta         Conta?
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ---------------------------------------------------------------------------
+// Conta: a fronteira de isolamento dos dados. Uma pessoa por conta no MVP.
+// ---------------------------------------------------------------------------
+
+model Conta {
+  id              String   @id @default(cuid())
+  usuarioId       String   @unique
+  usuario         User     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nome            String
+  // Colega que recebe a escalada quando um prazo chega à véspera sem conferência.
+  substitutoNome  String?
+  substitutoEmail String?
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+
+  clientes            Cliente[]
+  processos           Processo[]
+  prazos              Prazo[]
+  tiposDePrazo        TipoDePrazo[]
+  diasSemExpediente   DiaSemExpediente[]
+  conferencias        PrazoConferencia[]
+  historicoDosPrazos  PrazoHistorico[]
+  alertas             Alerta[]
+  audiencias          Audiencia[]
+  honorarios          Honorario[]
+  parcelas            Parcela[]
+  tarefas             Tarefa[]
+
+  @@map("conta")
+}
+
+// ---------------------------------------------------------------------------
+// Clientes e processos
+// ---------------------------------------------------------------------------
+
+model Cliente {
+  id           String   @id @default(cuid())
+  contaId      String
+  conta        Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  nome         String
+  documento    String?
+  email        String?
+  telefone     String?
+  observacoes  String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  processos  Processo[]
+  honorarios Honorario[]
+
+  @@index([contaId, nome])
+  @@map("cliente")
+}
+
+enum StatusProcesso {
+  ativo
+  arquivado
+}
+
+model Processo {
+  id             String         @id @default(cuid())
+  contaId        String
+  conta          Conta          @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  clienteId      String
+  cliente        Cliente        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  numero         String
+  tribunal       String
+  vara           String?
+  assunto        String
+  parteContraria String?
+  status         StatusProcesso @default(ativo)
+  criadoEm       DateTime       @default(now())
+  atualizadoEm   DateTime       @updatedAt
+
+  prazos     Prazo[]
+  audiencias Audiencia[]
+  honorarios Honorario[]
+  tarefas    Tarefa[]
+
+  @@unique([contaId, numero])
+  @@index([contaId, status])
+  @@map("processo")
+}
+
+// ---------------------------------------------------------------------------
+// Prazos
+// ---------------------------------------------------------------------------
+
+enum Contagem {
+  uteis
+  corridos
+}
+
+enum TipoEvento {
+  intimacao
+  disponibilizacao
+  publicacao
+  intimacao_tacita
+}
+
+enum OrigemDataFinal {
+  calculada
+  manual
+}
+
+enum StatusPrazo {
+  pendente
+  confirmado
+  cumprido
+}
+
+enum CanalConferencia {
+  app
+  email
+}
+
+model Prazo {
+  id                  String          @id @default(cuid())
+  contaId             String
+  conta               Conta           @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  processoId          String
+  processo            Processo        @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  descricao           String
+  dias                Int?
+  contagem            Contagem?
+  emDobro             Boolean         @default(false)
+  tipoEvento          TipoEvento?
+  dataEvento          String?         @db.Char(10)
+  dataInicio          String?         @db.Char(10)
+  dataFinal           String          @db.Char(10)
+  origemDataFinal     OrigemDataFinal
+  // Memória do cálculo (passos, avisos e regras) mostrada em "como contamos".
+  memoriaDoCalculo    Json?
+  status              StatusPrazo     @default(pendente)
+  ultimaConferenciaEm DateTime?
+  cumpridoEm          DateTime?
+  criadoEm            DateTime        @default(now())
+  atualizadoEm        DateTime        @updatedAt
+
+  conferencias PrazoConferencia[]
+  historico    PrazoHistorico[]
+  alertas      Alerta[]
+
+  @@index([contaId, status, dataFinal])
+  @@index([contaId, processoId])
+  @@map("prazo")
+}
+
+model PrazoConferencia {
+  id        String           @id @default(cuid())
+  contaId   String
+  conta     Conta            @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  prazoId   String
+  prazo     Prazo            @relation(fields: [prazoId], references: [id], onDelete: Cascade)
+  em        DateTime         @default(now())
+  via       CanalConferencia
+  // Vazio quando a conferência veio pelo link do e-mail, sem login.
+  usuarioId String?
+
+  @@index([contaId, prazoId])
+  @@map("prazo_conferencia")
+}
+
+model PrazoHistorico {
+  id            String   @id @default(cuid())
+  contaId       String
+  conta         Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  prazoId       String
+  prazo         Prazo    @relation(fields: [prazoId], references: [id], onDelete: Cascade)
+  em            DateTime @default(now())
+  campo         String
+  valorAnterior String?
+  valorNovo     String?
+
+  @@index([contaId, prazoId])
+  @@map("prazo_historico")
+}
+
+// Tipos de prazo da conta: ajustes sobre o catálogo base (`chaveBase` preenchida)
+// e tipos criados pelo advogado (`chaveBase` nula).
+model TipoDePrazo {
+  id           String   @id @default(cuid())
+  contaId      String
+  conta        Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  chaveBase    String?
+  nome         String
+  dias         Int
+  contagem     Contagem
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([contaId, chaveBase])
+  @@index([contaId])
+  @@map("tipo_de_prazo")
+}
+
+// Dias sem expediente cadastrados pelo advogado (portarias, feriados municipais).
+model DiaSemExpediente {
+  id       String   @id @default(cuid())
+  contaId  String
+  conta    Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  tribunal String
+  data     String   @db.Char(10)
+  motivo   String
+  criadoEm DateTime @default(now())
+
+  @@unique([contaId, tribunal, data])
+  @@map("dia_sem_expediente")
+}
+
+// ---------------------------------------------------------------------------
+// Alertas: cada envio tem chave única, o que torna o job idempotente.
+// ---------------------------------------------------------------------------
+
+enum DestinoAlerta {
+  titular
+  substituto
+}
+
+model Alerta {
+  id        String        @id @default(cuid())
+  contaId   String
+  conta     Conta         @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  prazoId   String
+  prazo     Prazo         @relation(fields: [prazoId], references: [id], onDelete: Cascade)
+  // `prazoId:camada:dataFinal`: rodar o job duas vezes não duplica o envio.
+  chave     String        @unique
+  camada    String
+  destino   DestinoAlerta
+  enviadoEm DateTime?
+  // Link "li e conferi" do e-mail: só o resumo SHA-256 do token é guardado.
+  tokenHash     String?   @unique
+  tokenExpiraEm DateTime?
+  tokenUsadoEm  DateTime?
+  criadoEm  DateTime      @default(now())
+
+  @@index([contaId, prazoId])
+  @@map("alerta")
+}
+
+// ---------------------------------------------------------------------------
+// Audiências, honorários e tarefas
+// ---------------------------------------------------------------------------
+
+model Audiencia {
+  id           String   @id @default(cuid())
+  contaId      String
+  conta        Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  processoId   String
+  processo     Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  tipo         String
+  inicio       DateTime
+  duracaoMin   Int      @default(60)
+  local        String?
+  linkVirtual  String?
+  observacoes  String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([contaId, inicio])
+  @@map("audiencia")
+}
+
+model Honorario {
+  id           String    @id @default(cuid())
+  contaId      String
+  conta        Conta     @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  clienteId    String
+  cliente      Cliente   @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  processoId   String?
+  processo     Processo? @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  descricao    String
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  parcelas Parcela[]
+
+  @@index([contaId, clienteId])
+  @@map("honorario")
+}
+
+model Parcela {
+  id            String    @id @default(cuid())
+  contaId       String
+  conta         Conta     @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  honorarioId   String
+  honorario     Honorario @relation(fields: [honorarioId], references: [id], onDelete: Cascade)
+  numero        Int
+  valorCentavos Int
+  vencimento    String    @db.Char(10)
+  pagaEm        DateTime?
+  criadoEm      DateTime  @default(now())
+
+  @@unique([honorarioId, numero])
+  @@index([contaId, pagaEm, vencimento])
+  @@map("parcela")
+}
+
+enum ColunaTarefa {
+  a_fazer
+  fazendo
+  feito
+}
+
+model Tarefa {
+  id           String       @id @default(cuid())
+  contaId      String
+  conta        Conta        @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  processoId   String?
+  processo     Processo?    @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  titulo       String
+  descricao    String?
+  coluna       ColunaTarefa @default(a_fazer)
+  ordem        Int          @default(0)
+  limite       String?      @db.Char(10)
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+
+  @@index([contaId, coluna, ordem])
+  @@map("tarefa")
 }
