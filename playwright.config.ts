@@ -18,10 +18,7 @@ export default defineConfig({
   testDir: "e2e",
   forbidOnly: noCI,
   retries: noCI ? 1 : 0,
-  // O servidor de desenvolvimento compila cada rota no primeiro acesso; com muitos
-  // navegadores em paralelo isso estoura o tempo. Três bastam para as três larguras.
   workers: 3,
-  timeout: 60_000,
   reporter: noCI ? [["list"], ["html", { open: "never" }]] : "list",
   use: { baseURL: `http://localhost:${PORTA}`, trace: "retain-on-failure" },
   projects: [
@@ -34,12 +31,15 @@ export default defineConfig({
     })),
   ],
   webServer: {
-    // No CI o build já foi feito antes; localmente usa o servidor de desenvolvimento.
+    // Sempre contra o build de produção: o servidor de desenvolvimento compila cada
+    // rota no primeiro acesso e estoura o tempo dos testes. No CI o build já foi feito.
     // `npx --no-install` usa o Next do projeto sem depender da versão global do pnpm.
-    command: `npx --no-install next ${noCI ? "start" : "dev"} -p ${PORTA}`,
+    command: noCI
+      ? `npx --no-install next start -p ${PORTA}`
+      : `npx --no-install next build && npx --no-install next start -p ${PORTA}`,
     url: `http://localhost:${PORTA}`,
     reuseExistingServer: !noCI,
-    timeout: 120_000,
+    timeout: 300_000,
     // Valores falsos: o e2e nunca usa segredos reais nem envia e-mail.
     env: {
       APP_URL: `http://localhost:${PORTA}`,

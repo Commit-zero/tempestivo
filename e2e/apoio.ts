@@ -11,6 +11,14 @@ export function emailFicticio(): string {
   return `${unico("teste").replace(" ", ".")}@exemplo.test`;
 }
 
+/** Número de processo fictício com dígito verificador válido, diferente a cada chamada. */
+export function numeroCnjFicticio(): string {
+  const sequencial = String(Math.floor(Math.random() * 9_999_999)).padStart(7, "0");
+  const resto = "20268260100";
+  const verificador = String(BigInt(98) - (BigInt(`${sequencial}${resto}00`) % BigInt(97))).padStart(2, "0");
+  return `${sequencial}${verificador}${resto}`;
+}
+
 export async function cadastrarContaFicticia(page: Page, email = emailFicticio()): Promise<string> {
   await page.goto("/cadastro");
   await page.getByLabel("Nome").fill("Advogada Fictícia");
@@ -20,6 +28,24 @@ export async function cadastrarContaFicticia(page: Page, email = emailFicticio()
   await page.getByRole("button", { name: "Criar conta" }).click();
   await page.waitForURL("**/painel");
   return email;
+}
+
+export async function cadastrarCliente(page: Page, nome: string): Promise<void> {
+  await page.goto("/clientes/novo");
+  await page.getByLabel("Nome").fill(nome);
+  await page.getByLabel("Telefone").fill("(11) 91234-5678");
+  await page.getByRole("button", { name: "Cadastrar cliente" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: nome })).toBeVisible();
+}
+
+/** Cadastra o processo (TJSP por padrão) e termina na página dele. */
+export async function cadastrarProcesso(page: Page, cliente: string, assunto: string): Promise<void> {
+  await page.goto("/processos/novo");
+  await page.getByLabel("Cliente").selectOption({ label: cliente });
+  await page.getByLabel("Número do processo").fill(numeroCnjFicticio());
+  await page.getByLabel("Assunto").fill(assunto);
+  await page.getByRole("button", { name: "Cadastrar processo" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: assunto })).toBeVisible();
 }
 
 export async function semRolagemHorizontal(page: Page): Promise<void> {
