@@ -30,8 +30,9 @@ const cabecalhosDeSeguranca = [
 
 const nextConfig: NextConfig = {
   agentRules: false,
-  // Saída autocontida para a imagem Docker (o Vercel ignora esta opção).
-  output: "standalone",
+  // Saída autocontida só para a imagem Docker (o Dockerfile define NEXT_OUTPUT).
+  // Fora dela vale o build comum, que é o que `next start` e o Vercel esperam.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: cabecalhosDeSeguranca }];

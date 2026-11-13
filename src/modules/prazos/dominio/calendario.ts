@@ -1,4 +1,4 @@
-import { diaDaSemana, type DataCivil } from "./datas";
+import { diaDaSemana, type DataCivil } from "@/lib/datas";
 import { criarIndiceDeFeriados, feriadosEstaduaisSP, feriadosNacionais, pontosDependentesDoTribunal } from "./feriados";
 
 const feriadoEm = criarIndiceDeFeriados((ano) => [...feriadosNacionais(ano), ...feriadosEstaduaisSP(ano)]);

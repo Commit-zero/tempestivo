@@ -81,3 +81,12 @@ export function dataCivilEmSaoPaulo(instante: Date): DataCivil {
   }).format(instante);
   return partes;
 }
+
+/** Data e hora de um instante no fuso de São Paulo, para exibir. Ex.: "12/11/2026 às 14:30". */
+export function formatarDataHora(instante: Date): string {
+  const partes = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  }).formatToParts(instante);
+  const parte = (tipo: string) => partes.find((item) => item.type === tipo)?.value ?? "";
+  return `${parte("day")}/${parte("month")}/${parte("year")} às ${parte("hour")}:${parte("minute")}`;
+}

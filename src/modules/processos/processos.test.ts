@@ -88,6 +88,9 @@ describe("processos (integração)", () => {
     expect((await listarProcessos(contaA, { status: "arquivado" })).map((processo) => processo.id)).toEqual([id]);
     expect((await listarProcessos(contaA, { status: "ativo" })).some((processo) => processo.id === id)).toBe(false);
     expect((await listarProcessos(contaA, { busca: "0005678" })).map((processo) => processo.id)).toEqual([id]);
+    // Dígitos soltos dentro de um termo de texto não casam com o número do processo.
+    expect(await listarProcessos(contaA, { busca: "assunto 0005678" })).toEqual([]);
+    expect((await listarProcessos(contaA, { busca: "cobrança" })).some((processo) => processo.id === id)).toBe(true);
     expect((await excluirProcesso(contaA, id)).ok).toBe(true);
     expect(await obterProcesso(contaA, id)).toBeNull();
   });

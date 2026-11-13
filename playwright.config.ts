@@ -19,6 +19,9 @@ export default defineConfig({
   forbidOnly: noCI,
   retries: noCI ? 1 : 0,
   workers: 3,
+  // O hash Argon2 e três navegadores em paralelo deixam algumas respostas acima dos 5 s padrão.
+  expect: { timeout: 15_000 },
+  timeout: 90_000,
   reporter: noCI ? [["list"], ["html", { open: "never" }]] : "list",
   use: { baseURL: `http://localhost:${PORTA}`, trace: "retain-on-failure" },
   projects: [

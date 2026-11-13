@@ -25,6 +25,8 @@ const campos = {
   status: true, criadoEm: true, cliente: { select: { id: true, nome: true } },
 } as const;
 
+const PARECE_NUMERO = /^[\d.\-\s]*\d[\d.\-\s]*$/;
+
 export function listar(contaId: string, { status, busca, clienteId }: FiltroDeProcessos = {}): Promise<Processo[]> {
   return getPrisma().processo.findMany({
     where: {
@@ -34,9 +36,11 @@ export function listar(contaId: string, { status, busca, clienteId }: FiltroDePr
       ...(busca
         ? {
             OR: [
-              { numero: { contains: busca.replace(/\D/g, "") || busca } },
-              { assunto: { contains: busca, mode: "insensitive" } },
-              { cliente: { nome: { contains: busca, mode: "insensitive" } } },
+              // Só busca por número quando o termo é um número (com ou sem pontuação):
+              // dígitos soltos dentro de um assunto não devem casar com números de processo.
+              ...(PARECE_NUMERO.test(busca) ? [{ numero: { contains: busca.replace(/\D/g, "") } }] : []),
+              { assunto: { contains: busca, mode: "insensitive" as const } },
+              { cliente: { nome: { contains: busca, mode: "insensitive" as const } } },
             ],
           }
         : {}),

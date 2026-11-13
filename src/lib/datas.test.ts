@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   criarData, dataCivilEmSaoPaulo, diaDaSemana, diasEntre, ehDataCivil, formatarData,
   formatarDataComSemana, somarDias,
-} from "../dominio/datas";
+} from "./datas";
 
 describe("datas civis", () => {
   it("soma dias cruzando mês, ano e ano bissexto", () => {
@@ -46,5 +46,12 @@ describe("datas civis", () => {
     // 01:30 UTC de 13/11 ainda é 22:30 de 12/11 em São Paulo.
     expect(dataCivilEmSaoPaulo(new Date("2026-11-13T01:30:00Z"))).toBe("2026-11-12");
     expect(dataCivilEmSaoPaulo(new Date("2026-11-13T03:00:00Z"))).toBe("2026-11-13");
+  });
+});
+
+describe("formatarDataHora", () => {
+  it("mostra a data e a hora de São Paulo", async () => {
+    const { formatarDataHora } = await import("./datas");
+    expect(formatarDataHora(new Date("2026-11-13T01:30:00Z"))).toBe("12/11/2026 às 22:30");
   });
 });

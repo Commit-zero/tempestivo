@@ -1,4 +1,4 @@
-import { anoDe, criarData, somarDias, type DataCivil } from "./datas";
+import { anoDe, criarData, somarDias, type DataCivil } from "@/lib/datas";
 
 export type Feriado = { data: DataCivil; nome: string };
 

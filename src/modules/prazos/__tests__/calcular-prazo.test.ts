@@ -4,7 +4,7 @@ import {
   AVISO_CALCULO_AUXILIAR, AVISO_REGRAS_PENDENTES, calcularPrazo, type EntradaCalculo, type ResultadoCalculo,
 } from "../dominio/calcular-prazo";
 import { criarCalendario } from "../dominio/calendario";
-import { somarDias } from "../dominio/datas";
+import { somarDias } from "@/lib/datas";
 import { listarRegras } from "../dominio/regras";
 
 const base: EntradaCalculo = {

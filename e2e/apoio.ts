@@ -39,10 +39,11 @@ export async function cadastrarCliente(page: Page, nome: string): Promise<void> 
 }
 
 /** Cadastra o processo (TJSP por padrão) e termina na página dele. */
-export async function cadastrarProcesso(page: Page, cliente: string, assunto: string): Promise<void> {
+export async function cadastrarProcesso(page: Page, cliente: string, assunto: string, tribunal = "TJSP"): Promise<void> {
   await page.goto("/processos/novo");
   await page.getByLabel("Cliente").selectOption({ label: cliente });
   await page.getByLabel("Número do processo").fill(numeroCnjFicticio());
+  await page.getByLabel("Tribunal").fill(tribunal);
   await page.getByLabel("Assunto").fill(assunto);
   await page.getByRole("button", { name: "Cadastrar processo" }).click();
   await expect(page.getByRole("heading", { level: 1, name: assunto })).toBeVisible();

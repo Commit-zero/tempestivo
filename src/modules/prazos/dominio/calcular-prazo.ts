@@ -1,5 +1,5 @@
 import type { Calendario } from "./calendario";
-import { ehDataCivil, formatarData, formatarDataComSemana, somarDias, type DataCivil } from "./datas";
+import { ehDataCivil, formatarData, formatarDataComSemana, somarDias, type DataCivil } from "@/lib/datas";
 import { REGRAS, type ChaveDeRegra } from "./regras";
 
 export type TipoEvento = "intimacao" | "disponibilizacao" | "publicacao" | "intimacao_tacita";
