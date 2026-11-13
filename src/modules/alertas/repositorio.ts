@@ -47,13 +47,15 @@ export type NovoAlerta = {
   tokenExpiraEm: Date | null;
 };
 
-/** Reserva o envio pela chave única. Devolve `null` se o alerta já existe (job repetido ou concorrente). */
+/** Reserva o envio pela chave única. Devolve `null` se o alerta já existe (job repetido ou concorrente) ou se o prazo sumiu. */
 export async function reservar(contaId: string, alerta: NovoAlerta): Promise<string | null> {
   try {
     const criado = await getPrisma().alerta.create({ data: { ...alerta, contaId }, select: { id: true } });
     return criado.id;
   } catch (erro) {
-    if (erro instanceof Prisma.PrismaClientKnownRequestError && erro.code === "P2002") return null;
+    // P2002: a chave já existe. P2003: o prazo ou a conta foi apagado depois da
+    // listagem. Nos dois casos não há o que enviar, e o job segue com os demais.
+    if (erro instanceof Prisma.PrismaClientKnownRequestError && (erro.code === "P2002" || erro.code === "P2003")) return null;
     throw erro;
   }
 }
