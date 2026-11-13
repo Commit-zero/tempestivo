@@ -20,9 +20,9 @@ Nome do produto provisório (checar INPI e Registro.br). Equipe de duas pessoas.
 - Next.js (App Router) + TypeScript + Tailwind + shadcn/ui
 - PostgreSQL (Supabase usado como Postgres puro) + Prisma
 - Login próprio com Better Auth (senhas com Argon2), tabelas no nosso banco
-- Arquivos: Supabase Storage pelo protocolo S3
-- E-mail: SMTP (Gmail ou Brevo). Push: PWA. WhatsApp: só link `wa.me`, sem API
-- IA: Gemini (camada gratuita) atrás de `extrairIntimacao()`
+- E-mail: SMTP (Gmail ou Brevo). WhatsApp: só link `wa.me`, sem API
+- Leitor de intimação: extrator local por regras atrás da porta `ai` (um modelo de linguagem entra como outro driver)
+- Arquivos (Supabase Storage via S3) e push (PWA): no roadmap; as portas voltam com o módulo que precisar
 - Agendador: GitHub Actions chamando `/api/jobs/*` com segredo
 - Deploy: Vercel Hobby; imagem Docker pronta para migrar
 - Testes: Vitest (domínio) e Playwright (telas)
@@ -34,20 +34,22 @@ Monólito modular. Estrutura:
 
 ```
 src/
-  modules/<modulo>/   prazos, processos, clientes, honorarios, audiencias,
-                      tarefas, documentos, alertas, intimacao
+  modules/<modulo>/   conta, clientes, processos, prazos, alertas, intimacao,
+                      honorarios, audiencias, tarefas
                       (domínio, serviço, repositório; só o index.ts é público)
-  platform/<porta>/   storage, mailer, notifier, ai, scheduler, auth, config, logger, database
+  platform/<porta>/   config, database, auth, mailer, ai, scheduler, logger, health, runtime
                       (interface + adaptadores; `database` guarda só o cliente Prisma único)
   app/                telas e rotas; chamam serviços, nunca o Prisma direto
+  lib/                utilitários puros compartilhados (datas civis, dinheiro, documentos)
 prisma/               migrações versionadas
+docs/                 deploy, mapa de módulos e especificações
 ```
 
 Módulos só se falam pelo `index.ts` de cada um. Jobs são idempotentes (cada alerta tem chave única). Configuração só por variáveis de ambiente, validadas com zod.
 
 ## Fora do escopo (roadmap, não codar)
 
-Pix automático, integração com tribunais, WhatsApp automático (API oficial), várias pessoas por conta, app nativo.
+Pix automático, integração com tribunais, WhatsApp automático (API oficial), várias pessoas por conta, app nativo, anexos de arquivos, push (PWA), leitor de intimação com modelo de linguagem.
 
 ## Como trabalhar
 
