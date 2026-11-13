@@ -25,3 +25,21 @@ export async function atualizarConta(contaId: string, entrada: Record<"nome" | "
   if (!validado.success) return falha(primeiraMensagem(validado.error));
   return (await repositorio.atualizar(contaId, validado.data)) ? sucesso() : falha("Conta não encontrada.");
 }
+
+export type ExportacaoDaConta = { geradoEm: string; formato: "tempestivo-exportacao-v1" } & Awaited<ReturnType<typeof repositorio.exportar>>;
+
+/** Todos os dados da conta em um objeto só, pronto para virar um arquivo JSON. */
+export async function exportarDadosDaConta(contaId: string, agora = new Date()): Promise<ExportacaoDaConta> {
+  return { formato: "tempestivo-exportacao-v1", geradoEm: agora.toISOString(), ...(await repositorio.exportar(contaId)) };
+}
+
+/**
+ * Exclusão definitiva da conta e de todos os dados (LGPD art. 18, VI). Exige que o
+ * titular digite o próprio e-mail, para a ação não acontecer por engano.
+ */
+export async function excluirConta(sessao: { contaId: string; usuarioId: string; email: string }, emailDigitado: unknown): Promise<Resultado> {
+  if (typeof emailDigitado !== "string" || emailDigitado.trim().toLowerCase() !== sessao.email.toLowerCase()) {
+    return falha("Digite o e-mail da conta exatamente como aparece acima para confirmar a exclusão.");
+  }
+  return (await repositorio.excluirTudo(sessao.contaId, sessao.usuarioId)) ? sucesso() : falha("Conta não encontrada.");
+}

@@ -21,7 +21,8 @@ const PILARES = [
   },
 ];
 
-export default function Home() {
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const { conta } = await searchParams;
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-12 px-4 py-8 sm:px-6 sm:py-12">
       <header className="flex items-center justify-between gap-4">
@@ -31,6 +32,11 @@ export default function Home() {
         </Button>
       </header>
       <main className="flex flex-col gap-12">
+        {conta === "excluida" ? (
+          <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
+            A conta e todos os dados foram excluídos.
+          </p>
+        ) : null}
         <section className="flex flex-col items-start gap-6">
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
             Nunca perca um prazo e receba seus honorários.
