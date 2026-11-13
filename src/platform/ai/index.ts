@@ -1,13 +1,15 @@
 import type { Config } from "@/platform/config";
-import { criarFakeExtrator, type FakeExtrator } from "./fake-extrator";
+import type { Extrator } from "./extrator";
+import { criarExtratorLocal } from "./extrator-local";
 
 export type { Extrator } from "./extrator";
 export { criarFakeExtrator, type FakeExtrator } from "./fake-extrator";
 
-// Só o driver "fake" existe por enquanto; o adaptador Gemini entra na base-B.
-export function criarExtrator(config: Pick<Config, "AI_DRIVER">): FakeExtrator {
+// Hoje só existe o extrator local, por regras. Um modelo de linguagem entra aqui
+// como outro driver, sem mudar quem chama: a saída continua `unknown` e validada.
+export function criarExtrator(config: Pick<Config, "AI_DRIVER">): Extrator {
   switch (config.AI_DRIVER) {
-    case "fake":
-      return criarFakeExtrator();
+    case "local":
+      return criarExtratorLocal();
   }
 }

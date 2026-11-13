@@ -83,13 +83,11 @@ describe("lerConfig", () => {
     expect(mensagem).toContain("JOBS_SECRET");
   });
 
-  it("assume o driver fake quando a variável está ausente", () => {
+  it("assume os drivers padrão quando as variáveis estão ausentes", () => {
     const config = lerConfig(ambienteValido);
 
-    expect(config.STORAGE_DRIVER).toBe("fake");
     expect(config.MAILER_DRIVER).toBe("fake");
-    expect(config.NOTIFIER_DRIVER).toBe("fake");
-    expect(config.AI_DRIVER).toBe("fake");
+    expect(config.AI_DRIVER).toBe("local");
   });
 
   it("rejeita driver desconhecido sem revelar o valor", () => {

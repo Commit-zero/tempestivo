@@ -122,6 +122,9 @@ export default async function PaginaDoPainel() {
           <Link href="/prazos/novo">Novo prazo</Link>
         </Button>
         <Button asChild variant="outline">
+          <Link href="/prazos/intimacao">Ler intimação</Link>
+        </Button>
+        <Button asChild variant="outline">
           <Link href="/processos/novo">Novo processo</Link>
         </Button>
       </div>

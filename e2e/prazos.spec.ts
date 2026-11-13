@@ -88,3 +88,28 @@ test("o catálogo ajusta os dias de um tipo e cadastra dia sem expediente", asyn
   await page.getByRole("button", { name: "Criar tipo" }).click();
   await expect(page.getByRole("main").getByText(nome)).toBeVisible();
 });
+
+test("lê uma intimação, mostra o rascunho com a origem de cada campo e só cria o prazo depois da conferência", async ({ page }) => {
+  await page.goto("/prazos/intimacao");
+  await semRolagemHorizontal(page);
+  await page.getByLabel("Texto da intimação").fill(
+    "Disponibilizado no DJe em 12/11/2026. Fica a parte ré intimada para apresentar contestação no prazo de 15 (quinze) dias úteis.",
+  );
+  await page.getByRole("button", { name: "Ler intimação" }).click();
+
+  const rascunho = page.getByRole("region", { name: "Rascunho lido" });
+  await expect(rascunho).toContainText("15 dias úteis");
+  await expect(rascunho).toContainText("12/11/2026 (disponibilização no diário)");
+  await expect(rascunho).toContainText("Contestação");
+  await expect(rascunho).toContainText("Não achei o número do processo");
+  await expect(rascunho).toContainText("Isto é só uma sugestão");
+  await semRolagemHorizontal(page);
+
+  await rascunho.getByRole("link", { name: "Conferir e cadastrar o prazo" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Rascunho lido da intimação" })).toBeVisible();
+  await expect(page.getByLabel("Descrição")).toHaveValue("Contestação");
+  await expect(page.getByLabel("Data do evento")).toHaveValue("2026-11-12");
+  await expect(page.getByLabel("Evento que inicia o prazo")).toHaveValue("disponibilizacao");
+  // Nada foi criado: ainda falta escolher o processo, calcular e salvar.
+  await expect(page.getByRole("button", { name: "Salvar prazo" })).toBeDisabled();
+});

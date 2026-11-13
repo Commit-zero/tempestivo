@@ -10,15 +10,13 @@ export const schemaEnv = z
     AUTH_SECRET: segredo(),
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-    STORAGE_DRIVER: z.enum(["fake"]).default("fake"),
     MAILER_DRIVER: z.enum(["fake", "smtp"]).default("fake"),
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     EMAIL_REMETENTE: z.string().optional(),
-    NOTIFIER_DRIVER: z.enum(["fake"]).default("fake"),
-    AI_DRIVER: z.enum(["fake"]).default("fake"),
+    AI_DRIVER: z.enum(["local"]).default("local"),
   })
   // Variáveis de um driver só são exigidas quando o driver está ativo.
   .superRefine((env, contexto) => {

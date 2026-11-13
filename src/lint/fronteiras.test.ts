@@ -61,7 +61,7 @@ describe("fronteira do banco", () => {
 });
 
 describe("sem serviços exclusivos do Vercel", () => {
-  it.each(["src/app/page.tsx", "src/modules/prazos/servico.ts", "src/platform/storage/x.ts"])(
+  it.each(["src/app/page.tsx", "src/modules/prazos/servico.ts", "src/platform/mailer/x.ts"])(
     "%s não importa @vercel/*",
     async (arquivo) => {
       expect(await violacoes(importar("@vercel/kv"), arquivo)).toBe(1);

@@ -1,3 +1,4 @@
+import { criarExtrator, type Extrator } from "@/platform/ai";
 import { getConfig } from "@/platform/config";
 import { criarLogger, type Logger } from "@/platform/logger";
 import { criarMailer, type Mailer } from "@/platform/mailer";
@@ -8,6 +9,7 @@ import { criarScheduler, type Scheduler } from "@/platform/scheduler";
 let logger: Logger | undefined;
 let scheduler: Scheduler | undefined;
 let mailer: Mailer | undefined;
+let extrator: Extrator | undefined;
 
 export function getLogger(): Logger {
   logger ??= criarLogger(getConfig());
@@ -22,4 +24,9 @@ export function getScheduler(): Scheduler {
 export function getMailer(): Mailer {
   mailer ??= criarMailer(getConfig());
   return mailer;
+}
+
+export function getExtrator(): Extrator {
+  extrator ??= criarExtrator(getConfig());
+  return extrator;
 }
