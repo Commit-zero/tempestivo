@@ -7,7 +7,11 @@ ARG NODE_VERSION=24.22.1-slim
 
 FROM node:${NODE_VERSION} AS base
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm install -g pnpm@12.16.1 && npm cache clean --force
+# O OpenSSL é exigido pelos motores do Prisma (generate e migrate); a imagem slim não o traz.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install -g pnpm@12.16.1 && npm cache clean --force
 WORKDIR /app
 
 FROM base AS deps
@@ -22,9 +26,6 @@ ENV NEXT_OUTPUT=standalone
 RUN pnpm prisma generate && pnpm build
 
 FROM base AS migrator
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl \
-  && rm -rf /var/lib/apt/lists/*
 COPY --from=deps --chown=node:node /app ./
 USER node
 CMD ["pnpm", "prisma", "migrate", "deploy"]
