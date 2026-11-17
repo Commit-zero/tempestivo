@@ -52,6 +52,11 @@ export function ListaDePrazos({ prazos, mostrarProcesso = true }: { prazos: Praz
                 {prazo.origemDataFinal === "manual" ? <span className="text-muted-foreground"> · data manual</span> : null}
               </span>
               <TextoDaConferencia situacao={prazo.situacao} />
+              {prazo.situacao.metaInterna ? (
+                <span className={prazo.situacao.metaChegou ? "font-medium text-atencao" : "text-muted-foreground"}>
+                  meta interna {formatarData(prazo.situacao.metaInterna)}
+                </span>
+              ) : null}
             </span>
           </Link>
         </li>

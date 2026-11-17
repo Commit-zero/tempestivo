@@ -7,7 +7,7 @@ import nextTs from "eslint-config-next/typescript";
 // nem `import()` dinâmico.
 const MODULOS = [
   "prazos", "processos", "clientes", "honorarios", "audiencias",
-  "tarefas", "documentos", "alertas", "intimacao", "conta",
+  "tarefas", "documentos", "alertas", "intimacao", "conta", "agenda",
 ];
 
 const semVercel = {

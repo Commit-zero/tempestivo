@@ -37,6 +37,8 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
 
   const urgentes = emAberto.filter((prazo) => prazo.situacao.vencido || prazo.situacao.urgencia === "hoje");
   const daSemana = emAberto.filter((prazo) => prazo.situacao.urgencia === "proximo");
+  // Meta interna chegou: o trabalho já devia estar pronto, mesmo faltando dias para o vencimento.
+  const metaChegou = emAberto.filter((prazo) => prazo.situacao.metaChegou && !urgentes.includes(prazo));
   const semConferencia = emAberto.filter((prazo) => prazo.situacao.conferenciaAtrasada && !urgentes.includes(prazo) && !daSemana.includes(prazo));
   const audienciasDaSemana = audiencias.filter((audiencia) => audiencia.inicio.getTime() - agora.getTime() <= SETE_DIAS);
   const tarefasAbertas = quadro.a_fazer.length + quadro.fazendo.length;
@@ -79,6 +81,13 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
               <ListaDePrazos prazos={urgentes} />
             )}
           </Secao>
+
+          {metaChegou.length > 0 ? (
+            <Secao titulo={`Meta interna chegou (${metaChegou.length})`}>
+              <p className="text-sm text-muted-foreground">Prazos que ainda não venceram, mas cujo trabalho já devia estar pronto.</p>
+              <ListaDePrazos prazos={metaChegou} />
+            </Secao>
+          ) : null}
 
           {daSemana.length > 0 ? (
             <Secao

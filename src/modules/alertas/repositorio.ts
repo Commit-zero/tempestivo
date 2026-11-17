@@ -33,7 +33,10 @@ export async function listarPrazosParaAlertar(de: string, ate: string): Promise<
     },
     orderBy: { dataFinal: "asc" },
   });
-  return prazos.map((prazo) => ({
+  // O Prisma carrega as relações em consultas separadas: se a conta foi excluída no meio
+  // da leitura, o prazo volta sem processo ou sem conta. Ele é ignorado, e o job segue.
+  const completos = prazos.filter((prazo) => prazo.processo !== null && prazo.conta?.usuario != null);
+  return completos.map((prazo) => ({
     id: prazo.id,
     contaId: prazo.contaId,
     descricao: prazo.descricao,

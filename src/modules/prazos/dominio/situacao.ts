@@ -26,17 +26,24 @@ export type Situacao = {
   /** Verdadeiro quando a falta de conferência pede atenção. */
   conferenciaAtrasada: boolean;
   urgencia: "cumprido" | "vencido" | "hoje" | "proximo" | "normal";
+  /** Data em que o trabalho deve estar pronto; `null` para prazo cumprido. */
+  metaInterna: DataCivil | null;
+  /** A meta interna é hoje ou já passou, e o prazo ainda não venceu. */
+  metaChegou: boolean;
 };
 
 const plural = (quantidade: number, singular: string, variosTexto: string) =>
   quantidade === 1 ? `1 ${singular}` : `${quantidade} ${variosTexto}`;
 
-export function situacaoDoPrazo(prazo: DadosDaSituacao, agora: Date): Situacao {
+export function situacaoDoPrazo(prazo: DadosDaSituacao, agora: Date, metaInterna: DataCivil | null = null): Situacao {
   const hoje = dataCivilEmSaoPaulo(agora);
   const diasRestantes = diasEntre(hoje, prazo.dataFinal);
 
   if (prazo.status === "cumprido") {
-    return { diasRestantes, vencido: false, quando: "cumprido", conferencia: "", conferenciaAtrasada: false, urgencia: "cumprido" };
+    return {
+      diasRestantes, vencido: false, quando: "cumprido", conferencia: "", conferenciaAtrasada: false, urgencia: "cumprido",
+      metaInterna: null, metaChegou: false,
+    };
   }
 
   const vencido = diasRestantes < 0;
@@ -65,5 +72,7 @@ export function situacaoDoPrazo(prazo: DadosDaSituacao, agora: Date): Situacao {
     conferencia,
     conferenciaAtrasada: diasSemConferir >= DIAS_PARA_DESTACAR_SEM_CONFERENCIA,
     urgencia: vencido ? "vencido" : diasRestantes === 0 ? "hoje" : diasRestantes <= 7 ? "proximo" : "normal",
+    metaInterna: metaInterna !== null && metaInterna < prazo.dataFinal ? metaInterna : null,
+    metaChegou: metaInterna !== null && metaInterna < prazo.dataFinal && hoje >= metaInterna && !vencido && diasRestantes > 0,
   };
 }
