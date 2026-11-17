@@ -54,7 +54,7 @@ Sem os dois segredos o job termina com um aviso e não chama nada. Os jobs são 
 2. **Supabase.** Crie um projeto só de produção. Copie a conexão do *pooler* (para `DATABASE_URL` do app) e a conexão direta (para `DATABASE_URL_MIGRACAO` no GitHub).
 3. **Migrar.** Rode o workflow `Migrar o banco de produção`.
 4. **Vercel.** Importe o repositório (Next.js é detectado sozinho; não há `vercel.json`). Cadastre as variáveis da tabela **antes** do primeiro deploy, em *Production* e *Preview*. Node 24.x.
-5. **Conferir.** `GET /api/health` deve responder `{"status":"ok","banco":"ok",...}`. Crie uma conta, cadastre um prazo e rode `Jobs agendados` manualmente para ver o e-mail chegar.
+5. **Conferir.** `GET /api/health` deve responder `{"status":"ok","banco":"ok",...}`. Crie uma conta, **confirme o e-mail pelo link recebido** (sem isso nenhum alerta é enviado), cadastre um prazo e rode `Jobs agendados` manualmente para ver o alerta chegar.
 
 O Hobby é para uso não comercial: serve ao desafio, mas cobrar honorários de clientes reais exige rever o plano.
 
@@ -78,5 +78,7 @@ A imagem roda sem root, sem gerenciador de pacotes e tem `HEALTHCHECK` em `/api/
 | Toda requisição responde 500 logo após o deploy | Variável faltando ou inválida. O log mostra `Configuração inválida. Corrija as variáveis: ...` |
 | `/api/health` responde 503 | O app não alcança o banco: confira `DATABASE_URL` e se o projeto do Supabase está pausado |
 | Erro de tabela inexistente | As migrações não foram aplicadas |
-| O e-mail de alerta não chega | `MAILER_DRIVER` ficou em `fake`, ou as credenciais SMTP estão erradas (o log registra `falha ao enviar alerta`, sem o endereço) |
+| O e-mail de alerta não chega | O e-mail da conta não foi confirmado (o painel avisa); `MAILER_DRIVER` ficou em `fake`; ou as credenciais SMTP estão erradas (o log registra `falha ao enviar alerta`, sem o endereço) |
+| O substituto não recebe a escalada | Ele ainda não aceitou o convite (a tela Conta mostra a situação) |
+| O log mostra `alertas acima do teto diário por conta` | Uma conta passou de 30 e-mails no dia; o restante sai no dia seguinte |
 | `Jobs agendados` falha com 401 | `JOBS_SECRET` do GitHub diferente do `JOBS_SECRET` do app |

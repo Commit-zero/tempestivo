@@ -24,25 +24,25 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 
 | Área | Funcionalidades |
 |---|---|
-| **Prazos** | Calculadora para CPC e CLT (TJSP e TRT-2): dias úteis e corridos, feriados nacionais e de SP, recesso de 20/12 a 20/01, prazo em dobro, quatro tipos de evento. Catálogo de 13 tipos de prazo ajustável por conta. Dias sem expediente cadastrados pelo advogado. Data final manual para o que a calculadora não atende. |
-| **Conferência** | Botão "li e conferi" com data, hora e canal. Histórico de toda alteração de data. Editar a contagem zera a conferência. |
-| **Alertas** | E-mail 5, 2 e 1 dia antes e no dia do vencimento, com link para registrar a conferência sem login. Escalada a um advogado substituto na véspera sem conferência. |
+| **Prazos** | Calculadora para CPC e CLT (TJSP e TRT-2), em dias úteis: feriados nacionais e de SP, suspensão de 20/12 a 20/01, prazo em dobro, quatro tipos de evento. Catálogo de 13 tipos de prazo ajustável por conta. Dias sem expediente cadastrados pelo advogado. Data final manual para o que a calculadora não atende. |
+| **Conferência** | Enquanto as regras não forem validadas, a data calculada só é salva com a declaração "conferi nos autos". Botão "li e conferi" com data, hora e canal. Histórico de toda alteração de data. Editar a contagem zera a conferência. |
+| **Alertas** | E-mail 5, 2 e 1 dia útil antes e no dia do vencimento, com link para registrar a conferência sem login. Escalada a um advogado substituto na véspera útil sem conferência; ele recebe só a data e só depois de aceitar o convite. |
 | **Leitor de intimação** | Cole o texto e receba um rascunho do prazo, com o trecho de onde saiu cada campo. |
 | **Processos e clientes** | Cadastro, busca, arquivamento, validação de CPF/CNPJ e do número único do CNJ. |
 | **Honorários** | Parcelas mensais, situação de cada parcela, resumo do mês e cobrança pronta para enviar pelo WhatsApp. |
 | **Audiências** | Agenda com rota, sala virtual e arquivo `.ics` para qualquer calendário. |
 | **Tarefas** | Quadro de três colunas. |
 | **Painel** | O que pede atenção hoje, a semana, as audiências e o dinheiro, em uma tela feita para o celular. |
-| **Conta e LGPD** | Exportação de todos os dados em JSON e exclusão definitiva da conta. |
+| **Conta e LGPD** | Termos de uso e Política de privacidade com aceite registrado. Confirmação do e-mail da conta. Exportação de todos os dados em JSON e exclusão definitiva, confirmada com a senha. |
 
 ## O que o diferencia
 
 - **Status honesto.** Um prazo não fica "ok" só porque foi cadastrado. Ele mostra há quantos dias o próprio advogado conferiu e pede atenção depois de três dias sem conferência.
 - **A data nunca vem sem a conta.** Todo cálculo traz o passo a passo, as regras aplicadas com a referência legal e os avisos. O formulário só deixa salvar depois que o advogado vê a contagem.
 - **Na dúvida, a data sai mais cedo e com aviso.** Carnaval, Corpus Christi e pontos facultativos dependem de portaria de cada tribunal. A calculadora não presume a suspensão: conta o dia como útil, avisa e deixa o advogado cadastrar o dia sem expediente.
-- **Recusa em vez de chute.** Tribunal fora do escopo, prazo em horas ou contagem controvertida não geram data: a tela pede a data manual.
+- **Recusa em vez de chute.** Tribunal fora do escopo, Juizado Especial, prazo em horas ou em dias corridos e contagem controvertida não geram data: a tela pede a data manual.
 - **A leitura da intimação só sugere, e fica em casa.** O extrator roda no próprio servidor, por regras: o texto não é enviado a terceiros nem gravado. O prazo só existe depois de conferido e salvo.
-- **Rede de segurança humana.** Se o titular não conferir até a véspera, um colega indicado por ele recebe um e-mail. O colega não ganha acesso ao sistema.
+- **Rede de segurança humana.** Se o titular não conferir até a véspera útil, um colega indicado por ele recebe um e-mail. O colega precisa aceitar o convite antes, recebe só a data e não ganha acesso ao sistema.
 - **Link de conferência seguro.** O token é de uso único, expira, só o resumo SHA-256 fica no banco, e abrir o link não confirma nada: a confirmação é um clique explícito, para antivírus de e-mail não "conferirem" o prazo sozinhos.
 
 ## Tecnologias
@@ -137,7 +137,7 @@ O `.env` é ignorado pelo Git. Use só dados fictícios em desenvolvimento e em 
 pnpm dev
 ```
 
-Abra http://localhost:3000 e crie uma conta. Os e-mails (redefinição de senha e alertas) aparecem no Mailpit.
+Abra http://localhost:3000 e crie uma conta. Os e-mails (confirmação de e-mail, redefinição de senha, convite ao substituto e alertas) aparecem no Mailpit. Os alertas só são enviados depois que você confirma o e-mail da conta pelo link que chega lá.
 
 Para disparar os alertas à mão, como o agendador faz:
 
@@ -190,10 +190,11 @@ A política de relato de vulnerabilidades e as práticas do projeto estão em [S
 
 Limites de hoje, ditos sem rodeio:
 
-- **Regras de prazo sem validação jurídica.** Todas estão como `pendente` até um advogado conferir os casos.
+- **Regras de prazo sem validação jurídica.** Todas estão como `pendente` até um advogado conferir os casos; até lá, cada data calculada exige a declaração de conferência ao salvar. Os pontos em aberto estão em [`regras.md`](src/modules/prazos/regras.md).
 - **Só TJSP e TRT-2.** Nos demais tribunais a data final é digitada.
 - **Feriados municipais** não estão na tabela: entram como dia sem expediente cadastrado pelo advogado.
-- **Limitador de login em memória.** Vale por instância do servidor e depende de um proxy que sobrescreva o `X-Forwarded-For`.
+- **Limitador de tentativas em memória.** Vale por instância do servidor e depende de um proxy que sobrescreva o `X-Forwarded-For`.
+- **Termos de uso e Política de privacidade** descrevem o que o sistema faz, mas ainda não passaram por revisão jurídica.
 - **Uma pessoa por conta.**
 - **Deploy em Vercel e Supabase** documentado, mas ainda não executado de ponta a ponta.
 
