@@ -75,7 +75,10 @@ export async function exportar(contaId: string) {
     await Promise.all([
       prisma.conta.findUnique({
         where: { id: contaId },
-        select: { nome: true, substitutoNome: true, substitutoEmail: true, criadoEm: true, usuario: { select: { name: true, email: true } } },
+        select: {
+          nome: true, substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, termosAceitosEm: true, versaoDosTermos: true,
+          criadoEm: true, usuario: { select: { name: true, email: true, emailVerified: true } },
+        },
       }),
       prisma.cliente.findMany({ ...daConta, omit: semConta }),
       prisma.processo.findMany({ ...daConta, omit: semConta }),

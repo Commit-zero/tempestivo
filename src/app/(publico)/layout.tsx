@@ -12,9 +12,17 @@ export default async function LayoutPublico({ children }: { children: React.Reac
         <Marca />
       </Link>
       <main className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-sm sm:p-8">{children}</main>
-      <p className="max-w-sm text-center text-sm text-muted-foreground">
-        Cálculo auxiliar: a conferência do prazo é sempre do advogado.
-      </p>
+      <div className="grid max-w-sm justify-items-center gap-2 text-center text-sm text-muted-foreground">
+        <p>Cálculo auxiliar: a conferência do prazo é sempre do advogado.</p>
+        <nav aria-label="Documentos" className="flex gap-4">
+          <Link href="/termos" className="underline-offset-4 hover:underline">
+            Termos de uso
+          </Link>
+          <Link href="/privacidade" className="underline-offset-4 hover:underline">
+            Privacidade
+          </Link>
+        </nav>
+      </div>
     </div>
   );
 }

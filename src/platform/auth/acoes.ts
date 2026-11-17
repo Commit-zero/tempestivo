@@ -4,6 +4,7 @@ import { getPrisma } from "@/platform/database";
 import { getLogger } from "@/platform/runtime";
 import { getAuth, TAMANHO_MINIMO_DA_SENHA } from "./auth";
 import { criarLimitador } from "@/lib/limitador";
+import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
@@ -55,8 +56,14 @@ export async function cadastrar(dados: { nome: unknown; email: unknown; senha: u
   if (!validado.success) return primeiroErro(validado.error);
   if (!tentativasDeCadastro.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
   try {
-    await getAuth().api.signUpEmail({
+    const { user } = await getAuth().api.signUpEmail({
       body: { name: validado.data.nome, email: validado.data.email, password: validado.data.senha, callbackURL: ROTA_APOS_CONFIRMAR },
+    });
+    // A conta nasce aqui com o aceite: data e versão dos termos que a pessoa leu.
+    await getPrisma().conta.upsert({
+      where: { usuarioId: user.id },
+      update: { termosAceitosEm: new Date(), versaoDosTermos: VERSAO_DOS_TERMOS },
+      create: { usuarioId: user.id, nome: user.name, termosAceitosEm: new Date(), versaoDosTermos: VERSAO_DOS_TERMOS },
     });
     return { ok: true };
   } catch (erro) {

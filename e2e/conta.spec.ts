@@ -55,7 +55,11 @@ test("exporta os dados da conta e exclui a conta só com o e-mail certo", async 
   const exportacao = await page.request.get("/conta/exportar");
   expect(exportacao.status()).toBe(200);
   expect(exportacao.headers()["content-disposition"]).toContain("attachment");
-  expect(await exportacao.json()).toMatchObject({ formato: "tempestivo-exportacao-v1", conta: { usuario: { email } }, clientes: [] });
+  // O cadastro registrou o aceite dos termos, com a versão lida.
+  expect(await exportacao.json()).toMatchObject({
+    formato: "tempestivo-exportacao-v1", conta: { usuario: { email }, versaoDosTermos: "2026-11-17" }, clientes: [],
+  });
+  expect((await exportacao.json()).conta.termosAceitosEm).toEqual(expect.any(String));
 
   await page.getByLabel("Para confirmar, digite a sua senha").fill("senha-errada-de-teste");
   await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();

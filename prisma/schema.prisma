@@ -93,6 +93,9 @@ model Conta {
   substitutoConfirmadoEm   DateTime?
   substitutoTokenHash      String?   @unique
   substitutoTokenExpiraEm  DateTime?
+  // Aceite dos termos de uso e da política de privacidade no cadastro.
+  termosAceitosEm          DateTime?
+  versaoDosTermos          String?
   criadoEm        DateTime @default(now())
   atualizadoEm    DateTime @updatedAt
 

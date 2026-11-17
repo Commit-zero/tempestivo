@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { BotaoEnviar, Campo, CampoDeMarcar, MensagemDoFormulario } from "@/components/formulario";
 import type { EstadoDoFormulario } from "@/lib/formulario";
@@ -40,7 +41,19 @@ export function FormularioDeCadastro({ tamanhoMinimoDaSenha }: { tamanhoMinimoDa
         name="aceite"
         required
         rotulo="Li e entendi"
-        dica="O cálculo de prazo é auxiliar e deve ser conferido por mim. Nesta fase de testes, vou cadastrar apenas dados fictícios."
+        dica={
+          <>
+            Aceito os{" "}
+            <Link href="/termos" target="_blank" className="text-primary underline underline-offset-4">
+              Termos de uso
+            </Link>{" "}
+            e a{" "}
+            <Link href="/privacidade" target="_blank" className="text-primary underline underline-offset-4">
+              Política de privacidade
+            </Link>
+            . O cálculo de prazo é auxiliar e deve ser conferido por mim. Nesta fase de testes, vou cadastrar apenas dados fictícios.
+          </>
+        }
       />
       <BotaoEnviar enviando="Criando a conta…">Criar conta</BotaoEnviar>
     </form>

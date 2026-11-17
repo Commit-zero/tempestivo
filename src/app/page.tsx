@@ -57,8 +57,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           ))}
         </section>
       </main>
-      <footer className="mt-auto border-t pt-6 text-sm text-muted-foreground">
-        Cálculo auxiliar, confira. O Tempestivo não substitui a conferência do advogado.
+      <footer className="mt-auto grid gap-2 border-t pt-6 text-sm text-muted-foreground">
+        <p>Cálculo auxiliar, confira. O Tempestivo não substitui a conferência do advogado.</p>
+        <nav aria-label="Documentos" className="flex flex-wrap gap-x-4">
+          <Link href="/termos" className="underline-offset-4 hover:underline">
+            Termos de uso
+          </Link>
+          <Link href="/privacidade" className="underline-offset-4 hover:underline">
+            Política de privacidade
+          </Link>
+        </nav>
       </footer>
     </div>
   );
