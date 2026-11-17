@@ -4,7 +4,7 @@ import { falha, sucesso, type Resultado } from "@/lib/resultado";
 import { confirmarConferencia } from "@/modules/prazos";
 import type { Logger } from "@/platform/logger";
 import type { Email, Mailer } from "@/platform/mailer";
-import { avisosDoDia, chaveDoAlerta, DIAS_DA_PRIMEIRA_CAMADA, type Aviso } from "./camadas";
+import { avisosDoDia, chaveDoAlerta, diasUteisAte, JANELA_EM_DIAS_CORRIDOS, type Aviso } from "./camadas";
 import * as repositorio from "./repositorio";
 import type { PrazoParaAlertar } from "./repositorio";
 
@@ -60,12 +60,12 @@ function montarEmail(prazo: PrazoParaAlertar, aviso: Aviso, diasRestantes: numbe
  */
 export async function enviarAlertasPendentes({ mailer, logger, appUrl, agora = new Date() }: DependenciasDosAlertas): Promise<ResumoDosAlertas> {
   const hoje = dataCivilEmSaoPaulo(agora);
-  const prazos = await repositorio.listarPrazosParaAlertar(hoje, somarDias(hoje, DIAS_DA_PRIMEIRA_CAMADA));
+  const prazos = await repositorio.listarPrazosParaAlertar(hoje, somarDias(hoje, JANELA_EM_DIAS_CORRIDOS));
   const resumo: ResumoDosAlertas = { analisados: prazos.length, enviados: 0, falhas: 0 };
 
   for (const prazo of prazos) {
     const diasRestantes = diasEntre(hoje, prazo.dataFinal);
-    const avisos = avisosDoDia({ diasRestantes, conferido: prazo.status === "confirmado", temSubstituto: prazo.substituto !== null });
+    const avisos = avisosDoDia({ diasUteis: diasUteisAte(hoje, prazo.dataFinal), conferido: prazo.status === "confirmado", temSubstituto: prazo.substituto !== null });
     for (const aviso of avisos) {
       // O link "li e conferi" vai só para o titular e vale até o dia seguinte ao vencimento.
       const token = aviso.destino === "titular" ? randomBytes(32).toString("base64url") : null;

@@ -29,6 +29,9 @@ test("cadastra um prazo vendo o passo a passo, confere, edita e cumpre", async (
   await expect(main.getByText("20/11/2026 (feriado: Consciência Negra)")).toBeVisible();
   await semRolagemHorizontal(page);
 
+  // Com regras pendentes, só salva depois da declaração de conferência.
+  await expect(page.getByRole("button", { name: "Salvar prazo" })).toBeDisabled();
+  await page.getByLabel("Conferi esta data final nos autos").check();
   await page.getByRole("button", { name: "Salvar prazo" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Contestação (cível)" })).toBeVisible();
   await expect(main.getByText("Você ainda não registrou que conferiu este prazo.")).toBeVisible();
@@ -44,6 +47,7 @@ test("cadastra um prazo vendo o passo a passo, confere, edita e cumpre", async (
   await page.getByLabel("Dias").fill("5");
   await page.getByRole("button", { name: "Calcular data final" }).click();
   await expect(main.getByText("19/11/2026 (quinta-feira)").first()).toBeVisible();
+  await page.getByLabel("Conferi esta data final nos autos").check();
   await page.getByRole("button", { name: "Salvar alterações" }).click();
   await expect(main.getByText("a conferência foi zerada")).toBeVisible();
   await expect(main.getByText("Histórico de alterações")).toBeVisible();

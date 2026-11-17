@@ -3,7 +3,7 @@ import { criarCliente } from "@/modules/clientes";
 import { criarProcesso } from "@/modules/processos";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import {
-  ajustarTipoDoCatalogo, cadastrarDiaSemExpediente, cadastrarPrazo, confirmarConferencia, criarTipoDePrazo,
+  ajustarTipoDoCatalogo, cadastrarDiaSemExpediente, cadastrarPrazo, CONFIRME_A_CONFERENCIA, confirmarConferencia, criarTipoDePrazo,
   desfazerCumprido, editarPrazo, excluirPrazo, listarDiasSemExpediente, listarPrazos, listarTiposDePrazo,
   marcarComoCumprido, obterPrazo, previsualizarPrazo, removerTipoDaConta,
 } from "../index";
@@ -12,7 +12,7 @@ import {
 const agora = new Date("2026-11-12T15:00:00Z");
 const calculada = (processoId: string, extra: Record<string, unknown> = {}) => ({
   origem: "calculada", processoId, descricao: "Contestação", dataEvento: "2026-11-12", tipoEvento: "intimacao",
-  dias: 15, contagem: "uteis", emDobro: false, ...extra,
+  dias: 15, contagem: "uteis", emDobro: false, conferiNosAutos: true, ...extra,
 });
 
 describe("prazos (integração)", () => {
@@ -80,6 +80,28 @@ describe("prazos (integração)", () => {
 
       const manual = await cadastrarPrazo(contaA, { origem: "manual", processoId: processoForaDoEscopo, descricao: "Recurso", dataFinal: "2026-12-01" });
       expect(manual.ok && manual.valor).toMatchObject({ dataFinal: "2026-12-01", origemDataFinal: "manual", dias: null, memoriaDoCalculo: null });
+    });
+
+    it("enquanto as regras forem pendentes, só salva a data calculada com a conferência declarada", async () => {
+      expect(await cadastrarPrazo(contaA, calculada(processoA, { conferiNosAutos: undefined }))).toEqual({ ok: false, erro: CONFIRME_A_CONFERENCIA });
+      expect(await cadastrarPrazo(contaA, calculada(processoA, { conferiNosAutos: "on" }))).toEqual({ ok: false, erro: CONFIRME_A_CONFERENCIA });
+      // A prévia não exige nada: ela não grava.
+      expect(await previsualizarPrazo(contaA, processoA, calculada(processoA))).toMatchObject({ ok: true });
+    });
+
+    it("recusa prazo de Juizado Especial e aceita a data manual", async () => {
+      const cliente = await criarCliente(contaA, { nome: "Cliente do Juizado", documento: "", email: "", telefone: "", observacoes: "" });
+      if (!cliente.ok) throw new Error(cliente.erro);
+      const processo = await criarProcesso(contaA, {
+        clienteId: cliente.valor.id, numero: "1002003-94.2026.8.26.0002", tribunal: "TJSP", vara: "2º Juizado Especial Cível",
+        assunto: "Ação fictícia no juizado", parteContraria: "",
+      });
+      if (!processo.ok) throw new Error(processo.erro);
+
+      const recusa = await previsualizarPrazo(contaA, processo.valor.id, calculada(processo.valor.id));
+      expect(recusa.ok).toBe(false);
+      if (!recusa.ok) expect(recusa.motivo).toContain("Juizado Especial");
+      expect((await cadastrarPrazo(contaA, { origem: "manual", processoId: processo.valor.id, descricao: "Recurso inominado", dataFinal: "2026-12-01" })).ok).toBe(true);
     });
 
     it("valida a entrada com mensagens em português", async () => {

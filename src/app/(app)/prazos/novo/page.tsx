@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Cartao, CabecalhoDaPagina, EstadoVazio } from "@/components/app/pagina";
 import { Button } from "@/components/ui/button";
 import { dataCivilEmSaoPaulo, ehDataCivil } from "@/lib/datas";
+import { AVISO_REGRAS_PENDENTES } from "@/modules/prazos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoPreverPrazo, acaoSalvarPrazo } from "../acoes";
 import { FormularioDePrazo } from "../formulario";
@@ -53,6 +54,7 @@ export default async function PaginaDeNovoPrazo({ searchParams }: PageProps<"/pr
           <FormularioDePrazo
             acaoSalvar={acaoSalvarPrazo.bind(null, null)}
             acaoPrever={acaoPreverPrazo}
+            avisoDeRegrasPendentes={AVISO_REGRAS_PENDENTES}
             processos={processos}
             tipos={tipos}
             inicial={{

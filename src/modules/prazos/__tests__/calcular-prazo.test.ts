@@ -96,6 +96,20 @@ describe("dias que dependem de portaria do tribunal", () => {
     expect(resultado.passos.join(" ")).toContain("04/06/2026 (sem expediente: Corpus Christi (portaria))");
   });
 
+  it("no TRT-2, cita a Lei 5.010 nos dias que ela fixa como feriado, sem deixar de contá-los", () => {
+    const resultado = exigirOk(calcular({ tribunal: "TRT-2", dataEvento: "2026-02-13" }));
+
+    expect(resultado.dataFinal).toBe("2026-02-20");
+    expect(resultado.avisos.some((aviso) => aviso.includes("16/02/2026 é segunda-feira de Carnaval, feriado da Justiça do Trabalho pela Lei 5.010/1966"))).toBe(true);
+    expect(exigirOk(calcular({ dataEvento: "2026-02-13" })).avisos.some((aviso) => aviso.includes("Lei 5.010"))).toBe(false);
+  });
+
+  it("avisa sobre o feriado municipal de 25/01 na capital", () => {
+    const resultado = exigirOk(calcular({ dataEvento: "2026-12-14", dias: 15 }));
+
+    expect(resultado.avisos.some((aviso) => aviso.includes("25/01/2027 é aniversário de São Paulo"))).toBe(true);
+  });
+
   it("avisa sobre a Semana Santa quando o prazo passa por ela", () => {
     const resultado = exigirOk(calcular({ dias: 15, emDobro: true }));
 
@@ -117,7 +131,8 @@ describe("recusa segura", () => {
     ["contagem desconhecida", { contagem: "semanas" as never }],
     ["tipo de evento desconhecido", { tipoEvento: "boato" as never }],
     ["intimação tácita cujos 10 dias passam pelo recesso", { tipoEvento: "intimacao_tacita", dataEvento: "2026-12-15" }],
-    ["dias corridos passando pelo recesso", { contagem: "corridos", dataEvento: "2026-12-14", dias: 15 }],
+    ["prazo em dias corridos, fora do escopo", { contagem: "corridos" }],
+    ["prazo em dias corridos que terminaria logo antes do recesso", { contagem: "corridos", dataEvento: "2026-12-10", dias: 9 }],
   ];
 
   it.each(recusas)("recusa %s e pede a data manual", (_nome, entrada) => {
@@ -168,17 +183,42 @@ describe("propriedades da contagem", () => {
     expect(violacoes).toEqual([]);
   }, 20_000);
 
-  it("dias corridos também nunca vencem em dia sem expediente", () => {
+  it("evento em qualquer dia da suspensão começa a contar no primeiro dia útil depois de 20/01", () => {
+    // A suspensão impede o prazo de correr, mas não adia o dia do começo: a contagem
+    // nunca começa depois do primeiro dia útil que conta após o recesso.
     const calendario = calendarios.TJSP;
-    for (let data = "2026-02-01"; data <= "2026-11-15"; data = somarDias(data, 1)) {
-      for (const dias of quantidades) {
-        const resultado = exigirOk(
-          calcularPrazo({ tribunal: "TJSP", tipoEvento: "intimacao", dataEvento: data, dias, contagem: "corridos", emDobro: false }, calendario),
-        );
-        expect(calendario.motivoSemExpediente(resultado.dataFinal), `${data} ${dias}d`).toBeNull();
+    const inicios = new Map([["2026", "2026-01-21"], ["2027", "2027-01-21"]]);
+    const violacoes: string[] = [];
+    for (const [anoDoFim, inicioEsperado] of inicios) {
+      for (let data = `${Number(anoDoFim) - 1}-12-20`; data <= `${anoDoFim}-01-20`; data = somarDias(data, 1)) {
+        for (const tipoEvento of ["intimacao", "publicacao", "disponibilizacao"] as const) {
+          if (tipoEvento === "disponibilizacao" && data === `${anoDoFim}-01-20`) continue;
+          const resultado = exigirOk(
+            calcularPrazo({ tribunal: "TJSP", tipoEvento, dataEvento: data, dias: 1, contagem: "uteis", emDobro: false }, calendario),
+          );
+          if (resultado.dataInicio !== inicioEsperado) violacoes.push(`${tipoEvento} ${data} -> ${resultado.dataInicio}`);
+        }
       }
     }
+    expect(violacoes).toEqual([]);
   });
+
+  it("nenhuma data final sai mais tarde do que a de um evento no dia seguinte", () => {
+    // Propriedade de segurança: adiar o evento nunca antecipa o vencimento, e
+    // antecipá-lo nunca atrasa. Pega qualquer erro que empurre a data para frente.
+    const violacoes: string[] = [];
+    for (let data = "2026-01-01"; data <= "2027-12-30"; data = somarDias(data, 1)) {
+      for (const tipoEvento of eventos) {
+        const hoje = calcularPrazo({ tribunal: "TJSP", tipoEvento, dataEvento: data, dias: 5, contagem: "uteis", emDobro: false }, calendarios.TJSP);
+        const amanha = calcularPrazo(
+          { tribunal: "TJSP", tipoEvento, dataEvento: somarDias(data, 1), dias: 5, contagem: "uteis", emDobro: false },
+          calendarios.TJSP,
+        );
+        if (hoje.ok && amanha.ok && hoje.dataFinal > amanha.dataFinal) violacoes.push(`${tipoEvento} ${data}: ${hoje.dataFinal} > ${amanha.dataFinal}`);
+      }
+    }
+    expect(violacoes).toEqual([]);
+  }, 20_000);
 
   it("o prazo em dobro é igual ao prazo simples com o dobro de dias", () => {
     for (let data = "2026-01-05"; data <= "2026-12-28"; data = somarDias(data, 7)) {

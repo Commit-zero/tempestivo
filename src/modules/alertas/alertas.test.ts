@@ -57,8 +57,9 @@ describe("alertas (integração)", () => {
     expect(doPrazo(cincoDias.mailer, prazo.descricao)[0].texto).toContain("Cálculo auxiliar");
 
     expect(doPrazo((await rodar(dia("2026-11-12"))).mailer, prazo.descricao)).toHaveLength(0);
-    expect(doPrazo((await rodar(dia("2026-11-13"))).mailer, prazo.descricao)).toHaveLength(0);
-    expect(doPrazo((await rodar(dia("2026-11-15"))).mailer, prazo.descricao).map((email) => email.assunto)).toEqual([`Prazo vence em 2 dias: ${prazo.descricao}`]);
+    // Sexta-feira: faltam 2 dias úteis (segunda e terça), então o aviso d2 sai antes do fim de semana.
+    expect(doPrazo((await rodar(dia("2026-11-13"))).mailer, prazo.descricao).map((email) => email.assunto)).toEqual([`Prazo vence em 4 dias: ${prazo.descricao}`]);
+    expect(doPrazo((await rodar(dia("2026-11-15"))).mailer, prazo.descricao)).toHaveLength(0);
     expect(doPrazo((await rodar(dia("2026-11-16"))).mailer, prazo.descricao).map((email) => email.assunto)).toEqual([`Prazo vence amanhã: ${prazo.descricao}`]);
     expect(doPrazo((await rodar(dia("2026-11-17"))).mailer, prazo.descricao).map((email) => email.assunto)).toEqual([`Prazo vence hoje: ${prazo.descricao}`]);
     expect(doPrazo((await rodar(dia("2026-11-18"))).mailer, prazo.descricao)).toHaveLength(0);

@@ -22,7 +22,9 @@ export function pascoa(ano: number): DataCivil {
 }
 
 // Feriados nacionais (Leis 662/1949, 6.802/1980, 10.607/2002 e 14.759/2023) e a
-// Sexta-feira da Paixão, em que não há expediente forense.
+// Sexta-feira da Paixão. Ela não é feriado nacional: é feriado religioso fixado pelo
+// município (Lei 9.093/1995, art. 2º) e feriado forense da Justiça Federal e do
+// Trabalho (Lei 5.010/1966, art. 62, II). No TJSP e no TRT-2 não há expediente.
 export function feriadosNacionais(ano: number): Feriado[] {
   return [
     { data: criarData(ano, 1, 1), nome: "Confraternização Universal" },
@@ -55,6 +57,7 @@ export function pontosDependentesDoTribunal(ano: number): Feriado[] {
     { data: somarDias(domingoDePascoa, -4), nome: "quarta-feira da Semana Santa" },
     { data: somarDias(domingoDePascoa, -3), nome: "quinta-feira da Semana Santa" },
     { data: somarDias(domingoDePascoa, 60), nome: "Corpus Christi" },
+    { data: criarData(ano, 1, 25), nome: "aniversário de São Paulo (feriado municipal só na capital)" },
     { data: criarData(ano, 8, 11), nome: "Dia do Advogado (11 de agosto)" },
     { data: criarData(ano, 10, 28), nome: "Dia do Servidor Público" },
     { data: criarData(ano, 11, 1), nome: "Todos os Santos" },

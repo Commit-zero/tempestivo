@@ -4,6 +4,14 @@ import { criarIndiceDeFeriados, feriadosEstaduaisSP, feriadosNacionais, pontosDe
 const feriadoEm = criarIndiceDeFeriados((ano) => [...feriadosNacionais(ano), ...feriadosEstaduaisSP(ano)]);
 const pontoDependenteEm = criarIndiceDeFeriados(pontosDependentesDoTribunal);
 
+// Na Justiça do Trabalho estes dias são feriado por lei (Lei 5.010/1966, art. 62),
+// não por portaria. A calculadora continua contando-os como úteis (a data sai mais
+// cedo, o lado seguro) até o advogado validador confirmar, e o aviso cita a lei.
+const FERIADOS_DA_LEI_5010 = new Set([
+  "segunda-feira de Carnaval", "terça-feira de Carnaval", "quarta-feira da Semana Santa", "quinta-feira da Semana Santa",
+  "Dia do Advogado (11 de agosto)", "Todos os Santos", "Dia da Justiça",
+]);
+
 export type Ramo = "civel" | "trabalhista";
 export type Tribunal = { sigla: string; nome: string; ramo: Ramo };
 
@@ -63,7 +71,11 @@ export function criarCalendario({ tribunal: sigla, diasSemExpediente = [] }: Opc
     emRecesso: emRecessoForense,
     pontoDependente(data) {
       if (motivoSemExpediente(data) !== null || emRecessoForense(data)) return null;
-      return pontoDependenteEm(data) ?? null;
+      const ponto = pontoDependenteEm(data);
+      if (ponto === undefined) return null;
+      return tribunal.ramo === "trabalhista" && FERIADOS_DA_LEI_5010.has(ponto)
+        ? `${ponto}, feriado da Justiça do Trabalho pela Lei 5.010/1966, art. 62`
+        : ponto;
     },
   };
 }

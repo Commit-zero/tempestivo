@@ -3,7 +3,7 @@ import { falha, primeiraMensagem, sucesso, type Resultado } from "@/lib/resultad
 import { obterProcesso } from "@/modules/processos";
 import { CATALOGO_BASE } from "./catalogo/tipos-de-prazo";
 import {
-  calcularPrazo, CONTAGENS, TIPOS_DE_EVENTO, type Contagem, type EntradaCalculo, type ResultadoCalculo,
+  AVISO_REGRAS_PENDENTES, calcularPrazo, CONTAGENS, TIPOS_DE_EVENTO, type Contagem, type EntradaCalculo, type ResultadoCalculo,
 } from "./dominio/calcular-prazo";
 import { buscarTribunal, criarCalendario, type Ramo } from "./dominio/calendario";
 import { dataCivilEmSaoPaulo, ehDataCivil, somarDias } from "@/lib/datas";
@@ -38,7 +38,17 @@ const schemaPrazo = z.discriminatedUnion("origem", [
 ]);
 
 export type EntradaDeCalculo = Record<keyof z.input<typeof schemaCalculo>, unknown>;
-export type EntradaDePrazo = { origem: unknown; processoId: unknown; descricao: unknown } & Partial<EntradaDeCalculo> & { dataFinal?: unknown };
+export type EntradaDePrazo = { origem: unknown; processoId: unknown; descricao: unknown } & Partial<EntradaDeCalculo> & {
+  dataFinal?: unknown;
+  /** Declaração do advogado de que conferiu a data nos autos; exigida enquanto houver regra pendente. */
+  conferiNosAutos?: unknown;
+};
+
+export const CONFIRME_A_CONFERENCIA =
+  "As regras desta contagem ainda não foram validadas. Confirme que conferiu a data final nos autos antes de salvar.";
+
+// Juizados Especiais têm regras próprias de contagem (Lei 9.099/1995) e estão fora do escopo.
+const JUIZADO = /juizado|\bJEC\b|\bJEF\b|\bJECRIM\b|\bJEFAZ\b/i;
 
 export type PrazoComSituacao = Prazo & { situacao: Situacao };
 
@@ -48,7 +58,18 @@ function comSituacao(prazo: Prazo, agora: Date): PrazoComSituacao {
 
 // --- Cálculo -----------------------------------------------------------------
 
-async function calcularParaProcesso(contaId: string, tribunal: string, entrada: z.output<typeof schemaCalculo>): Promise<ResultadoCalculo> {
+async function calcularParaProcesso(
+  contaId: string,
+  processo: { tribunal: string; vara: string | null },
+  entrada: z.output<typeof schemaCalculo>,
+): Promise<ResultadoCalculo> {
+  if (processo.vara && JUIZADO.test(processo.vara)) {
+    return {
+      ok: false,
+      motivo: "Prazos de Juizado Especial têm contagem própria e estão fora do escopo da calculadora. Informe a data final manualmente.",
+    };
+  }
+  const tribunal = processo.tribunal;
   const diasSemExpediente = buscarTribunal(tribunal) ? await repositorio.listarDiasSemExpediente(contaId, tribunal) : [];
   return calcularPrazo(
     { ...entrada, tribunal } as EntradaCalculo,
@@ -62,7 +83,7 @@ export async function previsualizarPrazo(contaId: string, processoId: unknown, e
   if (!validado.success) return { ok: false, motivo: primeiraMensagem(validado.error) };
   const processo = typeof processoId === "string" ? await obterProcesso(contaId, processoId) : null;
   if (!processo) return { ok: false, motivo: "Escolha o processo." };
-  return calcularParaProcesso(contaId, processo.tribunal, validado.data);
+  return calcularParaProcesso(contaId, processo, validado.data);
 }
 
 async function montarDados(contaId: string, entrada: EntradaDePrazo): Promise<Resultado<DadosDoPrazo>> {
@@ -79,8 +100,12 @@ async function montarDados(contaId: string, entrada: EntradaDePrazo): Promise<Re
       dataEvento: null, dataInicio: null, dataFinal: dados.dataFinal, origemDataFinal: "manual", memoriaDoCalculo: null,
     });
   }
-  const calculo = await calcularParaProcesso(contaId, processo.tribunal, dados);
+  const calculo = await calcularParaProcesso(contaId, processo, dados);
   if (!calculo.ok) return falha(calculo.motivo);
+  // Regra pendente não vai para produção sem o advogado assumir a conferência.
+  if (calculo.avisos.includes(AVISO_REGRAS_PENDENTES) && entrada.conferiNosAutos !== true) {
+    return falha(CONFIRME_A_CONFERENCIA);
+  }
   return sucesso({
     processoId: processo.id,
     descricao: dados.descricao,

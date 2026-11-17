@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina } from "@/components/app/pagina";
 import { dataCivilEmSaoPaulo } from "@/lib/datas";
-import { buscarTribunal, obterPrazo } from "@/modules/prazos";
+import { AVISO_REGRAS_PENDENTES, buscarTribunal, obterPrazo } from "@/modules/prazos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoPreverPrazo, acaoSalvarPrazo } from "../../acoes";
 import { FormularioDePrazo } from "../../formulario";
@@ -26,6 +26,7 @@ export default async function PaginaDeEdicaoDoPrazo({ params }: PageProps<"/praz
           editando
           acaoSalvar={acaoSalvarPrazo.bind(null, id)}
           acaoPrever={acaoPreverPrazo}
+          avisoDeRegrasPendentes={AVISO_REGRAS_PENDENTES}
           processos={[
             { id: prazo.processoId, rotulo: prazo.processo.assunto, tribunal: prazo.processo.tribunal, atendido: buscarTribunal(prazo.processo.tribunal) !== undefined },
           ]}

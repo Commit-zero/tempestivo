@@ -30,6 +30,7 @@ function lerPrazo(formulario: FormData): EntradaDePrazo {
     contagem: formulario.get("contagem"),
     emDobro: formulario.get("emDobro") === "on",
     dataFinal: formulario.get("dataFinal"),
+    conferiNosAutos: formulario.get("conferiNosAutos") === "on",
   };
 }
 

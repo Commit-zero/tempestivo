@@ -33,8 +33,10 @@ const EVENTOS = [
 ];
 
 export function FormularioDePrazo({
-  acaoSalvar, acaoPrever, processos, tipos, inicial, editando = false,
+  acaoSalvar, acaoPrever, processos, tipos, inicial, avisoDeRegrasPendentes, editando = false,
 }: {
+  /** Texto do aviso que a calculadora põe quando há regra pendente; vem do servidor. */
+  avisoDeRegrasPendentes: string;
   acaoSalvar: Acao;
   acaoPrever: (dados: DadosDaPrevia) => Promise<ResultadoCalculo>;
   processos: OpcaoDeProcesso[];
@@ -46,6 +48,7 @@ export function FormularioDePrazo({
   const [valores, setValores] = useState(inicial);
   const [previa, setPrevia] = useState<ResultadoCalculo | null>(null);
   const [calculando, iniciarCalculo] = useTransition();
+  const [conferido, setConferido] = useState(false);
 
   const processo = processos.find((opcao) => opcao.id === valores.processoId);
   const manual = valores.origem === "manual";
@@ -54,6 +57,7 @@ export function FormularioDePrazo({
   function mudar(parte: Partial<ValoresDoPrazo>) {
     setValores((atuais) => ({ ...atuais, ...parte }));
     setPrevia(null);
+    setConferido(false);
   }
 
   function escolherTipo(id: string) {
@@ -69,7 +73,8 @@ export function FormularioDePrazo({
   }
 
   const podeCalcular = valores.processoId !== "" && valores.dataEvento !== "" && valores.dias !== "";
-  const podeSalvar = manual ? valores.dataFinal !== "" : previa?.ok === true;
+  const exigeConferencia = !manual && previa?.ok === true && previa.avisos.includes(avisoDeRegrasPendentes);
+  const podeSalvar = manual ? valores.dataFinal !== "" : previa?.ok === true && (!exigeConferencia || conferido);
 
   return (
     <form action={enviar} className="grid gap-5">
@@ -162,6 +167,15 @@ export function FormularioDePrazo({
         </>
       )}
 
+      {exigeConferencia ? (
+        <CampoDeMarcar
+          name="conferiNosAutos"
+          rotulo="Conferi esta data final nos autos"
+          dica="As regras desta contagem ainda não foram validadas por um advogado. A data só é salva com a sua confirmação."
+          checked={conferido}
+          onChange={(evento) => setConferido(evento.target.checked)}
+        />
+      ) : null}
       <div className="flex flex-wrap items-center gap-3 border-t pt-4">
         <BotaoEnviar enviando="Salvando…" disabled={!podeSalvar} className="sm:px-5">
           {editando ? "Salvar alterações" : "Salvar prazo"}
