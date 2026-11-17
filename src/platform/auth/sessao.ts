@@ -27,7 +27,11 @@ async function contaDoUsuario(usuarioId: string, nome: string): Promise<string> 
 
 /** Sessão validada no servidor (não só a presença do cookie). `cache` evita repetir a consulta na mesma requisição. */
 export const obterSessao = cache(async (): Promise<Sessao | null> => {
-  const sessao = await getAuth().api.getSession({ headers: await headers() });
+  // `headers()` vem antes de `getAuth()`: é ele que marca a página como dinâmica.
+  // Na ordem inversa, o build tenta pré-renderizar a tela e exige a configuração,
+  // que não existe no build da imagem Docker.
+  const cabecalhos = await headers();
+  const sessao = await getAuth().api.getSession({ headers: cabecalhos });
   if (!sessao) return null;
   const { id, name, email } = sessao.user;
   return { usuarioId: id, contaId: await contaDoUsuario(id, name), nome: name, email };
