@@ -26,7 +26,7 @@ export type EventoDeAgenda = {
 const paraIcs = (instante: Date) => instante.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
 // RFC 5545: vírgula, ponto e vírgula e barra invertida são escapados; quebra de linha vira \n.
-const escapar = (texto: string) => texto.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r?\n/g, "\\n");
+const escapar = (texto: string) => texto.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r\n|\r|\n/g, "\\n");
 
 /** Arquivo iCalendar (.ics) de um evento, aceito por Google Agenda, Outlook e Apple. */
 export function gerarIcs(evento: EventoDeAgenda, agora: Date): string {

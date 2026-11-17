@@ -115,6 +115,8 @@ describe("conta (integração)", () => {
     expect(exportacao.processos).toHaveLength(1);
     expect(exportacao.prazos).toHaveLength(1);
     expect(exportacao.conferencias).toHaveLength(1);
+    expect(exportacao.alertas).toEqual([expect.objectContaining({ camada: "d5", destino: "titular" })]);
+    expect(exportacao.sessoes).toEqual([]);
     const texto = JSON.stringify(exportacao);
     expect(texto).not.toContain("Cliente da Conta B");
     expect(texto).not.toContain("contaId");

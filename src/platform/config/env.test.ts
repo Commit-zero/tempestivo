@@ -111,6 +111,15 @@ describe("lerConfig", () => {
     expect(mensagemDoErro({ ...ambienteValido, DATABASE_URL: undefined })).toContain("DATABASE_URL");
   });
 
+  it("exige https no APP_URL em produção, menos em localhost", () => {
+    const producao = { ...ambienteValido, NODE_ENV: "production" };
+
+    expect(mensagemDoErro({ ...producao, APP_URL: "http://tempestivo.exemplo.com" })).toContain("APP_URL");
+    expect(() => lerConfig({ ...producao, APP_URL: "https://tempestivo.exemplo.com" })).not.toThrow();
+    expect(() => lerConfig({ ...producao, APP_URL: "http://localhost:3000" })).not.toThrow();
+    expect(() => lerConfig({ ...ambienteValido, APP_URL: "http://tempestivo.exemplo.com" })).not.toThrow();
+  });
+
   it("devolve uma configuração imutável", () => {
     const config = lerConfig(ambienteValido);
 

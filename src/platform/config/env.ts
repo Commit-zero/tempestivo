@@ -20,6 +20,13 @@ export const schemaEnv = z
   })
   // Variáveis de um driver só são exigidas quando o driver está ativo.
   .superRefine((env, contexto) => {
+    // Em produção, http deixaria os cookies de sessão sem `Secure` e os links dos e-mails sem TLS.
+    // APP_URL inválida já foi apontada pelo próprio campo; aqui só se confere o protocolo.
+    const url = URL.canParse(env.APP_URL) ? new URL(env.APP_URL) : null;
+    const local = url !== null && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (url && env.NODE_ENV === "production" && url.protocol !== "https:" && !local) {
+      contexto.addIssue({ code: "custom", path: ["APP_URL"], message: "precisa usar https em produção" });
+    }
     const exigir = (nome: "SMTP_HOST" | "EMAIL_REMETENTE") => {
       if (!env[nome]) contexto.addIssue({ code: "custom", path: [nome], message: "obrigatória com o driver ativo" });
     };

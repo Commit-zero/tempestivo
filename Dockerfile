@@ -3,7 +3,9 @@
 #   runner    app em produção (Next standalone, sem root, sem CLI do Prisma)
 #   migrator  só aplica migrações: `prisma migrate deploy`
 # O app nunca roda migração ao subir.
-ARG NODE_VERSION=24.22.1-slim
+# Tag e digest juntos: a tag documenta a versão, o digest garante a imagem exata.
+# O Dependabot (ecossistema docker) propõe a atualização.
+ARG NODE_VERSION=24.22.1-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c
 
 FROM node:${NODE_VERSION} AS base
 ENV NEXT_TELEMETRY_DISABLED=1

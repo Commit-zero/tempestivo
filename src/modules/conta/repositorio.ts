@@ -64,14 +64,14 @@ export async function aceitarConvite(contaId: string, tokenHash: string, em: Dat
 
 /**
  * Tudo o que a conta guarda, para a exportação (portabilidade, LGPD art. 18, V).
- * Cada tabela é lida com o filtro da conta. Ficam de fora os dados de autenticação
- * (hash de senha, sessões) e os resumos de token dos alertas.
+ * Cada tabela é lida com o filtro da conta. Ficam de fora o hash da senha, os tokens
+ * das sessões e os resumos de token dos alertas e do convite.
  */
 export async function exportar(contaId: string) {
   const prisma = getPrisma();
   const daConta = { where: { contaId } } as const;
   const semConta = { contaId: true } as const;
-  const [conta, clientes, processos, prazos, conferencias, historico, tiposDePrazo, diasSemExpediente, audiencias, honorarios, parcelas, tarefas] =
+  const [conta, clientes, processos, prazos, conferencias, historico, tiposDePrazo, diasSemExpediente, audiencias, honorarios, parcelas, tarefas, sessoes, alertas] =
     await Promise.all([
       prisma.conta.findUnique({
         where: { id: contaId },
@@ -91,8 +91,21 @@ export async function exportar(contaId: string) {
       prisma.honorario.findMany({ ...daConta, omit: semConta }),
       prisma.parcela.findMany({ ...daConta, omit: semConta }),
       prisma.tarefa.findMany({ ...daConta, omit: semConta }),
+      prisma.session.findMany({
+        where: { user: { conta: { id: contaId } } },
+        select: { createdAt: true, expiresAt: true, ipAddress: true, userAgent: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.alerta.findMany({
+        ...daConta,
+        select: { prazoId: true, camada: true, destino: true, criadoEm: true, enviadoEm: true, tokenUsadoEm: true },
+        orderBy: { criadoEm: "desc" },
+      }),
     ]);
-  return { conta, clientes, processos, prazos, conferencias, historico, tiposDePrazo, diasSemExpediente, audiencias, honorarios, parcelas, tarefas };
+  return {
+    conta, clientes, processos, prazos, conferencias, historico, tiposDePrazo, diasSemExpediente, audiencias, honorarios, parcelas, tarefas,
+    sessoes, alertas,
+  };
 }
 
 /** Apaga o usuário e, em cascata, a conta, as sessões e todos os dados. Não tem volta. */

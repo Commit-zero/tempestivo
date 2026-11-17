@@ -7,6 +7,7 @@ const OMITIDO = "[omitido]";
 const trechosSensiveis = [
   "senha", "password", "token", "secret", "authorization", "cookie", "database_url",
   "cpf", "cnpj", "telefone", "celular", "email", "texto", "conteudo", "intimacao", "api_key", "apikey",
+  "nome", "assunto", "descricao", "documento", "local", "observac", "endereco",
 ];
 
 function nomeSensivel(nome: string): boolean {

@@ -38,11 +38,12 @@ export function criarSchedulerHttp({ jobsSecret, logger, agora = () => performan
         log.info("job concluído", { duracaoMs: Math.round(agora() - inicio) });
         return resultado;
       } catch (erro) {
-        const mensagem = erro instanceof Error ? erro.message : String(erro);
+        // Só o tipo e o código do erro: a mensagem de erros do banco pode trazer dados dos registros.
+        const codigo = typeof erro === "object" && erro !== null && "code" in erro ? String(erro.code) : null;
         log.error("job falhou", {
           duracaoMs: Math.round(agora() - inicio),
           tipo: erro instanceof Error ? erro.name : typeof erro,
-          mensagem: ocultar(mensagem, jobsSecret),
+          codigo: codigo === null ? null : ocultar(codigo, jobsSecret),
         });
         throw erro;
       }

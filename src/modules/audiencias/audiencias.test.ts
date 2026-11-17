@@ -34,6 +34,9 @@ describe("agenda", () => {
     expect(ics).toContain("SUMMARY:Audiência\\; conciliação\\, 1ª");
     expect(ics).toContain("LOCATION:Fórum João Mendes\\, sala 3");
     expect(ics).toContain("DESCRIPTION:linha 1\\nlinha 2");
+    // Um \r sozinho não pode criar uma propriedade nova no arquivo.
+    const injetado = gerarIcs({ id: "x", titulo: "T", inicio: new Date(0), duracaoMin: 5, local: null, descricao: "a\rATTENDEE:mailto:x@y" }, agora);
+    expect(injetado).not.toMatch(/\r?\nATTENDEE/);
   });
 
   it("monta o link de rota com o endereço codificado", () => {

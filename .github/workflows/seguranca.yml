@@ -101,13 +101,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Instalar o Semgrep (versão fixa)
-        run: pipx install semgrep==1.184.0
-
       - name: Rodar o Semgrep (bloqueia em severidade ERROR)
-        # --metrics=off não envia dado nenhum ao serviço do Semgrep.
+        # Imagem oficial fixada por digest. --metrics=off não envia dado nenhum ao serviço do Semgrep.
         run: |
-          semgrep scan \
+          docker run --rm -v "$PWD":/src -w /src \
+            semgrep/semgrep:1.184.0@sha256:cc1b68266f267878b39739373ea9985b9a78e5d64497dd875c8de100b22695ed \
+            semgrep scan \
             --config p/typescript --config p/react --config p/nextjs \
             --config p/owasp-top-ten --config p/secrets \
             --metrics=off --severity ERROR --error \
