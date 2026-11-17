@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
+import { formatarDataHora } from "@/lib/datas";
 import { obterConta } from "@/modules/conta";
 import { exigirSessao } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,13 @@ export default async function PaginaDaConta() {
         <p className="text-sm text-muted-foreground">
           Os alertas de prazo chegam no e-mail da conta 5, 2 e 1 dia antes do vencimento e no próprio dia, com um link para registrar a conferência.
         </p>
+        {conta.substitutoEmail ? (
+          <p role="status" className={conta.substitutoConfirmadoEm ? "text-sm text-positivo" : "text-sm text-atencao"}>
+            {conta.substitutoConfirmadoEm
+              ? `O substituto aceitou o convite em ${formatarDataHora(conta.substitutoConfirmadoEm)} e recebe os avisos de véspera.`
+              : "Aguardando o substituto aceitar o convite enviado ao e-mail dele. Até lá, ele não recebe avisos."}
+          </p>
+        ) : null}
         <Cartao>
           <FormularioDaConta
             acao={acaoSalvarConta}

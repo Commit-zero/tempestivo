@@ -19,7 +19,14 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4 py-10">
       <Marca />
       <main className="grid w-full max-w-sm gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
-        {prazo ? (
+        {prazo?.jaConferidoPorEsteLink ? (
+          <>
+            <h1 className="text-2xl font-semibold tracking-tight">Conferência registrada</h1>
+            <p role="status" className="text-sm text-muted-foreground">
+              A conferência por este link já foi registrada. Para ver o prazo, entre no Tempestivo.
+            </p>
+          </>
+        ) : prazo ? (
           <>
             <div className="grid gap-1">
               <h1 className="text-2xl font-semibold tracking-tight">Conferir prazo</h1>
@@ -38,7 +45,7 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
             <p className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
               Cálculo auxiliar, confira. Só registre depois de conferir a data nos autos.
             </p>
-            <FormularioDeConferencia acao={acaoConfirmarPeloLink.bind(null, token)} jaConferido={prazo.jaConferidoPorEsteLink} cumprido={prazo.cumprido} />
+            <FormularioDeConferencia acao={acaoConfirmarPeloLink.bind(null, token)} cumprido={prazo.cumprido} />
           </>
         ) : (
           <>

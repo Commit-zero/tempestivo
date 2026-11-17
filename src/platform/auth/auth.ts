@@ -43,9 +43,29 @@ function criarAuth() {
           });
       },
     },
+    // O login não exige o e-mail confirmado, mas os alertas de prazo só vão para quem
+    // confirmou: assim ninguém usa o Tempestivo para mandar e-mails ao endereço de outra pessoa.
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      expiresIn: UM_DIA,
+      sendVerificationEmail: async ({ user, url }) => {
+        void getMailer()
+          .enviar({
+            para: user.email,
+            assunto: "Confirme o seu e-mail no Tempestivo",
+            texto:
+              `Olá, ${user.name}.\n\nPara receber os alertas de prazo neste endereço, confirme o e-mail abrindo o link abaixo. ` +
+              `Ele vale por 24 horas.\n\n${url}\n\nSe você não criou uma conta no Tempestivo, ignore este e-mail.`,
+          })
+          .catch((erro: unknown) => {
+            getLogger().error("falha ao enviar a confirmação de e-mail", { tipo: erro instanceof Error ? erro.name : typeof erro });
+          });
+      },
+    },
     session: { expiresIn: 7 * UM_DIA, updateAge: UM_DIA },
     // Vale para as chamadas HTTP em /api/auth/*. As telas usam server actions, que
-    // têm o limitador próprio em `limite.ts`.
+    // têm o limitador próprio (`src/lib/limitador.ts`).
     rateLimit: { enabled: true, window: 60, max: 60 },
     advanced: { cookiePrefix: "tempestivo" },
     // Precisa ser o último plugin: grava os cookies de sessão nas server actions.

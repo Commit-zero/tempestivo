@@ -7,7 +7,7 @@ export async function criarContaDeTeste(nome = "Conta de Teste"): Promise<string
   const conta = await getPrisma().conta.create({
     data: {
       nome,
-      usuario: { create: { id, name: nome, email: `${id}@exemplo.test` } },
+      usuario: { create: { id, name: nome, email: `${id}@exemplo.test`, emailVerified: true } },
     },
     select: { id: true },
   });

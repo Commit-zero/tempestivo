@@ -5,14 +5,21 @@ import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarConta, excluirConta } from "@/modules/conta";
 import { confirmarSenhaAtual, exigirSessao } from "@/platform/auth";
+import { getConfig } from "@/platform/config";
+import { getMailer } from "@/platform/runtime";
 
 export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const { contaId } = await exigirSessao();
   const valores = valoresDe(formulario, ["nome", "substitutoNome", "substitutoEmail"]) as Record<"nome" | "substitutoNome" | "substitutoEmail", string>;
-  const resultado = await atualizarConta(contaId, valores);
+  const resultado = await atualizarConta(contaId, valores, { mailer: getMailer(), appUrl: getConfig().APP_URL });
   if (!resultado.ok) return { erro: resultado.erro, valores };
   revalidatePath("/conta");
-  return { aviso: "Dados salvos.", valores };
+  return {
+    aviso: resultado.valor.conviteEnviado
+      ? "Dados salvos. Enviamos um convite ao substituto: ele só recebe avisos depois de aceitar."
+      : "Dados salvos.",
+    valores,
+  };
 }
 
 // Pede a senha atual: uma sessão esquecida aberta não basta para apagar tudo.

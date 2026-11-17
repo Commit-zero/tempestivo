@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getPrisma } from "@/platform/database";
 import { getLogger } from "@/platform/runtime";
 import { getAuth, TAMANHO_MINIMO_DA_SENHA } from "./auth";
-import { criarLimitador } from "./limite";
+import { criarLimitador } from "@/lib/limitador";
 import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
@@ -17,6 +17,8 @@ const tentativasDeCadastro = criarLimitador({ maximo: 10, janelaMs: QUINZE_MINUT
 const pedidosDeRedefinicao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
 const MUITAS_TENTATIVAS = "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
+const ROTA_APOS_CONFIRMAR = "/painel?email=confirmado";
+const reenviosDeConfirmacao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
 const email = z.email("Informe um e-mail válido.").trim().toLowerCase().max(254);
 const senhaNova = z
@@ -54,7 +56,7 @@ export async function cadastrar(dados: { nome: unknown; email: unknown; senha: u
   if (!tentativasDeCadastro.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
   try {
     await getAuth().api.signUpEmail({
-      body: { name: validado.data.nome, email: validado.data.email, password: validado.data.senha },
+      body: { name: validado.data.nome, email: validado.data.email, password: validado.data.senha, callbackURL: ROTA_APOS_CONFIRMAR },
     });
     return { ok: true };
   } catch (erro) {
@@ -132,4 +134,16 @@ export async function confirmarSenhaAtual(usuarioId: string, senha: unknown): Pr
   }
   confirmacoesDeSenha.liberar(usuarioId);
   return { ok: true };
+}
+
+/** Reenvia o e-mail de confirmação para quem está logado e ainda não confirmou. */
+export async function reenviarConfirmacaoDeEmail(sessao: { usuarioId: string; email: string }): Promise<ResultadoAuth> {
+  if (!reenviosDeConfirmacao.permitir(sessao.usuarioId)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  try {
+    await getAuth().api.sendVerificationEmail({ body: { email: sessao.email, callbackURL: ROTA_APOS_CONFIRMAR } });
+    return { ok: true };
+  } catch (erro) {
+    registrarFalha("reenvio da confirmação", erro);
+    return { ok: false, erro: "Não foi possível reenviar agora. Tente de novo mais tarde." };
+  }
 }

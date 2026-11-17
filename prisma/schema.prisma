@@ -89,6 +89,10 @@ model Conta {
   // Colega que recebe a escalada quando um prazo chega à véspera sem conferência.
   substitutoNome  String?
   substitutoEmail String?
+  // O substituto só recebe e-mails depois de aceitar o convite (link de uso único).
+  substitutoConfirmadoEm   DateTime?
+  substitutoTokenHash      String?   @unique
+  substitutoTokenExpiraEm  DateTime?
   criadoEm        DateTime @default(now())
   atualizadoEm    DateTime @updatedAt
 

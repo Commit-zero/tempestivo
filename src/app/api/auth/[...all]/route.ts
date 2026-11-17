@@ -3,9 +3,10 @@ import { getAuth } from "@/platform/auth";
 
 // O app fala com o Better Auth pelo servidor (server actions), onde ficam o limitador
 // de tentativas, o aceite dos termos e as mensagens que não revelam se um e-mail
-// existe. Por HTTP só passa o link do e-mail de redefinição de senha; o resto
-// responde 404, para ninguém contornar essas proteções chamando a API direto.
-const ROTAS_PERMITIDAS = [/^\/api\/auth\/reset-password\/[A-Za-z0-9_-]+$/];
+// existe. Por HTTP só passam os links dos e-mails (redefinição de senha e confirmação
+// de e-mail); o resto responde 404, para ninguém contornar essas proteções chamando a
+// API direto.
+const ROTAS_PERMITIDAS = [/^\/api\/auth\/reset-password\/[A-Za-z0-9_-]+$/, /^\/api\/auth\/verify-email$/];
 
 type Handlers = ReturnType<typeof toNextJsHandler>;
 let handlers: Handlers | undefined;

@@ -8,6 +8,7 @@ export type PrazoParaAlertar = {
   status: "pendente" | "confirmado";
   assuntoDoProcesso: string;
   titular: { nome: string; email: string };
+  /** Só existe depois que o substituto aceitou o convite. */
   substituto: { nome: string | null; email: string } | null;
 };
 
@@ -18,11 +19,17 @@ export type PrazoParaAlertar = {
  */
 export async function listarPrazosParaAlertar(de: string, ate: string): Promise<PrazoParaAlertar[]> {
   const prazos = await getPrisma().prazo.findMany({
-    where: { status: { not: "cumprido" }, dataFinal: { gte: de, lte: ate }, processo: { status: "ativo" } },
+    // Só para quem confirmou o próprio e-mail: ninguém dispara alertas para o endereço de outra pessoa.
+    where: {
+      status: { not: "cumprido" }, dataFinal: { gte: de, lte: ate }, processo: { status: "ativo" },
+      conta: { usuario: { emailVerified: true } },
+    },
     select: {
       id: true, contaId: true, descricao: true, dataFinal: true, status: true,
       processo: { select: { assunto: true } },
-      conta: { select: { substitutoNome: true, substitutoEmail: true, usuario: { select: { name: true, email: true } } } },
+      conta: {
+        select: { substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, usuario: { select: { name: true, email: true } } },
+      },
     },
     orderBy: { dataFinal: "asc" },
   });
@@ -34,8 +41,16 @@ export async function listarPrazosParaAlertar(de: string, ate: string): Promise<
     status: prazo.status as "pendente" | "confirmado",
     assuntoDoProcesso: prazo.processo.assunto,
     titular: { nome: prazo.conta.usuario.name, email: prazo.conta.usuario.email },
-    substituto: prazo.conta.substitutoEmail ? { nome: prazo.conta.substitutoNome, email: prazo.conta.substitutoEmail } : null,
+    substituto:
+      prazo.conta.substitutoEmail && prazo.conta.substitutoConfirmadoEm
+        ? { nome: prazo.conta.substitutoNome, email: prazo.conta.substitutoEmail }
+        : null,
   }));
+}
+
+/** Alertas da conta reservados desde um instante, para o teto diário de envios. */
+export function contarAlertasDesde(contaId: string, desde: Date): Promise<number> {
+  return getPrisma().alerta.count({ where: { contaId, criadoEm: { gte: desde } } });
 }
 
 export type NovoAlerta = {

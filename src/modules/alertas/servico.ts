@@ -8,8 +8,19 @@ import { avisosDoDia, chaveDoAlerta, diasUteisAte, JANELA_EM_DIAS_CORRIDOS, type
 import * as repositorio from "./repositorio";
 import type { PrazoParaAlertar } from "./repositorio";
 
-export type DependenciasDosAlertas = { mailer: Mailer; logger: Logger; appUrl: string; agora?: Date };
-export type ResumoDosAlertas = { analisados: number; enviados: number; falhas: number };
+export type DependenciasDosAlertas = {
+  mailer: Mailer;
+  logger: Logger;
+  appUrl: string;
+  agora?: Date;
+  /** Orçamento de tempo da execução; o que não couber fica para a próxima (o job é idempotente). */
+  tempoMaximoMs?: number;
+  relogio?: () => number;
+};
+export type ResumoDosAlertas = { analisados: number; enviados: number; falhas: number; limitados: number; adiados: number };
+
+/** Teto de e-mails por conta por dia: uma conta não esgota a cota do SMTP de todas. */
+export const LIMITE_DIARIO_POR_CONTA = 30;
 
 const resumoDoToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
@@ -28,15 +39,16 @@ function montarEmail(prazo: PrazoParaAlertar, aviso: Aviso, diasRestantes: numbe
   const linhasDoPrazo = [`Prazo: ${prazo.descricao}`, `Processo: ${prazo.assuntoDoProcesso}`, `Data final: ${data}`];
   const rodape = "Cálculo auxiliar: a data deve ser conferida pelo advogado responsável.";
 
+  // O substituto é terceiro: recebe só a data, nunca o processo, o cliente ou o ato.
   if (aviso.destino === "substituto") {
     const saudacao = prazo.substituto?.nome ? `Olá, ${prazo.substituto.nome}.` : "Olá.";
     const explicacao =
-      `${prazo.titular.nome} indicou você como substituto no Tempestivo. O prazo abaixo ${quando(diasRestantes)} ` +
-      "e ainda não foi conferido. Por favor, entre em contato para confirmar que o prazo está sendo cuidado.";
+      `${prazo.titular.nome} tem um prazo que ${quando(diasRestantes)} (${data}) e ainda não registrou a conferência no Tempestivo. ` +
+      "Você recebe este aviso porque aceitou ser o substituto. Por favor, entre em contato para confirmar que o prazo está sendo cuidado.";
     return {
       para: prazo.substituto!.email,
       assunto: `Prazo sem conferência de ${prazo.titular.nome}: ${quando(diasRestantes)}`,
-      texto: [saudacao, "", explicacao, "", ...linhasDoPrazo, "", rodape].join("\n"),
+      texto: [saudacao, "", explicacao, "", rodape].join("\n"),
     };
   }
 
@@ -58,15 +70,32 @@ function montarEmail(prazo: PrazoParaAlertar, aviso: Aviso, diasRestantes: numbe
  * reservada no banco antes do envio. Falha de envio libera a reserva para a próxima
  * execução. O log nunca leva endereço de e-mail nem texto do prazo.
  */
-export async function enviarAlertasPendentes({ mailer, logger, appUrl, agora = new Date() }: DependenciasDosAlertas): Promise<ResumoDosAlertas> {
+export async function enviarAlertasPendentes({
+  mailer, logger, appUrl, agora = new Date(), tempoMaximoMs = 45_000, relogio = Date.now,
+}: DependenciasDosAlertas): Promise<ResumoDosAlertas> {
+  const inicio = relogio();
   const hoje = dataCivilEmSaoPaulo(agora);
+  // Meia-noite de hoje em São Paulo (UTC-3, sem horário de verão).
+  const inicioDoDia = new Date(`${hoje}T03:00:00Z`);
+  const enviadosHojePorConta = new Map<string, number>();
   const prazos = await repositorio.listarPrazosParaAlertar(hoje, somarDias(hoje, JANELA_EM_DIAS_CORRIDOS));
-  const resumo: ResumoDosAlertas = { analisados: prazos.length, enviados: 0, falhas: 0 };
+  const resumo: ResumoDosAlertas = { analisados: prazos.length, enviados: 0, falhas: 0, limitados: 0, adiados: 0 };
 
-  for (const prazo of prazos) {
+  for (const [indice, prazo] of prazos.entries()) {
+    if (relogio() - inicio > tempoMaximoMs) {
+      resumo.adiados = prazos.length - indice;
+      break;
+    }
+    if (!enviadosHojePorConta.has(prazo.contaId)) {
+      enviadosHojePorConta.set(prazo.contaId, await repositorio.contarAlertasDesde(prazo.contaId, inicioDoDia));
+    }
     const diasRestantes = diasEntre(hoje, prazo.dataFinal);
     const avisos = avisosDoDia({ diasUteis: diasUteisAte(hoje, prazo.dataFinal), conferido: prazo.status === "confirmado", temSubstituto: prazo.substituto !== null });
     for (const aviso of avisos) {
+      if (enviadosHojePorConta.get(prazo.contaId)! >= LIMITE_DIARIO_POR_CONTA) {
+        resumo.limitados += 1;
+        continue;
+      }
       // O link "li e conferi" vai só para o titular e vale até o dia seguinte ao vencimento.
       const token = aviso.destino === "titular" ? randomBytes(32).toString("base64url") : null;
       const alertaId = await repositorio.reservar(prazo.contaId, {
@@ -78,6 +107,7 @@ export async function enviarAlertasPendentes({ mailer, logger, appUrl, agora = n
         tokenExpiraEm: token ? new Date(`${somarDias(prazo.dataFinal, 2)}T03:00:00Z`) : null,
       });
       if (alertaId === null) continue;
+      enviadosHojePorConta.set(prazo.contaId, enviadosHojePorConta.get(prazo.contaId)! + 1);
       try {
         const link = token ? `${appUrl.replace(/\/$/, "")}/conferir/${token}` : null;
         await mailer.enviar(montarEmail(prazo, aviso, diasRestantes, link));
@@ -92,11 +122,15 @@ export async function enviarAlertasPendentes({ mailer, logger, appUrl, agora = n
       }
     }
   }
+  if (resumo.limitados > 0) logger.warn("alertas acima do teto diário por conta", { limitados: resumo.limitados });
+  if (resumo.adiados > 0) logger.warn("alertas adiados para a próxima execução", { adiados: resumo.adiados });
   logger.info("alertas processados", resumo);
   return resumo;
 }
 
-export type PrazoDoLink = { descricao: string; assuntoDoProcesso: string; dataFinal: string; jaConferidoPorEsteLink: boolean; cumprido: boolean };
+export type PrazoDoLink =
+  | { jaConferidoPorEsteLink: false; descricao: string; assuntoDoProcesso: string; dataFinal: string; cumprido: boolean }
+  | { jaConferidoPorEsteLink: true };
 
 const LINK_INVALIDO = "Este link é inválido ou expirou. Entre no Tempestivo para conferir o prazo.";
 
@@ -111,11 +145,13 @@ async function alertaValido(token: string, agora: Date) {
 export async function obterPrazoDoLink(token: string, agora = new Date()): Promise<PrazoDoLink | null> {
   const alerta = await alertaValido(token, agora);
   if (!alerta) return null;
+  // Depois de usado, o link (que pode ter sido encaminhado) não mostra mais nada do prazo.
+  if (alerta.tokenUsadoEm !== null) return { jaConferidoPorEsteLink: true };
   return {
     descricao: alerta.prazo.descricao,
     assuntoDoProcesso: alerta.prazo.assuntoDoProcesso,
     dataFinal: alerta.prazo.dataFinal,
-    jaConferidoPorEsteLink: alerta.tokenUsadoEm !== null,
+    jaConferidoPorEsteLink: false,
     cumprido: alerta.prazo.status === "cumprido",
   };
 }

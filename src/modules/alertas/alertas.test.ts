@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { criarCliente } from "@/modules/clientes";
-import { atualizarConta } from "@/modules/conta";
+import { aceitarConviteDeSubstituto, atualizarConta } from "@/modules/conta";
 import { cadastrarPrazo, confirmarConferencia, marcarComoCumprido, obterPrazo } from "@/modules/prazos";
 import { criarProcesso } from "@/modules/processos";
 import { criarFakeLogger } from "@/platform/logger";
 import { criarFakeMailer, type Mailer } from "@/platform/mailer";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
-import { confirmarPeloLink, enviarAlertasPendentes, obterPrazoDoLink } from "./index";
+import { getPrisma } from "@/platform/database";
+import { confirmarPeloLink, enviarAlertasPendentes, LIMITE_DIARIO_POR_CONTA, obterPrazoDoLink } from "./index";
 
 const SUBSTITUTO = "substituto@exemplo.test";
 const APP_URL = "http://localhost:3000";
@@ -76,20 +77,78 @@ describe("alertas (integração)", () => {
     expect(doPrazo(mailer, distante.descricao)).toHaveLength(0);
   });
 
-  it("na véspera sem conferência, avisa também o substituto; com conferência, não", async () => {
-    await atualizarConta(conta, { nome: "Titular Fictícia", substitutoNome: "Colega Fictício", substitutoEmail: SUBSTITUTO });
+  it("na véspera sem conferência, avisa o substituto que aceitou, só com a data; com conferência, não", async () => {
+    const convite = criarFakeMailer();
+    await atualizarConta(conta, { nome: "Titular Fictícia", substitutoNome: "Colega Fictício", substitutoEmail: SUBSTITUTO }, { mailer: convite, appUrl: APP_URL });
     const semConferir = await novoPrazo("2026-11-13");
     const conferido = await novoPrazo("2026-11-13");
     await confirmarConferencia(conta, conferido.id, "app", null, dia("2026-11-12"));
 
+    // Antes do aceite, o substituto não recebe nada.
+    expect((await rodar(dia("2026-11-12"))).mailer.enviados.some((email) => email.para === SUBSTITUTO)).toBe(false);
+    await getPrisma().alerta.deleteMany({ where: { contaId: conta, destino: "substituto" } });
+
+    const token = /\/substituto\/([A-Za-z0-9_-]+)/.exec(convite.enviados[0].texto)?.[1] ?? "";
+    expect((await aceitarConviteDeSubstituto(token)).ok).toBe(true);
     const { mailer } = await rodar(dia("2026-11-12"));
 
-    const escalada = doPrazo(mailer, semConferir.descricao).find((email) => email.para === SUBSTITUTO);
-    expect(escalada?.assunto).toBe("Prazo sem conferência de Titular Fictícia: vence amanhã");
-    expect(escalada?.texto).not.toContain("/conferir/");
-    expect(doPrazo(mailer, conferido.descricao).some((email) => email.para === SUBSTITUTO)).toBe(false);
-    expect(doPrazo(mailer, conferido.descricao)).toHaveLength(1);
-    await atualizarConta(conta, { nome: "Titular Fictícia", substitutoNome: "", substitutoEmail: "" });
+    const escaladas = mailer.enviados.filter((email) => email.para === SUBSTITUTO);
+    expect(escaladas).toHaveLength(1);
+    expect(escaladas[0].assunto).toBe("Prazo sem conferência de Titular Fictícia: vence amanhã");
+    // O substituto é terceiro: nada do processo, do cliente ou do ato.
+    expect(escaladas[0].texto).toContain("13/11/2026");
+    expect(escaladas[0].texto).not.toContain(semConferir.descricao);
+    expect(escaladas[0].texto).not.toContain("Ação fictícia de alerta");
+    expect(escaladas[0].texto).not.toContain("/conferir/");
+    await atualizarConta(conta, { nome: "Titular Fictícia", substitutoNome: "", substitutoEmail: "" }, { mailer: criarFakeMailer(), appUrl: APP_URL });
+  });
+
+  it("não avisa quem ainda não confirmou o próprio e-mail", async () => {
+    const outra = await criarContaDeTeste("Sem Confirmação");
+    await getPrisma().user.updateMany({ where: { conta: { id: outra } }, data: { emailVerified: false } });
+    const cliente = await criarCliente(outra, { nome: "Cliente Fictício", documento: "", email: "", telefone: "", observacoes: "" });
+    if (!cliente.ok) throw new Error(cliente.erro);
+    const processo = await criarProcesso(outra, {
+      clienteId: cliente.valor.id, numero: "0001234-03.2026.8.26.0100", tribunal: "TJSP", vara: "", assunto: "Ação fictícia", parteContraria: "",
+    });
+    if (!processo.ok) throw new Error(processo.erro);
+    const descricao = `Prazo de conta sem confirmação ${Date.now()}`;
+    await cadastrarPrazo(outra, { origem: "manual", processoId: processo.valor.id, descricao, dataFinal: "2026-11-13" });
+
+    expect(doPrazo((await rodar(dia("2026-11-12"))).mailer, descricao)).toHaveLength(0);
+    await apagarContaDeTeste(outra);
+  });
+
+  it("respeita o teto diário de e-mails por conta e deixa o resto para depois", async () => {
+    const outra = await criarContaDeTeste("Conta com muitos prazos");
+    const cliente = await criarCliente(outra, { nome: "Cliente Fictício", documento: "", email: "", telefone: "", observacoes: "" });
+    if (!cliente.ok) throw new Error(cliente.erro);
+    const processo = await criarProcesso(outra, {
+      clienteId: cliente.valor.id, numero: "0001234-03.2026.8.26.0100", tribunal: "TJSP", vara: "", assunto: "Ação fictícia", parteContraria: "",
+    });
+    if (!processo.ok) throw new Error(processo.erro);
+    const marca = `Prazo em massa ${Date.now()}`;
+    for (let indice = 0; indice < LIMITE_DIARIO_POR_CONTA + 5; indice += 1) {
+      await cadastrarPrazo(outra, { origem: "manual", processoId: processo.valor.id, descricao: `${marca} ${indice}`, dataFinal: "2026-11-13" });
+    }
+
+    const { resumo, mailer } = await rodar(dia("2026-11-12"));
+
+    expect(doPrazo(mailer, marca)).toHaveLength(LIMITE_DIARIO_POR_CONTA);
+    expect(resumo.limitados).toBeGreaterThanOrEqual(5);
+    await apagarContaDeTeste(outra);
+  });
+
+  it("para no orçamento de tempo e informa quantos prazos ficaram para a próxima execução", async () => {
+    await novoPrazo("2026-11-13");
+    let instante = 0;
+    const resumo = await enviarAlertasPendentes({
+      mailer: criarFakeMailer(), logger: criarFakeLogger(), appUrl: APP_URL, agora: dia("2026-11-12"),
+      tempoMaximoMs: 10, relogio: () => (instante += 20),
+    });
+
+    expect(resumo.enviados).toBe(0);
+    expect(resumo.adiados).toBe(resumo.analisados);
   });
 
   it("se o envio falha, a reserva é liberada e a próxima execução tenta de novo", async () => {
@@ -117,6 +176,8 @@ describe("alertas (integração)", () => {
     expect((await obterPrazo(conta, prazo.id))?.status).toBe("pendente");
 
     expect((await confirmarPeloLink(token, dia("2026-11-12"))).ok).toBe(true);
+    // Depois de usado, o link (que pode ter sido encaminhado) não mostra mais os dados.
+    expect(await obterPrazoDoLink(token, dia("2026-11-12"))).toEqual({ jaConferidoPorEsteLink: true });
     const detalhe = await obterPrazo(conta, prazo.id);
     expect(detalhe?.status).toBe("confirmado");
     expect(detalhe?.conferencias).toEqual([expect.objectContaining({ via: "email" })]);

@@ -7,7 +7,12 @@ import { criarProcesso } from "@/modules/processos";
 import { criarTarefa } from "@/modules/tarefas";
 import { getPrisma } from "@/platform/database";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
-import { atualizarConta, excluirConta, exportarDadosDaConta, obterConta } from "./index";
+import { criarFakeMailer } from "@/platform/mailer";
+import { aceitarConviteDeSubstituto, atualizarConta, excluirConta, exportarDadosDaConta, obterConta, obterConviteDeSubstituto } from "./index";
+
+const agora = new Date("2026-11-12T15:00:00Z");
+const deps = () => ({ mailer: criarFakeMailer(), appUrl: "http://localhost:3000", agora });
+const tokenDe = (texto: string) => /\/substituto\/([A-Za-z0-9_-]+)/.exec(texto)?.[1] ?? "";
 
 async function popular(contaId: string, nomeDoCliente: string) {
   const cliente = await criarCliente(contaId, { nome: nomeDoCliente, documento: "", email: "", telefone: "", observacoes: "" });
@@ -39,10 +44,63 @@ describe("conta (integração)", () => {
   it("valida o substituto: e-mail válido e obrigatório quando há nome", async () => {
     const conta = await criarContaDeTeste();
 
-    expect(await atualizarConta(conta, { nome: "Escritório", substitutoNome: "Colega", substitutoEmail: "" })).toEqual({ ok: false, erro: "Informe o e-mail do substituto." });
-    expect(await atualizarConta(conta, { nome: "Escritório", substitutoNome: "", substitutoEmail: "nao-e-email" })).toEqual({ ok: false, erro: "E-mail do substituto inválido." });
-    expect((await atualizarConta(conta, { nome: "Escritório", substitutoNome: "Colega", substitutoEmail: "colega@exemplo.test" })).ok).toBe(true);
-    expect(await obterConta(conta)).toMatchObject({ nome: "Escritório", substitutoEmail: "colega@exemplo.test" });
+    expect(await atualizarConta(conta, { nome: "Escritório", substitutoNome: "Colega", substitutoEmail: "" }, deps())).toEqual({ ok: false, erro: "Informe o e-mail do substituto." });
+    expect(await atualizarConta(conta, { nome: "Escritório", substitutoNome: "", substitutoEmail: "nao-e-email" }, deps())).toEqual({ ok: false, erro: "E-mail do substituto inválido." });
+    expect((await atualizarConta(conta, { nome: "Escritório", substitutoNome: "Colega", substitutoEmail: "Colega@Exemplo.test" }, deps())).ok).toBe(true);
+    expect(await obterConta(conta)).toMatchObject({ nome: "Escritório", substitutoEmail: "colega@exemplo.test", substitutoConfirmadoEm: null });
+    await apagarContaDeTeste(conta);
+  });
+
+  it("convida o substituto, que só passa a valer depois de aceitar pelo link, uma vez", async () => {
+    const conta = await criarContaDeTeste("Titular Fictícia");
+    const primeiro = deps();
+
+    expect(await atualizarConta(conta, { nome: "Escritório", substitutoNome: "Colega", substitutoEmail: "colega@exemplo.test" }, primeiro))
+      .toEqual({ ok: true, valor: { conviteEnviado: true } });
+    const [convite] = primeiro.mailer.enviados;
+    expect(convite).toMatchObject({ para: "colega@exemplo.test", assunto: "Titular Fictícia indicou você como advogado substituto no Tempestivo" });
+    const token = tokenDe(convite.texto);
+
+    // Abrir o link não aceita nada.
+    expect(await obterConviteDeSubstituto(token, agora)).toEqual({ titular: "Titular Fictícia", substituto: "Colega" });
+    expect((await obterConta(conta))?.substitutoConfirmadoEm).toBeNull();
+
+    expect((await aceitarConviteDeSubstituto(token, agora)).ok).toBe(true);
+    expect((await obterConta(conta))?.substitutoConfirmadoEm).toEqual(agora);
+    expect((await aceitarConviteDeSubstituto(token, agora)).ok).toBe(false);
+    expect(await obterConviteDeSubstituto(token, agora)).toBeNull();
+
+    // Salvar sem mudar o e-mail não reenvia nem desfaz o aceite; trocar o e-mail zera e convida de novo.
+    const semMudanca = deps();
+    expect(await atualizarConta(conta, { nome: "Outro nome", substitutoNome: "Colega", substitutoEmail: "colega@exemplo.test" }, semMudanca))
+      .toEqual({ ok: true, valor: { conviteEnviado: false } });
+    expect(semMudanca.mailer.enviados).toHaveLength(0);
+    expect((await obterConta(conta))?.substitutoConfirmadoEm).toEqual(agora);
+    await atualizarConta(conta, { nome: "Outro nome", substitutoNome: "Outro", substitutoEmail: "outro@exemplo.test" }, deps());
+    expect((await obterConta(conta))?.substitutoConfirmadoEm).toBeNull();
+    await apagarContaDeTeste(conta);
+  });
+
+  it("o convite expira em 7 dias e o token malformado é recusado", async () => {
+    const conta = await criarContaDeTeste();
+    const envio = deps();
+    await atualizarConta(conta, { nome: "Escritório", substitutoNome: "", substitutoEmail: "colega@exemplo.test" }, envio);
+    const token = tokenDe(envio.mailer.enviados[0].texto);
+
+    expect(await obterConviteDeSubstituto(token, new Date("2026-11-19T14:00:00Z"))).not.toBeNull();
+    expect(await obterConviteDeSubstituto(token, new Date("2026-11-19T16:00:00Z"))).toBeNull();
+    expect((await aceitarConviteDeSubstituto(token, new Date("2026-11-20T15:00:00Z"))).ok).toBe(false);
+    expect(await obterConviteDeSubstituto("../../etc/passwd", agora)).toBeNull();
+    await apagarContaDeTeste(conta);
+  });
+
+  it("limita as trocas de substituto para o Tempestivo não virar disparador de e-mails", async () => {
+    const conta = await criarContaDeTeste();
+    const enviar = (indice: number) =>
+      atualizarConta(conta, { nome: "Escritório", substitutoNome: "", substitutoEmail: `colega${indice}@exemplo.test` }, deps());
+
+    for (const indice of [1, 2, 3]) expect((await enviar(indice)).ok).toBe(true);
+    expect(await enviar(4)).toEqual({ ok: false, erro: "Você já trocou de substituto várias vezes hoje. Tente de novo amanhã." });
     await apagarContaDeTeste(conta);
   });
 

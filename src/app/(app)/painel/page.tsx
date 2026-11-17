@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ListaDeAudiencias } from "@/components/app/audiencia";
+import { AvisoDeConfirmacaoDeEmail } from "@/components/app/confirmar-email";
 import { EstadoVazio, Secao } from "@/components/app/pagina";
 import { ListaDePrazos } from "@/components/app/prazo";
 import { ResumoFinanceiro } from "@/components/app/resumo-financeiro";
@@ -11,6 +12,7 @@ import { resumoFinanceiro } from "@/modules/honorarios";
 import { listarPrazos } from "@/modules/prazos";
 import { obterQuadro } from "@/modules/tarefas";
 import { exigirSessao } from "@/platform/auth";
+import { acaoReenviarConfirmacao } from "../acoes";
 
 export const metadata: Metadata = { title: "Painel" };
 
@@ -22,8 +24,9 @@ function plural(quantidade: number, singular: string, variosTexto: string): stri
 
 // A tela que o advogado abre de manhã no celular: primeiro o que pede ação hoje,
 // depois a semana, a agenda e o dinheiro.
-export default async function PaginaDoPainel() {
+export default async function PaginaDoPainel({ searchParams }: PageProps<"/painel">) {
   const sessao = await exigirSessao();
+  const { email } = await searchParams;
   const agora = new Date();
   const [emAberto, audiencias, financeiro, quadro] = await Promise.all([
     listarPrazos(sessao.contaId, { filtro: "em_aberto" }, agora),
@@ -46,6 +49,16 @@ export default async function PaginaDoPainel() {
         <h1 className="text-2xl font-semibold tracking-tight">Olá, {sessao.nome.split(" ")[0]}</h1>
         <p className="text-sm text-muted-foreground first-letter:uppercase">{formatarDataComSemana(dataCivilEmSaoPaulo(agora))}</p>
       </header>
+
+      {sessao.emailConfirmado ? (
+        email === "confirmado" ? (
+          <p role="status" className="rounded-xl border border-positivo/30 bg-positivo-fundo px-4 py-3 text-sm text-positivo">
+            E-mail confirmado. Os alertas de prazo chegam neste endereço.
+          </p>
+        ) : null
+      ) : (
+        <AvisoDeConfirmacaoDeEmail email={sessao.email} acao={acaoReenviarConfirmacao} />
+      )}
 
       {contaVazia ? (
         <EstadoVazio

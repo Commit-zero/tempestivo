@@ -1,15 +1,64 @@
 import { getPrisma } from "@/platform/database";
 
-export type Conta = { id: string; nome: string; substitutoNome: string | null; substitutoEmail: string | null; criadoEm: Date };
+export type Conta = {
+  id: string;
+  nome: string;
+  substitutoNome: string | null;
+  substitutoEmail: string | null;
+  substitutoConfirmadoEm: Date | null;
+  criadoEm: Date;
+  titular: { nome: string };
+};
 
-const campos = { id: true, nome: true, substitutoNome: true, substitutoEmail: true, criadoEm: true } as const;
+const campos = {
+  id: true, nome: true, substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, criadoEm: true,
+  usuario: { select: { name: true } },
+} as const;
 
-export function buscar(contaId: string): Promise<Conta | null> {
-  return getPrisma().conta.findUnique({ where: { id: contaId }, select: campos });
+function paraConta({ usuario, ...conta }: { usuario: { name: string } } & Omit<Conta, "titular">): Conta {
+  return { ...conta, titular: { nome: usuario.name } };
 }
 
-export async function atualizar(contaId: string, dados: Pick<Conta, "nome" | "substitutoNome" | "substitutoEmail">): Promise<boolean> {
-  const { count } = await getPrisma().conta.updateMany({ where: { id: contaId }, data: dados });
+export async function buscar(contaId: string): Promise<Conta | null> {
+  const conta = await getPrisma().conta.findUnique({ where: { id: contaId }, select: campos });
+  return conta ? paraConta(conta) : null;
+}
+
+export type DadosDaConta = {
+  nome: string;
+  substitutoNome: string | null;
+  substitutoEmail: string | null;
+  /** Presente quando o substituto mudou: zera o aceite e grava o convite novo. */
+  convite?: { tokenHash: string | null; expiraEm: Date | null };
+};
+
+export async function atualizar(contaId: string, { convite, ...dados }: DadosDaConta): Promise<boolean> {
+  const { count } = await getPrisma().conta.updateMany({
+    where: { id: contaId },
+    data: {
+      ...dados,
+      ...(convite
+        ? { substitutoConfirmadoEm: null, substitutoTokenHash: convite.tokenHash, substitutoTokenExpiraEm: convite.expiraEm }
+        : {}),
+    },
+  });
+  return count === 1;
+}
+
+/** O token do convite é a credencial: leva a uma única conta, só para aceitar. */
+export function buscarPeloConvite(tokenHash: string) {
+  return getPrisma().conta.findUnique({
+    where: { substitutoTokenHash: tokenHash },
+    select: { id: true, substitutoTokenExpiraEm: true, substitutoNome: true, usuario: { select: { name: true } } },
+  });
+}
+
+/** Aceita o convite uma vez só: o token some na mesma escrita. */
+export async function aceitarConvite(contaId: string, tokenHash: string, em: Date): Promise<boolean> {
+  const { count } = await getPrisma().conta.updateMany({
+    where: { id: contaId, substitutoTokenHash: tokenHash, substitutoTokenExpiraEm: { gt: em } },
+    data: { substitutoConfirmadoEm: em, substitutoTokenHash: null, substitutoTokenExpiraEm: null },
+  });
   return count === 1;
 }
 

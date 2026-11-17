@@ -9,6 +9,7 @@ export type Sessao = {
   contaId: string;
   nome: string;
   email: string;
+  emailConfirmado: boolean;
 };
 
 export const ROTA_DE_ENTRADA = "/entrar";
@@ -33,8 +34,8 @@ export const obterSessao = cache(async (): Promise<Sessao | null> => {
   const cabecalhos = await headers();
   const sessao = await getAuth().api.getSession({ headers: cabecalhos });
   if (!sessao) return null;
-  const { id, name, email } = sessao.user;
-  return { usuarioId: id, contaId: await contaDoUsuario(id, name), nome: name, email };
+  const { id, name, email, emailVerified } = sessao.user;
+  return { usuarioId: id, contaId: await contaDoUsuario(id, name), nome: name, email, emailConfirmado: emailVerified };
 });
 
 /** Para telas e ações protegidas: sem sessão válida, manda para o login. */
