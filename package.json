@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "imagens": "node scripts/gerar-imagens.mjs",
     "db:migrar": "prisma migrate dev",
     "db:aplicar": "prisma migrate deploy",
     "verificar": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
