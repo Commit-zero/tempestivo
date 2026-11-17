@@ -1,2 +1,9 @@
 # Supressões justificadas do Trivy. Cada linha precisa de: identificador da CVE,
-# motivo e data de revisão. Hoje não há nenhuma.
+# motivo, quem decidiu e data de expiração (exp:), para a supressão não ficar esquecida.
+
+# picomatch 4.0.7, ReDoS com extglob repetido. Sem versão corrigida em 17/11/2026.
+# Só entra por ferramentas de desenvolvimento (typescript-eslint, eslint-config-next,
+# Vitest e o CLI do shadcn), que recebem padrões escritos por nós, nunca entrada de
+# usuário. `pnpm why picomatch --prod` vazio: não chega ao app em produção.
+# Decisão: Vitor (revisão de segurança de 17/11/2026). Rever quando houver correção.
+CVE-2026-112366 exp:2026-12-17
