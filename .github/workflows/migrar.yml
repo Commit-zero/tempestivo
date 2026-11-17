@@ -1,8 +1,9 @@
 name: Migrar o banco de produção
 
 # Passo manual e separado do deploy: o app nunca roda migração ao subir.
-# Segredo necessário: DATABASE_URL_MIGRACAO, com a conexão DIRETA do banco
-# (no Supabase, a do banco, não a do pooler).
+# Segredo necessário: DATABASE_URL_MIGRACAO, uma conexão de sessão (não de transação).
+# No Supabase, use o Supavisor em modo sessão (porta 5432 do host *.pooler.supabase.com):
+# a conexão direta do plano gratuito é só IPv6, e os runners do GitHub são IPv4.
 
 on:
   workflow_dispatch:

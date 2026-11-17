@@ -11,8 +11,17 @@ export { Prisma } from "@/generated/prisma/client";
 const global = globalThis as typeof globalThis & { __tempestivoPrisma?: PrismaClient };
 
 export function getPrisma(): PrismaClient {
-  global.__tempestivoPrisma ??= new PrismaClient({
-    adapter: new PrismaPg({ connectionString: getConfig().DATABASE_URL }),
-  });
+  if (!global.__tempestivoPrisma) {
+    const { DATABASE_URL, DATABASE_POOL_MAX, DATABASE_CA_CERT } = getConfig();
+    global.__tempestivoPrisma = new PrismaClient({
+      adapter: new PrismaPg({
+        connectionString: DATABASE_URL,
+        max: DATABASE_POOL_MAX,
+        // Com o certificado, o TLS é verificado de verdade. Variáveis de ambiente costumam
+        // achatar o PEM numa linha só, com "\n" escrito: as quebras são restauradas aqui.
+        ...(DATABASE_CA_CERT ? { ssl: { ca: DATABASE_CA_CERT.replace(/\\n/g, "\n"), rejectUnauthorized: true } } : {}),
+      }),
+    });
+  }
   return global.__tempestivoPrisma;
 }

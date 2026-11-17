@@ -9,6 +9,10 @@ export const schemaEnv = z
     JOBS_SECRET: segredo(),
     AUTH_SECRET: segredo(),
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
+    // Conexões por instância. Em função serverless (Vercel), poucas: o pooler do banco multiplexa.
+    DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),
+    // Certificado (PEM) da autoridade do banco, para verificar o TLS. Ex.: o certificado do Supabase.
+    DATABASE_CA_CERT: z.string().optional(),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     MAILER_DRIVER: z.enum(["fake", "smtp"]).default("fake"),
     SMTP_HOST: z.string().optional(),
