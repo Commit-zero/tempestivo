@@ -40,7 +40,7 @@ export default async function PaginaDaConta() {
           Apaga para sempre a conta, o login e todos os dados. Não há como desfazer; exporte os dados antes se precisar deles.
         </p>
         <Cartao>
-          <FormularioDeExclusaoDaConta acao={acaoExcluirConta} email={sessao.email} />
+          <FormularioDeExclusaoDaConta acao={acaoExcluirConta} />
         </Cartao>
       </Secao>
     </div>

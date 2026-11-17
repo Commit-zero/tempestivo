@@ -30,19 +30,12 @@ export function FormularioDaConta({ acao, inicial }: { acao: Acao; inicial: Reco
   );
 }
 
-export function FormularioDeExclusaoDaConta({ acao, email }: { acao: Acao; email: string }) {
+export function FormularioDeExclusaoDaConta({ acao }: { acao: Acao }) {
   const [estado, enviar] = useActionState(acao, {});
   return (
     <form action={enviar} className="grid gap-4">
       <MensagemDoFormulario estado={estado} />
-      <Campo
-        rotulo="Para confirmar, digite o e-mail da conta"
-        name="email"
-        type="email"
-        required
-        autoComplete="off"
-        placeholder={email}
-      />
+      <Campo rotulo="Para confirmar, digite a sua senha" name="senha" type="password" required autoComplete="current-password" />
       <BotaoEnviar variant="destructive" enviando="Excluindo…" className="sm:justify-self-start sm:px-5">
         Excluir a conta e todos os dados
       </BotaoEnviar>

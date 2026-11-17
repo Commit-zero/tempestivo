@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { criarTarefa, excluirTarefa, moverTarefa, type Coluna } from "@/modules/tarefas";
+import { exigirId } from "@/lib/ids";
 import { exigirSessao } from "@/platform/auth";
 
 function atualizarTelas(): void {
@@ -20,12 +21,14 @@ export async function acaoCriarTarefa(_anterior: EstadoDoFormulario, formulario:
 }
 
 export async function acaoMoverTarefa(id: string, coluna: Coluna): Promise<void> {
+  exigirId(id);
   const { contaId } = await exigirSessao();
   await moverTarefa(contaId, id, coluna);
   atualizarTelas();
 }
 
 export async function acaoExcluirTarefa(id: string): Promise<void> {
+  exigirId(id);
   const { contaId } = await exigirSessao();
   await excluirTarefa(contaId, id);
   atualizarTelas();

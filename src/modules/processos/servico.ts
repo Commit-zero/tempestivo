@@ -55,6 +55,7 @@ export async function atualizarProcesso(contaId: string, id: string, entrada: En
 }
 
 export async function mudarStatusDoProcesso(contaId: string, id: string, status: StatusProcesso): Promise<Resultado> {
+  if (status !== "ativo" && status !== "arquivado") return falha("Situação desconhecida.");
   return (await repositorio.atualizar(contaId, id, { status })) ? sucesso() : falha(NAO_ENCONTRADO);
 }
 

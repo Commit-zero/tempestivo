@@ -1,5 +1,5 @@
 // Porta de autenticação: login próprio com Better Auth, senhas em Argon2id e
 // sessão em cookie HttpOnly. As telas só conhecem o que este arquivo exporta.
 export { getAuth, TAMANHO_MINIMO_DA_SENHA } from "./auth";
-export { cadastrar, entrar, pedirRedefinicaoDeSenha, redefinirSenha, sair, type ResultadoAuth } from "./acoes";
+export { cadastrar, confirmarSenhaAtual, entrar, pedirRedefinicaoDeSenha, redefinirSenha, sair, type ResultadoAuth } from "./acoes";
 export { exigirSessao, obterSessao, ROTA_DE_ENTRADA, type Sessao } from "./sessao";

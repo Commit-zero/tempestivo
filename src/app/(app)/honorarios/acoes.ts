@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { criarHonorario, definirPagamentoDaParcela, excluirHonorario } from "@/modules/honorarios";
+import { exigirId } from "@/lib/ids";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["clienteId", "processoId", "descricao", "valorTotal", "parcelas", "primeiroVencimento"] as const;
@@ -24,12 +25,14 @@ export async function acaoCriarHonorario(_anterior: EstadoDoFormulario, formular
 }
 
 export async function acaoDefinirPagamento(parcelaId: string, paga: boolean): Promise<void> {
+  exigirId(parcelaId);
   const { contaId } = await exigirSessao();
   const resultado = await definirPagamentoDaParcela(contaId, parcelaId, paga);
   if (resultado.ok) atualizarTelas(resultado.valor);
 }
 
 export async function acaoExcluirHonorario(id: string): Promise<EstadoDoFormulario> {
+  exigirId(id);
   const { contaId } = await exigirSessao();
   const excluido = await excluirHonorario(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };

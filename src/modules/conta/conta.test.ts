@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { criarAudiencia } from "@/modules/audiencias";
 import { criarCliente, listarClientes } from "@/modules/clientes";
+import { criarHonorario } from "@/modules/honorarios";
 import { cadastrarPrazo, confirmarConferencia } from "@/modules/prazos";
 import { criarProcesso } from "@/modules/processos";
+import { criarTarefa } from "@/modules/tarefas";
 import { getPrisma } from "@/platform/database";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { atualizarConta, excluirConta, exportarDadosDaConta, obterConta } from "./index";
@@ -16,11 +19,20 @@ async function popular(contaId: string, nomeDoCliente: string) {
   const prazo = await cadastrarPrazo(contaId, { origem: "manual", processoId: processo.valor.id, descricao: "Prazo fictício", dataFinal: "2026-12-01" });
   if (!prazo.ok) throw new Error(prazo.erro);
   await confirmarConferencia(contaId, prazo.valor.id, "app", "usuario-ficticio");
+  const honorario = await criarHonorario(contaId, {
+    clienteId: cliente.valor.id, processoId: "", descricao: "Honorário fictício", valorTotal: "100,00", parcelas: "2", primeiroVencimento: "2026-12-10",
+  });
+  if (!honorario.ok) throw new Error(honorario.erro);
+  await criarAudiencia(contaId, {
+    processoId: processo.valor.id, tipo: "Conciliação", data: "2026-12-01", hora: "14:00", duracaoMin: "60", local: "", linkVirtual: "", observacoes: "",
+  });
+  await criarTarefa(contaId, { titulo: "Tarefa fictícia", descricao: "", limite: "", processoId: "" });
+  await getPrisma().alerta.create({ data: { contaId, prazoId: prazo.valor.id, chave: `${prazo.valor.id}:d5:teste`, camada: "d5", destino: "titular" } });
 }
 
 async function sessaoDe(contaId: string) {
-  const conta = await getPrisma().conta.findUniqueOrThrow({ where: { id: contaId }, select: { usuarioId: true, usuario: { select: { email: true } } } });
-  return { contaId, usuarioId: conta.usuarioId, email: conta.usuario.email };
+  const conta = await getPrisma().conta.findUniqueOrThrow({ where: { id: contaId }, select: { usuarioId: true } });
+  return { contaId, usuarioId: conta.usuarioId };
 }
 
 describe("conta (integração)", () => {
@@ -53,25 +65,34 @@ describe("conta (integração)", () => {
     await Promise.all([apagarContaDeTeste(contaA), apagarContaDeTeste(contaB)]);
   });
 
-  it("só exclui com o e-mail certo; a exclusão apaga tudo da conta e nada das outras", async () => {
+  it("a exclusão apaga tudo da conta e nada das outras; uma sessão não apaga outra conta", async () => {
     const [contaA, contaB] = await Promise.all([criarContaDeTeste("Conta A"), criarContaDeTeste("Conta B")]);
     await Promise.all([popular(contaA, "Cliente da Conta A"), popular(contaB, "Cliente da Conta B")]);
     const sessaoA = await sessaoDe(contaA);
+    const sessaoB = await sessaoDe(contaB);
 
-    expect((await excluirConta(sessaoA, "outro@exemplo.test")).ok).toBe(false);
-    expect((await excluirConta(sessaoA, undefined)).ok).toBe(false);
-    // Uma sessão não consegue apagar o usuário de outra conta.
-    expect((await excluirConta({ ...sessaoA, contaId: contaB }, sessaoA.email)).ok).toBe(false);
+    // O usuário de uma conta com o contaId de outra não apaga nada.
+    expect((await excluirConta({ contaId: contaB, usuarioId: sessaoA.usuarioId })).ok).toBe(false);
+    expect((await excluirConta({ contaId: contaA, usuarioId: sessaoB.usuarioId })).ok).toBe(false);
     expect(await listarClientes(contaA)).toHaveLength(1);
 
-    expect((await excluirConta(sessaoA, `  ${sessaoA.email.toUpperCase()} `)).ok).toBe(true);
+    expect((await excluirConta(sessaoA)).ok).toBe(true);
 
     const prisma = getPrisma();
     expect(await obterConta(contaA)).toBeNull();
     expect(await prisma.user.count({ where: { id: sessaoA.usuarioId } })).toBe(0);
-    for (const tabela of [prisma.cliente, prisma.processo, prisma.prazo, prisma.prazoConferencia] as const) {
-      expect(await (tabela as typeof prisma.cliente).count({ where: { contaId: contaA } })).toBe(0);
-    }
+    const restantes = await Promise.all([
+      prisma.cliente.count({ where: { contaId: contaA } }),
+      prisma.processo.count({ where: { contaId: contaA } }),
+      prisma.prazo.count({ where: { contaId: contaA } }),
+      prisma.prazoConferencia.count({ where: { contaId: contaA } }),
+      prisma.honorario.count({ where: { contaId: contaA } }),
+      prisma.parcela.count({ where: { contaId: contaA } }),
+      prisma.audiencia.count({ where: { contaId: contaA } }),
+      prisma.tarefa.count({ where: { contaId: contaA } }),
+      prisma.alerta.count({ where: { contaId: contaA } }),
+    ]);
+    expect(restantes).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0]);
     expect(await listarClientes(contaB)).toHaveLength(1);
     await apagarContaDeTeste(contaB);
   });

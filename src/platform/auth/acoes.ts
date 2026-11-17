@@ -1,8 +1,10 @@
 import { headers } from "next/headers";
 import { z } from "zod";
+import { getPrisma } from "@/platform/database";
 import { getLogger } from "@/platform/runtime";
 import { getAuth, TAMANHO_MINIMO_DA_SENHA } from "./auth";
 import { criarLimitador } from "./limite";
+import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
 // Toda mensagem é genérica o bastante para não revelar se um e-mail tem cadastro.
@@ -110,4 +112,24 @@ export async function redefinirSenha(dados: { token: unknown; senha: unknown }):
     registrarFalha("redefinição", erro);
     return { ok: false, erro: "O link de redefinição é inválido ou expirou. Peça um novo." };
   }
+}
+
+const confirmacoesDeSenha = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
+
+/**
+ * Confirma a senha de quem já está logado, antes de uma ação sem volta (excluir a
+ * conta). Uma sessão esquecida aberta num computador compartilhado não basta.
+ */
+export async function confirmarSenhaAtual(usuarioId: string, senha: unknown): Promise<ResultadoAuth> {
+  if (typeof senha !== "string" || senha.length === 0 || senha.length > 128) return { ok: false, erro: "Informe a sua senha." };
+  if (!confirmacoesDeSenha.permitir(usuarioId)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  const conta = await getPrisma().account.findFirst({
+    where: { userId: usuarioId, providerId: "credential" },
+    select: { password: true },
+  });
+  if (!conta?.password || !(await conferirSenha({ hash: conta.password, password: senha }))) {
+    return { ok: false, erro: "Senha incorreta." };
+  }
+  confirmacoesDeSenha.liberar(usuarioId);
+  return { ok: true };
 }

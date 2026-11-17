@@ -1,11 +1,22 @@
 import { toNextJsHandler } from "better-auth/next-js";
 import { getAuth } from "@/platform/auth";
 
-// Rotas do Better Auth (o link do e-mail de redefinição passa por aqui). O
-// handler é montado na primeira requisição: o build não precisa de segredos.
+// O app fala com o Better Auth pelo servidor (server actions), onde ficam o limitador
+// de tentativas, o aceite dos termos e as mensagens que não revelam se um e-mail
+// existe. Por HTTP só passa o link do e-mail de redefinição de senha; o resto
+// responde 404, para ninguém contornar essas proteções chamando a API direto.
+const ROTAS_PERMITIDAS = [/^\/api\/auth\/reset-password\/[A-Za-z0-9_-]+$/];
+
 type Handlers = ReturnType<typeof toNextJsHandler>;
 let handlers: Handlers | undefined;
 const obter = () => (handlers ??= toNextJsHandler(getAuth()));
 
-export const GET = (requisicao: Request) => obter().GET(requisicao);
-export const POST = (requisicao: Request) => obter().POST(requisicao);
+export function GET(requisicao: Request) {
+  const caminho = new URL(requisicao.url).pathname;
+  if (!ROTAS_PERMITIDAS.some((rota) => rota.test(caminho))) return new Response(null, { status: 404 });
+  return obter().GET(requisicao);
+}
+
+export function POST() {
+  return new Response(null, { status: 404 });
+}

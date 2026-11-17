@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarCliente, criarCliente, excluirCliente } from "@/modules/clientes";
+import { exigirId } from "@/lib/ids";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["nome", "documento", "email", "telefone", "observacoes"] as const;
@@ -14,6 +15,7 @@ function ler(formulario: FormData) {
 
 /** `id` nulo cria; preenchido atualiza. A conta vem sempre da sessão. */
 export async function acaoSalvarCliente(id: string | null, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  if (id !== null) exigirId(id);
   const { contaId } = await exigirSessao();
   const valores = ler(formulario);
   if (id === null) {
@@ -29,6 +31,7 @@ export async function acaoSalvarCliente(id: string | null, _anterior: EstadoDoFo
 }
 
 export async function acaoExcluirCliente(id: string): Promise<EstadoDoFormulario> {
+  exigirId(id);
   const { contaId } = await exigirSessao();
   const excluido = await excluirCliente(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };

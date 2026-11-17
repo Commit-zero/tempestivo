@@ -57,11 +57,11 @@ test("exporta os dados da conta e exclui a conta só com o e-mail certo", async 
   expect(exportacao.headers()["content-disposition"]).toContain("attachment");
   expect(await exportacao.json()).toMatchObject({ formato: "tempestivo-exportacao-v1", conta: { usuario: { email } }, clientes: [] });
 
-  await page.getByLabel("Para confirmar, digite o e-mail da conta").fill("outro@exemplo.test");
+  await page.getByLabel("Para confirmar, digite a sua senha").fill("senha-errada-de-teste");
   await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("Digite o e-mail da conta");
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("Senha incorreta.");
 
-  await page.getByLabel("Para confirmar, digite o e-mail da conta").fill(email);
+  await page.getByLabel("Para confirmar, digite a sua senha").fill(SENHA_FICTICIA);
   await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();
   await expect(page.getByRole("status")).toHaveText("A conta e todos os dados foram excluídos.");
 
