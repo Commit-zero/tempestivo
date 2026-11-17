@@ -9,6 +9,8 @@ const ambienteValido = {
   NODE_ENV: "test",
   APP_URL: "http://localhost:3000",
   JOBS_SECRET: segredo,
+  AUTH_SECRET: "a".repeat(32),
+  DATABASE_URL: "postgresql://usuario:senha-de-teste@localhost:5432/banco",
 };
 
 function mensagemDoErro(env: Record<string, string | undefined>): string {
@@ -49,6 +51,18 @@ describe("lerConfig", () => {
     expect(mensagem).toContain("NODE_ENV");
     expect(mensagem).toContain("APP_URL");
     expect(mensagem).toContain("JOBS_SECRET");
+    expect(mensagem).toContain("AUTH_SECRET");
+  });
+
+  it("exige as variáveis de SMTP só quando o driver smtp está ativo", () => {
+    expect(() => lerConfig(ambienteValido)).not.toThrow();
+
+    const mensagem = mensagemDoErro({ ...ambienteValido, MAILER_DRIVER: "smtp" });
+    expect(mensagem).toContain("SMTP_HOST");
+    expect(mensagem).toContain("EMAIL_REMETENTE");
+
+    const completo = { ...ambienteValido, MAILER_DRIVER: "smtp", SMTP_HOST: "localhost", EMAIL_REMETENTE: "a@b.c" };
+    expect(lerConfig(completo).SMTP_PORT).toBe(587);
   });
 
   it("escreve a mensagem em português", () => {
@@ -69,13 +83,11 @@ describe("lerConfig", () => {
     expect(mensagem).toContain("JOBS_SECRET");
   });
 
-  it("assume o driver fake quando a variável está ausente", () => {
+  it("assume os drivers padrão quando as variáveis estão ausentes", () => {
     const config = lerConfig(ambienteValido);
 
-    expect(config.STORAGE_DRIVER).toBe("fake");
     expect(config.MAILER_DRIVER).toBe("fake");
-    expect(config.NOTIFIER_DRIVER).toBe("fake");
-    expect(config.AI_DRIVER).toBe("fake");
+    expect(config.AI_DRIVER).toBe("local");
   });
 
   it("rejeita driver desconhecido sem revelar o valor", () => {
@@ -89,6 +101,25 @@ describe("lerConfig", () => {
     expect(mensagemDoErro({ ...ambienteValido, LOG_LEVEL: "verboso" })).toContain("LOG_LEVEL");
   });
 
+  it("exige DATABASE_URL de PostgreSQL sem revelar a string de conexão", () => {
+    const outroBanco = "mysql://usuario:senha-secreta@localhost/banco";
+
+    const mensagem = mensagemDoErro({ ...ambienteValido, DATABASE_URL: outroBanco });
+
+    expect(mensagem).toContain("DATABASE_URL");
+    expect(mensagem).not.toContain("senha-secreta");
+    expect(mensagemDoErro({ ...ambienteValido, DATABASE_URL: undefined })).toContain("DATABASE_URL");
+  });
+
+  it("exige https no APP_URL em produção, menos em localhost", () => {
+    const producao = { ...ambienteValido, NODE_ENV: "production" };
+
+    expect(mensagemDoErro({ ...producao, APP_URL: "http://tempestivo.exemplo.com" })).toContain("APP_URL");
+    expect(() => lerConfig({ ...producao, APP_URL: "https://tempestivo.exemplo.com" })).not.toThrow();
+    expect(() => lerConfig({ ...producao, APP_URL: "http://localhost:3000" })).not.toThrow();
+    expect(() => lerConfig({ ...ambienteValido, APP_URL: "http://tempestivo.exemplo.com" })).not.toThrow();
+  });
+
   it("devolve uma configuração imutável", () => {
     const config = lerConfig(ambienteValido);
 
@@ -100,7 +131,7 @@ describe(".env.example", () => {
   const conteudo = readFileSync(resolve(process.cwd(), ".env.example"), "utf-8");
   const linhas = conteudo.split("\n");
   const chaves = linhas
-    .filter((linha) => /^[A-Z_]+=/.test(linha))
+    .filter((linha) => /^[A-Z0-9_]+=/.test(linha))
     .map((linha) => linha.split("=")[0]);
 
   it("tem as mesmas chaves do schema", () => {
@@ -109,7 +140,7 @@ describe(".env.example", () => {
 
   it("tem uma linha de comentário antes de cada variável", () => {
     linhas.forEach((linha, i) => {
-      if (/^[A-Z_]+=/.test(linha)) {
+      if (/^[A-Z0-9_]+=/.test(linha)) {
         expect(linhas[i - 1]?.startsWith("# "), `sem comentário antes de ${linha.split("=")[0]}`).toBe(true);
       }
     });
@@ -117,7 +148,7 @@ describe(".env.example", () => {
 
   const valores = Object.fromEntries(
     linhas
-      .filter((linha) => /^[A-Z_]+=/.test(linha))
+      .filter((linha) => /^[A-Z0-9_]+=/.test(linha))
       .map((linha) => [linha.split("=")[0], linha.slice(linha.indexOf("=") + 1)]),
   );
 
@@ -126,7 +157,7 @@ describe(".env.example", () => {
     expect(() => lerConfig(valores)).toThrow(/JOBS_SECRET/);
   });
 
-  it("passa na validação do schema quando o segredo é preenchido", () => {
-    expect(() => lerConfig({ ...valores, JOBS_SECRET: segredo })).not.toThrow();
+  it("passa na validação do schema quando os segredos são preenchidos", () => {
+    expect(() => lerConfig({ ...valores, JOBS_SECRET: segredo, AUTH_SECRET: segredo })).not.toThrow();
   });
 });

@@ -7,6 +7,8 @@ describe("getConfig", () => {
     vi.resetModules();
     vi.stubEnv("APP_URL", "http://localhost:3000");
     vi.stubEnv("JOBS_SECRET", segredo);
+    vi.stubEnv("AUTH_SECRET", segredo);
+    vi.stubEnv("DATABASE_URL", "postgresql://usuario:senha-de-teste@localhost:5432/banco");
   });
 
   afterEach(() => {

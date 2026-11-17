@@ -1,17 +1,73 @@
+import Link from "next/link";
+import { Marca } from "@/components/app/marca";
 import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const PILARES = [
+  {
+    titulo: "Prazo com passo a passo",
+    texto: "A data final vem com a contagem explicada, dia a dia. O cálculo é auxiliar: quem confere é você.",
+  },
+  {
+    titulo: "Status honesto",
+    texto: "Cada prazo mostra há quantos dias você mesmo conferiu. Sem falsa tranquilidade.",
+  },
+  {
+    titulo: "Alertas em camadas",
+    texto: "Avisos por e-mail 5, 2 e 1 dia antes. Sem conferência na véspera, o seu substituto é avisado.",
+  },
+  {
+    titulo: "Honorário em dia",
+    texto: "Parcelas, atrasos e a cobrança pronta para enviar pelo WhatsApp em um toque.",
+  },
+];
+
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const { conta } = await searchParams;
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col items-start justify-center gap-6 px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Tempestivo
-      </h1>
-      <p className="text-base text-muted-foreground sm:text-lg">
-        Nunca perca um prazo e receba seus honorários.
-      </p>
-      <Button disabled>
-        Cadastro em breve
-      </Button>
-    </main>
+    <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-12 px-4 py-8 sm:px-6 sm:py-12">
+      <header className="flex items-center justify-between gap-4">
+        <Marca />
+        <Button asChild variant="outline">
+          <Link href="/entrar">Entrar</Link>
+        </Button>
+      </header>
+      <main className="flex flex-col gap-12">
+        {conta === "excluida" ? (
+          <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
+            A conta e todos os dados foram excluídos.
+          </p>
+        ) : null}
+        <section className="flex flex-col items-start gap-6">
+          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            Nunca perca um prazo e receba seus honorários.
+          </h1>
+          <p className="max-w-xl text-lg text-muted-foreground">
+            O Tempestivo é a agenda de prazos do advogado autônomo: calcula, explica, cobra a sua conferência e avisa antes que seja tarde.
+          </p>
+          <Button asChild size="lg" className="px-5 text-base">
+            <Link href="/cadastro">Criar conta gratuita</Link>
+          </Button>
+        </section>
+        <section aria-label="O que o Tempestivo faz" className="grid gap-4 sm:grid-cols-2">
+          {PILARES.map(({ titulo, texto }) => (
+            <article key={titulo} className="rounded-xl border bg-card p-5">
+              <h2 className="font-semibold">{titulo}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{texto}</p>
+            </article>
+          ))}
+        </section>
+      </main>
+      <footer className="mt-auto grid gap-2 border-t pt-6 text-sm text-muted-foreground">
+        <p>Cálculo auxiliar, confira. O Tempestivo não substitui a conferência do advogado.</p>
+        <nav aria-label="Documentos" className="flex flex-wrap gap-x-4">
+          <Link href="/termos" className="underline-offset-4 hover:underline">
+            Termos de uso
+          </Link>
+          <Link href="/privacidade" className="underline-offset-4 hover:underline">
+            Política de privacidade
+          </Link>
+        </nav>
+      </footer>
+    </div>
   );
 }

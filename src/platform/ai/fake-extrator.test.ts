@@ -22,7 +22,8 @@ describe("fake extrator", () => {
 });
 
 describe("criarExtrator", () => {
-  it("devolve o fake com AI_DRIVER=fake", () => {
-    expect(criarExtrator({ AI_DRIVER: "fake" })).toHaveProperty("recebidos");
+  it("devolve o extrator local com AI_DRIVER=local", async () => {
+    const rascunho = await criarExtrator({ AI_DRIVER: "local" }).extrair("Prazo de 5 dias.");
+    expect(rascunho).toMatchObject({ dias: 5 });
   });
 });

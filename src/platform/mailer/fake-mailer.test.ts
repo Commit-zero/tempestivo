@@ -26,6 +26,6 @@ describe("fake mailer", () => {
 
 describe("criarMailer", () => {
   it("devolve o fake com MAILER_DRIVER=fake", () => {
-    expect(criarMailer({ MAILER_DRIVER: "fake" })).toHaveProperty("enviados");
+    expect(criarMailer({ MAILER_DRIVER: "fake", SMTP_PORT: 587 })).toHaveProperty("enviados");
   });
 });

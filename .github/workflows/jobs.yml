@@ -1,0 +1,46 @@
+name: Jobs agendados
+
+# Agendador de custo zero: o GitHub Actions chama as rotas /api/jobs/* do app com o
+# segredo dos jobs. Cada rota é idempotente, então repetir uma chamada é inofensivo.
+#
+# Segredos necessários (Settings > Secrets and variables > Actions):
+#   APP_URL      URL pública do app, sem barra no final
+#   JOBS_SECRET  o mesmo valor configurado no app
+#
+# O cron roda em UTC e pode atrasar alguns minutos; por isso o minuto 17, fora do
+# pico da virada de hora. Enquanto os segredos não existirem, o job termina com aviso.
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: jobs-agendados
+  cancel-in-progress: false
+
+jobs:
+  chamar:
+    name: chamar os jobs do app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      JOBS_SECRET: ${{ secrets.JOBS_SECRET }}
+    steps:
+      - name: Chamar cada job e falhar se a resposta não for 2xx
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$JOBS_SECRET" ]; then
+            echo "::warning::APP_URL ou JOBS_SECRET não configurados; nada foi chamado."
+            exit 0
+          fi
+          falhou=0
+          for job in ping alertas; do
+            codigo=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 -X POST \
+              -H "Authorization: Bearer ${JOBS_SECRET}" "${APP_URL}/api/jobs/${job}" || echo 000)
+            echo "job ${job}: HTTP ${codigo}"
+            case "$codigo" in 2*) ;; *) falhou=1 ;; esac
+          done
+          exit "$falhou"

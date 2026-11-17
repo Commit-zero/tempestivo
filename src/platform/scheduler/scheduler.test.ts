@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { lerConfig } from "@/platform/config";
 import { criarFakeLogger } from "@/platform/logger";
 import { criarFakeScheduler } from "./fake-scheduler";
 import { criarSchedulerHttp } from "./scheduler-http";
@@ -77,7 +76,9 @@ describe("Scheduler.executar", () => {
       ["info", "job iniciado"],
       ["error", "job falhou"],
     ]);
-    expect(logger.registros[1].contexto).toMatchObject({ job: "ping", mensagem: "banco fora do ar" });
+    // Só o tipo e o código: a mensagem de erros do banco pode trazer dados dos registros.
+    expect(logger.registros[1].contexto).toMatchObject({ job: "ping", tipo: "Error", codigo: null });
+    expect(JSON.stringify(logger.registros)).not.toContain("banco fora do ar");
   });
 
   it("não grava o segredo no log do erro", async () => {
@@ -90,6 +91,16 @@ describe("Scheduler.executar", () => {
     ).rejects.toThrow();
 
     expect(JSON.stringify(logger.registros)).not.toContain(segredo);
+  });
+
+  it("registra o código do erro do banco, sem a mensagem", async () => {
+    const { scheduler, logger } = montar();
+    const erroDoBanco = Object.assign(new Error("Unique constraint failed on the fields: (`email`) = cliente@exemplo.test"), { code: "P2002" });
+
+    await expect(scheduler.executar("ping", async () => Promise.reject(erroDoBanco))).rejects.toBe(erroDoBanco);
+
+    expect(logger.registros[1].contexto).toMatchObject({ codigo: "P2002" });
+    expect(JSON.stringify(logger.registros)).not.toContain("cliente@exemplo.test");
   });
 
   it("registra falha também quando o trabalho lança de forma síncrona ou não é um Error", async () => {
@@ -121,8 +132,7 @@ describe("criarFakeScheduler", () => {
 
 describe("criarScheduler", () => {
   it("usa o JOBS_SECRET da configuração", () => {
-    const config = lerConfig({ NODE_ENV: "test", APP_URL: "http://localhost:3000", JOBS_SECRET: segredo });
-    const scheduler = criarScheduler(config, criarFakeLogger());
+    const scheduler = criarScheduler({ JOBS_SECRET: segredo }, criarFakeLogger());
 
     expect(scheduler.autorizado(cabecalhos(`Bearer ${segredo}`))).toBe(true);
     expect(scheduler.autorizado(cabecalhos("Bearer outro"))).toBe(false);

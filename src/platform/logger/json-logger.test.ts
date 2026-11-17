@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { lerConfig } from "@/platform/config";
 import { criarFakeLogger } from "./fake-logger";
 import { criarJsonLogger } from "./json-logger";
 import { criarLogger } from "./index";
@@ -210,12 +209,7 @@ describe("criarFakeLogger", () => {
 });
 
 describe("criarLogger", () => {
-  const config = lerConfig({
-    NODE_ENV: "test",
-    APP_URL: "http://localhost:3000",
-    JOBS_SECRET: "s".repeat(32),
-    LOG_LEVEL: "warn",
-  });
+  const config = { LOG_LEVEL: "warn" } as const;
 
   it("respeita o LOG_LEVEL da configuração", () => {
     const linhas: string[] = [];

@@ -1,0 +1,167 @@
+{
+  "observacao": "Casos de contagem para revisão do advogado validador. Enquanto 'validadoPor' for null, o caso é rascunho e a regra continua 'pendente'. Nenhum caso validado pode ser alterado para fazer um teste passar. O campo 'revisao' registra por que um rascunho mudou antes da validação.",
+  "casos": [
+    {
+      "id": "C01",
+      "descricao": "Prazo simples de 5 dias úteis, sem feriado",
+      "regras": ["R1", "R2"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-03-02", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-03", "dataFinal": "2026-03-09"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C02",
+      "descricao": "15 dias úteis atravessando três fins de semana",
+      "regras": ["R1", "R2"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-03-05", "dias": 15, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-06", "dataFinal": "2026-03-26"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C03",
+      "descricao": "15 dias úteis atravessando o feriado de 20/11 (Consciência Negra)",
+      "regras": ["R1", "R2", "R3"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-11-12", "dias": 15, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-11-13", "dataFinal": "2026-12-04"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C05",
+      "descricao": "15 dias úteis atravessando o recesso de 20/12 a 20/01",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-12-14", "dias": 15, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-12-15", "dataFinal": "2027-02-04"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C06",
+      "descricao": "Intimação na última sexta-feira antes do recesso: a contagem só começa em 21/01",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-12-18", "dias": 1, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-21"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C07",
+      "descricao": "Intimação em 20/01, último dia da suspensão, com expediente: considera-se feita no próprio dia e a contagem começa em 21/01",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2027-01-20", "dias": 1, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-21"},
+      "revisao": "Corrigido na revisão de 17/11/2026: era 22/01. A suspensão não adia o dia do começo (CPC, arts. 220 e 224). Validar a leitura com o advogado.",
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C08",
+      "descricao": "Intimação em 31/12, dentro da suspensão, com 5 dias úteis: a contagem começa em 21/01",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-12-31", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-27"},
+      "revisao": "Corrigido na revisão de 17/11/2026: era 28/01. Na capital, 25/01 (feriado municipal) adiaria para 28/01; o dia entra como aviso.",
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C09",
+      "descricao": "Prazo em dobro: 15 dias viram 30 dias úteis, atravessando a Sexta-feira da Paixão",
+      "regras": ["R1", "R2", "R3", "R5"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-03-02", "dias": 15, "contagem": "uteis", "emDobro": true},
+      "esperado": {"dataInicio": "2026-03-03", "dataFinal": "2026-04-14"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C10",
+      "descricao": "Disponibilização no diário na sexta-feira: publicação na segunda, contagem na terça",
+      "regras": ["R1", "R2", "R6"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "disponibilizacao", "dataEvento": "2026-03-06", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-10", "dataFinal": "2026-03-16"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C11",
+      "descricao": "Disponibilização na véspera de feriado: a publicação pula o feriado e o fim de semana",
+      "regras": ["R1", "R2", "R3", "R6"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "disponibilizacao", "dataEvento": "2026-11-19", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-11-24", "dataFinal": "2026-11-30"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C12",
+      "descricao": "Data de publicação informada diretamente",
+      "regras": ["R1", "R2"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "publicacao", "dataEvento": "2026-03-09", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-10", "dataFinal": "2026-03-16"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C13",
+      "descricao": "Intimação eletrônica não consultada: os 10 dias corridos terminam em dia útil",
+      "regras": ["R1", "R2", "R8"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao_tacita", "dataEvento": "2026-03-02", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-13", "dataFinal": "2026-03-19"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C14",
+      "descricao": "Intimação eletrônica não consultada: os 10 dias corridos terminam no sábado",
+      "regras": ["R1", "R2", "R3", "R8"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao_tacita", "dataEvento": "2026-03-04", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-17", "dataFinal": "2026-03-23"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C15",
+      "descricao": "Intimação eletrônica consultada no sábado: considera-se feita na segunda-feira",
+      "regras": ["R1", "R2", "R7"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-03-07", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-03-10", "dataFinal": "2026-03-16"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C16",
+      "descricao": "Recurso ordinário trabalhista (8 dias úteis) atravessando o feriado estadual de 9 de julho",
+      "regras": ["R1", "R2", "R3"],
+      "entrada": {"tribunal": "TRT-2", "tipoEvento": "intimacao", "dataEvento": "2026-07-06", "dias": 8, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-07-07", "dataFinal": "2026-07-17"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C17",
+      "descricao": "Corpus Christi sem cadastro: o dia é contado como útil (data mais cedo) e gera aviso",
+      "regras": ["R1", "R2"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2026-06-01", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-06-02", "dataFinal": "2026-06-08"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C18",
+      "descricao": "Intimação em 15/01, durante a suspensão e com expediente: 5 dias úteis a partir de 21/01",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao", "dataEvento": "2027-01-15", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-27"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C19",
+      "descricao": "Disponibilização na sexta antes da suspensão: a contagem começa em 21/01",
+      "regras": ["R1", "R2", "R4", "R6"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "disponibilizacao", "dataEvento": "2026-12-18", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-27"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C20",
+      "descricao": "Intimação eletrônica não consultada cujo 10º dia cai no sábado antes da suspensão",
+      "regras": ["R1", "R2", "R3", "R4", "R8"],
+      "entrada": {"tribunal": "TJSP", "tipoEvento": "intimacao_tacita", "dataEvento": "2026-12-09", "dias": 5, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2027-01-21", "dataFinal": "2027-01-27"},
+      "validadoPor": null, "validadoEm": null
+    },
+    {
+      "id": "C21",
+      "descricao": "Recurso ordinário trabalhista (8 dias úteis) atravessando a suspensão",
+      "regras": ["R1", "R2", "R4"],
+      "entrada": {"tribunal": "TRT-2", "tipoEvento": "intimacao", "dataEvento": "2026-12-14", "dias": 8, "contagem": "uteis", "emDobro": false},
+      "esperado": {"dataInicio": "2026-12-15", "dataFinal": "2027-01-26"},
+      "validadoPor": null, "validadoEm": null
+    }
+  ]
+}
