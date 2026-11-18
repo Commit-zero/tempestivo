@@ -10,6 +10,10 @@ describe("iCalendar", () => {
     expect(escaparTexto("um\r\ndois\rtrês\nquatro")).toBe("um\\ndois\\ntrês\\nquatro");
   });
 
+  it("remove caracteres de controle, que a RFC 5545 proíbe em texto e fariam o calendário recusar o feed", () => {
+    expect(escaparTexto("Peça\x0ccolada\x00 do\x1f PDF\x7f\tfim")).toBe("Peçacolada do PDF\tfim");
+  });
+
   it("dobra linhas longas em até 75 bytes sem partir caractere acentuado", () => {
     const linha = `SUMMARY:${"Contestação ".repeat(12)}`;
     const dobrada = dobrarLinha(linha);

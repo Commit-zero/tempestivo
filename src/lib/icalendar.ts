@@ -33,8 +33,16 @@ const codificador = new TextEncoder();
 
 // Vírgula, ponto e vírgula e barra invertida são escapados; qualquer quebra de linha
 // (inclusive um \r sozinho) vira \n, para o texto não criar uma propriedade nova.
+// Os demais caracteres de controle (menos a tabulação) saem: a RFC 5545 os proíbe em
+// texto, e um deles colado de um PDF faria o calendário recusar o feed inteiro.
+const CONTROLES_PROIBIDOS = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g;
+
 export function escaparTexto(texto: string): string {
-  return texto.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r\n|\r|\n/g, "\\n");
+  return texto
+    .replace(CONTROLES_PROIBIDOS, "")
+    .replace(/\\/g, "\\\\")
+    .replace(/([,;])/g, "\\$1")
+    .replace(/\r\n|\r|\n/g, "\\n");
 }
 
 /** Dobra a linha em pedaços de até 75 bytes, sem partir um caractere UTF-8 ao meio. */

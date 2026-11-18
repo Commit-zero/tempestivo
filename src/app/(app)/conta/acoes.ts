@@ -59,5 +59,5 @@ export async function acaoDesativarAgenda(): Promise<EstadoDaAgenda> {
   const resultado = await desativarAgenda(contaId);
   if (!resultado.ok) return { erro: resultado.erro };
   revalidatePath("/conta");
-  return { aviso: "Agenda desligada. O link deixou de funcionar; o calendário vai parar de atualizar." };
+  return { aviso: "Agenda desligada. O link deixou de funcionar e o calendário para de atualizar; os eventos que ele já baixou continuam lá até você remover a agenda assinada no próprio calendário." };
 }

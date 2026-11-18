@@ -94,6 +94,26 @@ describe("agenda assinável (integração)", () => {
     expect((await definirMargemDeSeguranca(conta, "dois")).ok).toBe(false);
   });
 
+  it("audiência virtual não leva o link da sala (que costuma ter senha) para o calendário", async () => {
+    await criarAudiencia(conta, {
+      processoId, tipo: "Instrução", data: "2026-11-25", hora: "10:00", duracaoMin: "60", local: "",
+      linkVirtual: "https://sala.exemplo/j/123?pwd=segredo", observacoes: "",
+    });
+    const ics = (await gerarFeedDaAgenda(token, APP, agora))!;
+    expect(linhas(ics)).toContain("LOCATION:Audiência virtual (link no Tempestivo)");
+    expect(ics).not.toContain("sala.exemplo");
+    expect(ics).not.toContain("pwd=");
+  });
+
+  it("deixa de fora prazos vencidos há mais de 90 dias, para o feed não crescer sem fim", async () => {
+    const recente = await cadastrarPrazo(conta, { origem: "manual", processoId, descricao: "Vencido recente", dataFinal: "2026-09-01" });
+    const antigo = await cadastrarPrazo(conta, { origem: "manual", processoId, descricao: "Vencido antigo", dataFinal: "2026-08-01" });
+    if (!recente.ok || !antigo.ok) throw new Error("cadastro do prazo falhou");
+    const ics = (await gerarFeedDaAgenda(token, APP, agora))!;
+    expect(ics).toContain("Vencido recente");
+    expect(ics).not.toContain("Vencido antigo");
+  });
+
   it("trocar o link desliga o anterior; desativar desliga tudo; link de outra conta não vê nada", async () => {
     const outraAgenda = await ativarAgenda(outra, agora);
     if (!outraAgenda.ok) throw new Error(outraAgenda.erro);

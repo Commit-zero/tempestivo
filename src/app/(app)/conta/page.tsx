@@ -45,7 +45,9 @@ export default async function PaginaDaConta() {
         </Cartao>
         <p className="text-sm text-muted-foreground">
           Assine a agenda uma vez no calendário do celular e os prazos, as metas internas e as audiências aparecem lá sozinhos, com
-          lembretes. O calendário guarda o ato, o número do processo e as datas; nomes de clientes e de partes nunca vão para ele.
+          lembretes. O calendário (Google, Apple ou Microsoft) recebe a descrição que você deu a cada prazo, o número do processo, o local
+          das audiências e as datas. Nomes de clientes, de partes, o assunto e o link de sala virtual nunca vão para ele: evite escrever
+          nomes na descrição dos prazos.
         </p>
         <Cartao>
           <PainelDaAgenda

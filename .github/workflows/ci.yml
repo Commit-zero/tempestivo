@@ -48,7 +48,7 @@ jobs:
       # Banco descartável: os testes de integração rodam contra PostgreSQL de verdade,
       # na mesma versão de produção.
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:a77aa70e641402a21411b92b721c58d10f23b50ae5fdd2333efd22d166e1e5f7
         env:
           POSTGRES_USER: tempestivo_ci
           POSTGRES_PASSWORD: senha_so_do_ci
@@ -106,7 +106,7 @@ jobs:
       LOG_LEVEL: warn
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:a77aa70e641402a21411b92b721c58d10f23b50ae5fdd2333efd22d166e1e5f7
         env:
           POSTGRES_USER: tempestivo_ci
           POSTGRES_PASSWORD: senha_so_do_ci
@@ -166,7 +166,7 @@ jobs:
           docker network create rede-ci
           docker run -d --name banco --network rede-ci \
             -e POSTGRES_USER=tempestivo_ci -e POSTGRES_PASSWORD="$SENHA" -e POSTGRES_DB=tempestivo_ci \
-            postgres:17-alpine
+            postgres:17-alpine@sha256:a77aa70e641402a21411b92b721c58d10f23b50ae5fdd2333efd22d166e1e5f7
           for _ in $(seq 1 30); do
             docker exec banco pg_isready -U tempestivo_ci && break
             sleep 2
