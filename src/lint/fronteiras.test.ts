@@ -1,6 +1,6 @@
 import path from "node:path";
 import { ESLint } from "eslint";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 const raiz = path.resolve(__dirname, "../..");
 const eslint = new ESLint({ cwd: raiz });
@@ -13,6 +13,13 @@ async function violacoes(codigo: string, arquivo: string): Promise<number> {
 const importar = (origem: string) => `import { x } from "${origem}";\nexport { x };\n`;
 
 describe("fronteiras entre módulos", () => {
+  // Carregar a configuração e os plugins do ESLint leva dezenas de segundos numa máquina
+  // fria (e mais com a cobertura ligada). Isso acontece uma vez, aqui, com prazo próprio,
+  // e não conta no tempo do primeiro caso.
+  beforeAll(async () => {
+    await eslint.lintText("export {};\n", { filePath: path.join(raiz, "src/app/page.tsx") });
+  }, 120_000);
+
   it.each(["src/app/page.tsx", "src/lib/util.ts", "src/platform/logger/x.ts"])(
     "%s não importa o interior de um módulo",
     async (arquivo) => {
