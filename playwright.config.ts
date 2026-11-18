@@ -8,10 +8,13 @@ const noCI = Boolean(process.env.CI);
 const canal = process.env.PLAYWRIGHT_CHANNEL || undefined;
 
 // Três larguras exigidas pela regra 8 do projeto, todas no Chromium.
+// Cada largura se apresenta como um cliente diferente (X-Forwarded-For próprio), como a
+// Vercel faz com o IP real de cada usuário. Sem isso, as três larguras dividiriam o
+// limite de cadastros por IP do app, que existe justamente para barrar rajadas.
 const LARGURAS = [
-  { name: "mobile", viewport: { width: 360, height: 740 } },
-  { name: "tablet", viewport: { width: 768, height: 1024 } },
-  { name: "desktop", viewport: { width: 1280, height: 800 } },
+  { name: "mobile", viewport: { width: 360, height: 740 }, ip: "198.51.100.1" },
+  { name: "tablet", viewport: { width: 768, height: 1024 }, ip: "198.51.100.2" },
+  { name: "desktop", viewport: { width: 1280, height: 800 }, ip: "198.51.100.3" },
 ];
 
 export default defineConfig({
@@ -27,10 +30,13 @@ export default defineConfig({
   projects: [
     // Roda uma vez: cria uma conta fictícia e guarda a sessão que as três larguras reutilizam.
     { name: "preparo", testMatch: /preparo\.ts$/, use: { ...devices["Desktop Chrome"], channel: canal } },
-    ...LARGURAS.map(({ name, viewport }) => ({
+    ...LARGURAS.map(({ name, viewport, ip }) => ({
       name,
       dependencies: ["preparo"],
-      use: { ...devices["Desktop Chrome"], channel: canal, viewport, storageState: ARQUIVO_DA_SESSAO },
+      use: {
+        ...devices["Desktop Chrome"], channel: canal, viewport, storageState: ARQUIVO_DA_SESSAO,
+        extraHTTPHeaders: { "x-forwarded-for": ip },
+      },
     })),
   ],
   webServer: {

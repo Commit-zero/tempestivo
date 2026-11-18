@@ -13,9 +13,9 @@ name: Segurança
 # CodeQL fica de fora: em repositório privado ele exige o GitHub Advanced Security, que é pago.
 
 on:
-  pull_request:
+  # Todo push, em qualquer branch. Como o repositório é privado (sem PR de fork), todo
+  # commit de PR é um push: o PR mostra estas verificações, sem rodar duas vezes.
   push:
-    branches: [main]
   workflow_dispatch:
   # CVE novas aparecem sem que o código mude. A varredura semanal pega isso.
   schedule:
@@ -25,7 +25,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: seguranca-${{ github.event.pull_request.number || github.ref }}
+  group: seguranca-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -125,9 +125,9 @@ jobs:
     name: imagem (Trivy e SBOM)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    # A imagem só muda com código novo na main ou na varredura semanal; em PR o
-    # job `imagem` do CI já prova que ela constrói e sobe.
-    if: github.event_name != 'pull_request'
+    # Varredura pesada (cerca de 5 min): só na main, na varredura semanal e sob demanda.
+    # Nos outros branches, o job `imagem` do CI já prova que a imagem constrói e sobe.
+    if: github.ref == 'refs/heads/main' || github.event_name != 'push'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
