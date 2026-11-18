@@ -80,6 +80,7 @@ export async function exportar(contaId: string) {
         where: { id: contaId },
         select: {
           nome: true, substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, termosAceitosEm: true, versaoDosTermos: true,
+          margemDeSegurancaDiasUteis: true, agendaAtivadaEm: true,
           criadoEm: true, usuario: { select: { name: true, email: true, emailVerified: true } },
         },
       }),
