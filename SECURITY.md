@@ -44,6 +44,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 
 ## Limites conhecidos
 
+- O token da agenda vai no caminho da URL (o app de calendário não envia cabeçalho) e por isso aparece nos logs de acesso da hospedagem. Restrinja quem lê esses logs; se houver dúvida, o titular troca o link em Conta.
 - Quem tiver o link da agenda vê os vencimentos daquela conta até ele ser desativado: a tela avisa para não compartilhá-lo.
 - O limitador de tentativas fica em memória (vale por instância) e identifica o cliente pelo `X-Forwarded-For`: o proxy da hospedagem precisa sobrescrever esse cabeçalho.
 - A CSP permite `'unsafe-inline'` em scripts e estilos, exigência da hidratação do Next.js sem *nonce*.

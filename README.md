@@ -19,6 +19,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 - [CI/CD e segurança](#cicd-e-segurança)
 - [Deploy](#deploy)
 - [Limites conhecidos e roadmap](#limites-conhecidos-e-roadmap)
+- [Documentação técnica](#documentação-técnica)
 - [Contribuição](#contribuição)
 
 ## O que ele faz
@@ -100,7 +101,7 @@ Regras que o código impõe:
 - **Servidor fica no servidor.** Banco, sessão e runtime importam `server-only`: se um componente de cliente tentar importá-los, o build quebra.
 - **Configuração só por ambiente,** validada na subida. Variável inválida derruba o servidor com a lista dos nomes, nunca dos valores.
 
-O mapa completo de módulos e portas está em [docs/mapa-de-modulos.md](docs/mapa-de-modulos.md).
+O mapa completo de módulos e portas está em [docs/mapa-de-modulos.md](docs/mapa-de-modulos.md), e as decisões de arquitetura, com o motivo de cada uma, em [docs/arquitetura.md](docs/arquitetura.md).
 
 ## Instalação
 
@@ -246,6 +247,21 @@ Próximos passos, fora do MVP:
 - Aplicativo instalável (PWA) com notificações push
 - Cobrança por Pix e WhatsApp pela API oficial
 - Várias pessoas por conta
+
+## Documentação técnica
+
+O índice completo está em [docs/README.md](docs/README.md):
+
+| Documento | Assunto |
+|---|---|
+| [Arquitetura](docs/arquitetura.md) | Camadas, fluxo de uma requisição e registro de decisões |
+| [Mapa de módulos](docs/mapa-de-modulos.md) | Módulos, portas e dependências |
+| [Modelo de dados](docs/modelo-de-dados.md) | Entidades, convenções e migrações |
+| [Rotas e interfaces](docs/rotas-e-api.md) | Páginas, rotas HTTP, Server Actions e contratos |
+| [Testes](docs/testes.md) | Estratégia, cobertura e como escrever um teste |
+| [Deploy](docs/deploy.md) | Vercel + Supabase e imagem Docker |
+| [Operação](docs/operacao.md) | Saúde, logs, jobs, incidentes e backup |
+| [Especificações](docs/especificacoes/) | Base, prazos e agenda |
 
 ## Contribuição
 

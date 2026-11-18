@@ -42,7 +42,7 @@ src/
   app/                telas e rotas; chamam serviços, nunca o Prisma direto
   lib/                utilitários puros compartilhados (datas civis, dinheiro, documentos, iCalendar)
 prisma/               migrações versionadas
-docs/                 deploy, mapa de módulos e especificações
+docs/                 arquitetura, módulos, dados, rotas, testes, deploy, operação e especificações
 ```
 
 Módulos só se falam pelo `index.ts` de cada um. Jobs são idempotentes (cada alerta tem chave única). Configuração só por variáveis de ambiente, validadas com zod.
