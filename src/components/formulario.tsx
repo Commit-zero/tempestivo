@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import type { EstadoDoFormulario } from "@/lib/formulario";
 const alturaDeToque = "h-11 md:h-9";
 const classeDoControle =
   "w-full min-w-0 rounded-lg border border-input bg-card px-2.5 text-base outline-none transition-colors " +
-  "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 md:text-sm";
+  "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring disabled:opacity-50 md:text-sm";
 
 type PropsDoCampo = { rotulo: string; dica?: ReactNode; className?: string };
 
@@ -83,9 +83,18 @@ export function BotaoEnviar({ children, enviando = "Enviando…", ...props }: Co
 }
 
 export function MensagemDoFormulario({ estado }: { estado: EstadoDoFormulario }) {
+  // O erro vem do servidor depois do envio, no topo do formulário: no celular ele
+  // ficaria fora da tela. Leva a tela e o foco até ele, para quem enxerga e para o
+  // leitor de tela. Cada envio devolve um estado novo, então o efeito roda a cada erro.
+  const alerta = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (!estado.erro || !alerta.current) return;
+    alerta.current.focus({ preventScroll: true });
+    alerta.current.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [estado]);
   if (estado.erro) {
     return (
-      <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+      <p ref={alerta} role="alert" tabIndex={-1} className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
         {estado.erro}
       </p>
     );

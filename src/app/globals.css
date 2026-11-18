@@ -98,10 +98,18 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
+  }
+  /* Foco visível com contraste de 3:1 em links e controles sem anel próprio. */
+  :focus-visible {
+    outline-width: 2px;
+    outline-style: solid;
+    outline-offset: 2px;
   }
   html {
     @apply font-sans;
+    /* A barra inferior fixa do celular não pode esconder o elemento em foco. */
+    scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
     /* Controles nativos (data, seleção, barras de rolagem) acompanham o tema. */
     color-scheme: light dark;
   }
@@ -111,6 +119,18 @@
   h1 {
     @apply font-serif;
   }
+}
+
+@media (min-width: 48rem) {
+  html {
+    scroll-padding-bottom: 0;
+  }
+}
+
+/* Item de lista que ocupa a largura toda: o contorno vai para dentro, senão a lista
+   (com cantos arredondados e overflow escondido) o cortaria. */
+.foco-interno:focus-visible {
+  outline-offset: -3px;
 }
 
 /* Quem pede menos movimento não vê transições nem animações. */

@@ -58,7 +58,7 @@ const TEXTO: [string, string][] = [
   ["destructive", "perigo-fundo"], ["destructive", "card"],
 ];
 // Componentes: a borda do campo e o anel de foco precisam de 3:1 (WCAG 1.4.11).
-const COMPONENTES: [string, string][] = [["input", "card"], ["input", "background"], ["ring", "card"], ["ring", "background"]];
+const COMPONENTES: [string, string][] = [["input", "card"], ["input", "background"], ["ring", "card"], ["ring", "background"], ["ring", "muted"], ["ring", "secondary"]];
 
 describe.each([["claro", claro], ["escuro", escuro]] as const)("tema %s", (_nome, tokens) => {
   it.each(TEXTO)("texto --%s sobre --%s tem 4,5:1 ou mais", (frente, fundo) => {

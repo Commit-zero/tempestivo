@@ -35,8 +35,8 @@ export default async function PaginaDoCliente({ params }: PageProps<"/clientes/[
             {processos.map((processo) => (
               <ItemDeLink key={processo.id} href={`/processos/${processo.id}`}>
                 <span className="grid min-w-0 flex-1">
-                  <span className="truncate font-medium">{processo.assunto}</span>
-                  <span className="truncate text-sm text-muted-foreground">
+                  <span className="font-medium break-words">{processo.assunto}</span>
+                  <span className="text-sm break-words text-muted-foreground">
                     {formatarNumeroCnj(processo.numero)} · {processo.tribunal}
                   </span>
                 </span>

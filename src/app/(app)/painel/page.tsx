@@ -93,7 +93,7 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
             <Secao
               titulo="Vencem nos próximos 7 dias"
               acao={
-                <Link href="/prazos?filtro=proximos_7_dias" className="text-sm text-primary underline-offset-4 hover:underline">
+                <Link href="/prazos?filtro=proximos_7_dias" className="inline-flex min-h-11 items-center md:min-h-6 text-sm text-primary underline-offset-4 hover:underline">
                   Ver todos
                 </Link>
               }
@@ -119,7 +119,7 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
             <Secao
               titulo="Honorários"
               acao={
-                <Link href="/honorarios" className="text-sm text-primary underline-offset-4 hover:underline">
+                <Link href="/honorarios" className="inline-flex min-h-11 items-center md:min-h-6 text-sm text-primary underline-offset-4 hover:underline">
                   Ver honorários
                 </Link>
               }

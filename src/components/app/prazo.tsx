@@ -36,13 +36,13 @@ export function ListaDePrazos({ prazos, mostrarProcesso = true }: { prazos: Praz
     <ul className="divide-y overflow-hidden rounded-xl border bg-card">
       {prazos.map((prazo) => (
         <li key={prazo.id}>
-          <Link href={`/prazos/${prazo.id}`} className="grid gap-1.5 px-4 py-3 transition-colors hover:bg-secondary/60">
+          <Link href={`/prazos/${prazo.id}`} className="foco-interno grid gap-1.5 px-4 py-3 transition-colors hover:bg-secondary/60">
             <span className="flex items-start justify-between gap-3">
               <span className="min-w-0 font-medium break-words">{prazo.descricao}</span>
               <SeloDeVencimento situacao={prazo.situacao} />
             </span>
             {mostrarProcesso ? (
-              <span className="truncate text-sm text-muted-foreground">
+              <span className="text-sm break-words text-muted-foreground">
                 {prazo.processo.cliente.nome} · {prazo.processo.assunto}
               </span>
             ) : null}
