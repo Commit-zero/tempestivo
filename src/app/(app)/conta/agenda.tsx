@@ -9,7 +9,7 @@ import type { EstadoDoFormulario } from "@/lib/formulario";
 export type EstadoDaAgenda = EstadoDoFormulario & { link?: string };
 type Acao<T> = (anterior: T, formulario: FormData) => Promise<T>;
 
-export function FormularioDaMargem({ acao, margem }: { acao: Acao<EstadoDoFormulario>; margem: number }) {
+export function FormularioDaMargem({ acao, margem, maxima }: { acao: Acao<EstadoDoFormulario>; margem: number; maxima: number }) {
   const [estado, enviar] = useActionState(acao, { valores: { margem: String(margem) } });
   return (
     <form action={enviar} className="grid gap-4">
@@ -20,7 +20,7 @@ export function FormularioDaMargem({ acao, margem }: { acao: Acao<EstadoDoFormul
         type="number"
         inputMode="numeric"
         min={0}
-        max={10}
+        max={maxima}
         required
         defaultValue={estado.valores?.margem}
         dica="Use 0 para não ter meta interna. Vale para todos os prazos, no app e na agenda."

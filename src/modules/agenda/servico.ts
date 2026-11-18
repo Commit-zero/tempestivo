@@ -34,7 +34,7 @@ function eventosDoPrazo(prazo: PrazoComSituacao, appUrl: string): EventoIcs[] {
       uid: `prazo-${prazo.id}-meta@tempestivo`,
       titulo: `Meta interna: ${prazo.descricao}`,
       quando: { dia: prazo.situacao.metaInterna },
-      descricao: `Data para ter o trabalho pronto, antes do vencimento em ${prazo.dataFinal.split("-").reverse().join("/")}.\n${descricao}`,
+      descricao: `Data-alvo interna para ter o trabalho pronto, calculada pelo Tempestivo (auxiliar, não é prazo legal). Vencimento em ${prazo.dataFinal.split("-").reverse().join("/")}.\n${descricao}`,
       url: link,
       lembreteMin: NOVE_DA_MANHA,
     });

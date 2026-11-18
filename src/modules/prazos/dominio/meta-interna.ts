@@ -13,6 +13,10 @@ export const MARGEM_MAXIMA_DIAS_UTEIS = 10;
  * feriados e dias sem expediente cadastrados), não dias de prazo: a suspensão de
  * 20/12 a 20/01 não entra, porque nela o escritório trabalha.
  *
+ * Ponto facultativo que depende de portaria (Carnaval, 08/12...) conta como dia sem
+ * trabalho. Na calculadora, contá-lo como útil é o lado seguro (a data sai mais cedo);
+ * aqui, contando para trás, o lado seguro é o oposto: pular o dia leva a meta mais cedo.
+ *
  * Sem calendário do tribunal (data manual em tribunal fora do escopo), usa os
  * fins de semana e os feriados nacionais.
  */
@@ -20,7 +24,7 @@ export function metaInterna(dataFinal: DataCivil, margemDiasUteis: number, calen
   const margem = Math.max(0, Math.min(MARGEM_MAXIMA_DIAS_UTEIS, Math.trunc(margemDiasUteis)));
   const diaDeTrabalho = (data: DataCivil) =>
     calendario
-      ? calendario.motivoSemExpediente(data) === null
+      ? calendario.motivoSemExpediente(data) === null && calendario.pontoDependente(data) === null
       : diaDaSemana(data) !== 0 && diaDaSemana(data) !== 6 && feriadoNacionalEm(data) === undefined;
 
   let meta = dataFinal;

@@ -65,6 +65,7 @@ export function situacaoDoPrazo(prazo: DadosDaSituacao, agora: Date, metaInterna
       ? "ainda não conferido"
       : `sem conferência há ${plural(diasSemConferir, "dia", "dias")}`;
 
+  const temMeta = metaInterna !== null && metaInterna < prazo.dataFinal && !vencido;
   return {
     diasRestantes,
     vencido,
@@ -72,7 +73,8 @@ export function situacaoDoPrazo(prazo: DadosDaSituacao, agora: Date, metaInterna
     conferencia,
     conferenciaAtrasada: diasSemConferir >= DIAS_PARA_DESTACAR_SEM_CONFERENCIA,
     urgencia: vencido ? "vencido" : diasRestantes === 0 ? "hoje" : diasRestantes <= 7 ? "proximo" : "normal",
-    metaInterna: metaInterna !== null && metaInterna < prazo.dataFinal ? metaInterna : null,
-    metaChegou: metaInterna !== null && metaInterna < prazo.dataFinal && hoje >= metaInterna && !vencido && diasRestantes > 0,
+    // Prazo vencido não tem mais meta a cumprir; no dia do vencimento, a meta continua destacada.
+    metaInterna: temMeta ? metaInterna : null,
+    metaChegou: temMeta && hoje >= metaInterna,
   };
 }

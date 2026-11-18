@@ -66,7 +66,8 @@ describe("agenda assinável (integração)", () => {
     if (!prazo.ok) throw new Error(prazo.erro);
 
     await definirMargemDeSeguranca(conta, 4);
-    expect((await obterPrazo(conta, prazo.valor.id, agora))?.situacao.metaInterna).toBe("2026-12-07");
+    // 4 dias úteis antes de 11/12/2026: 10, 09, 07 e 04/12 (08/12, Dia da Justiça, depende de portaria e é pulado).
+    expect((await obterPrazo(conta, prazo.valor.id, agora))?.situacao.metaInterna).toBe("2026-12-04");
 
     await definirMargemDeSeguranca(conta, 0);
     expect(linhas((await gerarFeedDaAgenda(token, APP, agora))!)).not.toContain(`UID:prazo-${prazo.valor.id}-meta@tempestivo`);

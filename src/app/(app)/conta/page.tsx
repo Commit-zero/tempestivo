@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
 import { formatarDataHora } from "@/lib/datas";
-import { obterConta } from "@/modules/conta";
+import { MARGEM_MAXIMA, obterConta } from "@/modules/conta";
 import { exigirSessao } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
 import { acaoAtivarAgenda, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoSalvarConta } from "./acoes";
@@ -41,7 +41,7 @@ export default async function PaginaDaConta() {
           A meta interna é a data para ter o trabalho pronto, alguns dias úteis antes do vencimento. Ela aparece em cada prazo e no painel.
         </p>
         <Cartao>
-          <FormularioDaMargem acao={acaoDefinirMargem} margem={conta.margemDeSegurancaDiasUteis} />
+          <FormularioDaMargem acao={acaoDefinirMargem} margem={conta.margemDeSegurancaDiasUteis} maxima={MARGEM_MAXIMA} />
         </Cartao>
         <p className="text-sm text-muted-foreground">
           Assine a agenda uma vez no calendário do celular e os prazos, as metas internas e as audiências aparecem lá sozinhos, com

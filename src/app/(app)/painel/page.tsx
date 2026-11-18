@@ -84,7 +84,7 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
 
           {metaChegou.length > 0 ? (
             <Secao titulo={`Meta interna chegou (${metaChegou.length})`}>
-              <p className="text-sm text-muted-foreground">Prazos que ainda não venceram, mas cujo trabalho já devia estar pronto.</p>
+              <p className="text-sm text-muted-foreground">Prazos que ainda não venceram, mas cujo trabalho já devia estar pronto. Cálculo auxiliar: confira o vencimento nos autos.</p>
               <ListaDePrazos prazos={metaChegou} />
             </Secao>
           ) : null}

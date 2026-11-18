@@ -55,7 +55,7 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
         {prazo.situacao.metaInterna ? (
           <p className={prazo.situacao.metaChegou ? "text-sm font-medium text-atencao" : "text-sm text-muted-foreground"}>
             Meta interna: {formatarDataComSemana(prazo.situacao.metaInterna)}
-            {prazo.situacao.metaChegou ? " (já chegou)" : ""}.{" "}
+            {prazo.situacao.metaChegou ? " (já chegou)" : ""}. Data-alvo interna, não é prazo legal.{" "}
             <Link href="/conta" className="text-primary underline-offset-4 hover:underline">
               Ajustar a margem
             </Link>
