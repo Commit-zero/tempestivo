@@ -35,12 +35,12 @@ Monólito modular. Estrutura:
 ```
 src/
   modules/<modulo>/   conta, clientes, processos, prazos, alertas, intimacao,
-                      honorarios, audiencias, tarefas
+                      honorarios, audiencias, tarefas, agenda
                       (domínio, serviço, repositório; só o index.ts é público)
   platform/<porta>/   config, database, auth, mailer, ai, scheduler, logger, health, runtime
                       (interface + adaptadores; `database` guarda só o cliente Prisma único)
   app/                telas e rotas; chamam serviços, nunca o Prisma direto
-  lib/                utilitários puros compartilhados (datas civis, dinheiro, documentos)
+  lib/                utilitários puros compartilhados (datas civis, dinheiro, documentos, iCalendar)
 prisma/               migrações versionadas
 docs/                 deploy, mapa de módulos e especificações
 ```

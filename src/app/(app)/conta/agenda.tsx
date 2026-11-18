@@ -47,6 +47,9 @@ function LinkDaAgenda({ link }: { link: string }) {
   return (
     <div className="grid gap-3 rounded-xl border border-positivo/30 bg-positivo-fundo p-4 text-sm">
       <p className="font-medium text-positivo">Link criado. Copie agora: por segurança, ele não aparece de novo.</p>
+      <p className="text-foreground">
+        Não compartilhe este link: quem o tiver vê os seus vencimentos até você trocá-lo ou desligar a agenda.
+      </p>
       <label className="sr-only" htmlFor="link-da-agenda">
         Link da agenda
       </label>

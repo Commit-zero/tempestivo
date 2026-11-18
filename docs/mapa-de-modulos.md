@@ -4,15 +4,20 @@ Cada módulo fica em `src/modules/<id>/` e só é usado de fora pelo seu `index.
 
 | Módulo | Responsabilidade | Depende de |
 |---|---|---|
-| `conta` | Dados da conta, advogado substituto, exportar e excluir dados (LGPD) | — |
+| `conta` | Dados da conta, advogado substituto, margem da meta interna, link da agenda, exportar e excluir dados (LGPD) | — |
 | `clientes` | Cadastro de clientes | — |
 | `processos` | Processos, número único do CNJ, arquivamento | `clientes` |
-| `prazos` | Calculadora, prazos, "li e conferi", status honesto, catálogo, dias sem expediente | `processos` |
+| `prazos` | Calculadora, prazos, "li e conferi", status honesto, meta interna, catálogo, dias sem expediente | `processos`, `conta` |
 | `alertas` | E-mails em camadas, escalada ao substituto, link de conferência, job | `prazos` |
 | `intimacao` | Leitor de intimação: só gera rascunho | `processos` |
 | `honorarios` | Honorários, parcelas, resumo financeiro, cobrança por `wa.me` | `clientes`, `processos` |
 | `audiencias` | Audiências, rota, arquivo `.ics` | `processos` |
 | `tarefas` | Quadro de três colunas | `processos` |
+| `agenda` | Calendário assinável (iCalendar) com vencimentos, metas internas e audiências | `conta`, `prazos`, `audiencias`, `processos` |
+
+A exportação de dados da conta lê os outros módulos só nos testes; em produção, `conta` não depende de ninguém.
+
+Utilitários puros que mais de um módulo usa ficam em `src/lib/`: datas civis, dinheiro, documentos (CPF, CNPJ, CNJ), iCalendar, ids, limitador, validação, formulários e termos.
 
 O login não é um módulo: fica na porta `src/platform/auth/` (Better Auth), que entrega a sessão com o `contaId`.
 

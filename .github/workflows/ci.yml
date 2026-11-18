@@ -1,6 +1,6 @@
 name: CI
 
-# Qualidade em cada Pull Request e em cada push na main:
+# Qualidade em todo push, em qualquer branch (e, por consequência, em todo Pull Request):
 #   qualidade  lint, tipos, testes de unidade e de integração (Postgres e SMTP reais), cobertura mínima, build
 #   e2e        Playwright em 320, 360, 768 e 1280 px contra o build de produção, com acessibilidade
 #   imagem     constrói os alvos runner e migrator, aplica as migrações e confere a saúde
