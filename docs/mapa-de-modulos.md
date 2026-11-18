@@ -41,4 +41,5 @@ As especificações aprovadas ficam em [`especificacoes/`](especificacoes/). Ela
 
 - **Feriados:** a especificação previa a BrasilAPI com tabela local de reserva. Os feriados nacionais são calculados localmente (as datas são fixas ou derivam da Páscoa), sem dependência de rede.
 - **Leitor de intimação:** a especificação previa o Gemini. O adaptador de hoje é local, por regras; um modelo de linguagem entra pela mesma porta.
+- **TLS do banco:** a especificação `base` sugeria `sslmode=require` na URL. Em produção vale o certificado em `DATABASE_CA_CERT` (verificação completa); parâmetros `sslmode` da URL são descartados quando ele existe.
 - **Arquivos e notificações push:** as portas `storage` e `notifier` foram removidas por não terem adaptador real nem uso. Voltam com o módulo que precisar delas.

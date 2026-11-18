@@ -38,6 +38,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - **Código de servidor** (banco, sessão, raiz de composição) importa `server-only`: o build falha se um componente de cliente tentar importá-lo.
 - **Leitor de intimação:** a leitura é local, o texto não é enviado a terceiros nem gravado, e a saída é validada campo a campo.
 - **Cabeçalhos:** CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options` e `Referrer-Policy` em todas as respostas.
+- **Banco com TLS verificado:** em produção, o app não sobe com banco remoto sem o certificado da autoridade (`DATABASE_CA_CERT`) ou `sslmode=verify-full`; com o certificado, parâmetros de TLS da URL são descartados para não enfraquecê-lo.
 - **Contêiner** sem root, sem gerenciador de pacotes e sem a CLI de migração.
 - **LGPD:** Termos de uso e Política de privacidade com aceite registrado (data e versão), exportação de todos os dados da conta e exclusão definitiva pela própria tela.
 

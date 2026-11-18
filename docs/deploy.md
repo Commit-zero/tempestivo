@@ -30,7 +30,7 @@ A lista completa, com um comentário por variável, está em [`.env.example`](..
 | `AUTH_SECRET` | 64 caracteres aleatórios, diferente do anterior. Trocar encerra todas as sessões |
 | `DATABASE_URL` | Supavisor em **modo transação**: `postgresql://postgres.<ref>:<senha>@<host-do-pooler>:6543/postgres?pgbouncer=true` |
 | `DATABASE_POOL_MAX` | `3` (cada função serverless abre poucas conexões; o pooler multiplexa) |
-| `DATABASE_CA_CERT` | Certificado do Supabase (Database > SSL Configuration > Download certificate), colado como texto. Com ele, o TLS é verificado |
+| `DATABASE_CA_CERT` | **Obrigatória.** Certificado do Supabase (Database > SSL Configuration > Download certificate), colado como texto. Sem ele o driver conectaria sem TLS, e o app se recusa a subir em produção com banco remoto. Com ele, os parâmetros `sslmode` da URL são ignorados e o servidor é verificado |
 | `MAILER_DRIVER` | `smtp` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_REMETENTE` | Gmail (senha de app, porta 587) ou Brevo |
 | `LOG_LEVEL` | `info` |
@@ -56,8 +56,8 @@ O host do pooler tem a forma `aws-<n>-<região>.pooler.supabase.com`, mas o `<n>
 
 ## Caminho A: Vercel + Supabase
 
-1. **Repositório.** O plano Hobby da Vercel não faz deploy de repositório privado de organização. Escolha: tornar o repositório público, espelhar a `main` em um repositório pessoal privado ou usar o caminho B.
-2. **Supabase.** Crie um projeto só de produção, na região `South America (São Paulo)`. Anote a senha do banco. No botão **Connect**, copie a string do modo transação (para a Vercel) e a do modo sessão (para o GitHub). Baixe o certificado em Database > SSL Configuration.
+1. **Repositório.** O plano Hobby da Vercel não faz deploy de repositório privado de organização. Escolha: tornar o repositório público, espelhar a `main` em um repositório pessoal privado ou usar o caminho B. Se tornar público, acrescente antes o gatilho `pull_request` (nunca `pull_request_target`) ao `ci.yml` e ao `seguranca.yml`: hoje eles rodam em `push`, que não cobre PR vindo de fork.
+2. **Supabase.** Crie um projeto só de produção, na região `South America (São Paulo)`. Anote a senha do banco. No botão **Connect**, copie a string do modo transação (para a Vercel) e a do modo sessão (para o GitHub). Baixe o certificado em Database > SSL Configuration e ligue **Enforce SSL on incoming connections** na mesma tela, para o banco recusar conexão sem TLS.
 3. **Segredos do GitHub** (Settings > Secrets and variables > Actions):
 
    | Segredo | Valor |

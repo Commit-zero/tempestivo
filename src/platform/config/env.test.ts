@@ -120,6 +120,22 @@ describe("lerConfig", () => {
     expect(() => lerConfig({ ...ambienteValido, APP_URL: "http://tempestivo.exemplo.com" })).not.toThrow();
   });
 
+  it("exige TLS verificado com banco remoto em produção", () => {
+    const producao = { ...ambienteValido, NODE_ENV: "production", APP_URL: "https://tempestivo.exemplo.com" };
+    const remoto = "postgresql://usuario:senha@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+
+    // Sem certificado nem verify-full, a conexão iria em texto puro.
+    expect(mensagemDoErro({ ...producao, DATABASE_URL: remoto })).toContain("DATABASE_CA_CERT");
+    expect(mensagemDoErro({ ...producao, DATABASE_URL: `${remoto}&sslmode=require` })).toContain("DATABASE_CA_CERT");
+    expect(() => lerConfig({ ...producao, DATABASE_URL: remoto, DATABASE_CA_CERT: "-----BEGIN CERTIFICATE-----" })).not.toThrow();
+    expect(() => lerConfig({ ...producao, DATABASE_URL: `${remoto}&sslmode=verify-full` })).not.toThrow();
+    // Banco na mesma máquina ou na rede interna do Docker (nome sem ponto) dispensa.
+    expect(() => lerConfig({ ...producao, DATABASE_URL: "postgresql://u:s@localhost:5432/b" })).not.toThrow();
+    expect(() => lerConfig({ ...producao, DATABASE_URL: "postgresql://u:s@banco:5432/b" })).not.toThrow();
+    // Fora de produção, não exige.
+    expect(() => lerConfig({ ...ambienteValido, DATABASE_URL: remoto })).not.toThrow();
+  });
+
   it("devolve uma configuração imutável", () => {
     const config = lerConfig(ambienteValido);
 
