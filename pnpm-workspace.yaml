@@ -3,3 +3,13 @@ allowBuilds:
   prisma: true
   sharp: false
   unrs-resolver: false
+
+# Versões forçadas em dependências transitivas, só para corrigir vulnerabilidade.
+# Retire a linha quando o pacote de cima trouxer a versão corrigida sozinho.
+minimumReleaseAgeExclude:
+  - effect@3.22.5
+
+overrides:
+  # CVE-2026-121707 (ReDoS, alta). O @prisma/config 7.10.1 fixa o effect em 3.20.0;
+  # 3.22.5 é do mesmo major (compatível) e tem a correção. Conferir a cada Prisma novo.
+  effect: 3.22.5
