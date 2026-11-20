@@ -22,7 +22,11 @@ test("meta interna e agenda assinável: ajusta a margem, cria, troca e desliga o
   await semRolagemHorizontal(page);
 
   const caminho = new URL(link).pathname;
-  const feed = await request.get(caminho);
+  // Como um app de calendário, que baixa o feed horas depois: conexão nova a cada vez.
+  // Reaproveitar a conexão depois das ações na tela (mais de 5 s) cairia num socket que
+  // o servidor já fechou por inatividade (ECONNRESET).
+  const baixarFeed = () => request.get(caminho, { headers: { connection: "close" } });
+  const feed = await baixarFeed();
   expect(feed.status()).toBe(200);
   expect(feed.headers()["content-type"]).toContain("text/calendar");
   expect(await feed.text()).toContain("X-WR-CALNAME:Tempestivo: prazos e audiências");
@@ -31,7 +35,7 @@ test("meta interna e agenda assinável: ajusta a margem, cria, troca e desliga o
   await page.reload();
   await page.getByRole("button", { name: "Trocar o link" }).click();
   await expect(page.getByLabel("Link da agenda")).toBeVisible();
-  expect((await request.get(caminho)).status()).toBe(404);
+  expect((await baixarFeed()).status()).toBe(404);
 
   await page.reload();
   await page.getByRole("button", { name: "Desligar a agenda" }).click();
