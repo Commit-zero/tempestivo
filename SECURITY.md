@@ -51,6 +51,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - O teto diário de e-mails por conta usa o banco; o limite de trocas de substituto fica em memória.
 - `/api/health` devolve a versão do app, como pede a especificação (RF12).
 - Supressões do Trivy ficam em `.trivyignore`, com motivo e data de expiração.
+- O TruffleHog ignora só os arquivos listados, por caminho exato, em `.trufflehog-ignorar`: hoje, os dois testes de TLS cujo histórico tem strings de conexão fictícias (o motivo está no `seguranca.yml`). Um segredo real colocado nesses arquivos não seria detectado; por isso a lista não deve crescer.
 
 ## Versões com suporte
 

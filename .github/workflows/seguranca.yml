@@ -48,10 +48,15 @@ jobs:
         # --fail termina com erro se achar qualquer segredo, verificado ou não.
         # --branch HEAD percorre cada commit que leva até a ponta em análise (o PR
         # ou a main), sem herdar achados de branches alheias ao que será integrado.
+        # .trufflehog-ignorar lista, por caminho exato, só os dois testes de TLS cujo histórico
+        # (commit 317b53b) tem strings de conexão fictícias: host de exemplo, sem senha real.
+        # Exclusão aprovada pelo Vitor em 20/11/2026. Todo o resto do repositório e do
+        # histórico continua varrido. Não acrescente pastas inteiras nem padrões genéricos.
         run: |
           docker run --rm -v "$PWD":/repo -w /repo \
             ghcr.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a \
-            git file:///repo --branch HEAD --no-update --fail --github-actions --config /repo/.trufflehog.yml
+            git file:///repo --branch HEAD --no-update --fail --github-actions --config /repo/.trufflehog.yml \
+            --exclude-paths /repo/.trufflehog-ignorar
 
   dependencias:
     name: dependências (Trivy)
