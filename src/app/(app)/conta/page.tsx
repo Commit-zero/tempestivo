@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
 import { formatarDataHora } from "@/lib/datas";
-import { obterConta } from "@/modules/conta";
+import { MARGEM_MAXIMA, obterConta } from "@/modules/conta";
 import { exigirSessao } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
-import { acaoExcluirConta, acaoSalvarConta } from "./acoes";
+import { acaoAtivarAgenda, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoSalvarConta } from "./acoes";
+import { FormularioDaMargem, PainelDaAgenda } from "./agenda";
 import { FormularioDaConta, FormularioDeExclusaoDaConta } from "./formularios";
 
 export const metadata: Metadata = { title: "Conta" };
@@ -32,6 +33,27 @@ export default async function PaginaDaConta() {
           <FormularioDaConta
             acao={acaoSalvarConta}
             inicial={{ nome: conta.nome, substitutoNome: conta.substitutoNome ?? "", substitutoEmail: conta.substitutoEmail ?? "" }}
+          />
+        </Cartao>
+      </Secao>
+      <Secao titulo="Meta interna e agenda no celular">
+        <p className="text-sm text-muted-foreground">
+          A meta interna é a data para ter o trabalho pronto, alguns dias úteis antes do vencimento. Ela aparece em cada prazo e no painel.
+        </p>
+        <Cartao>
+          <FormularioDaMargem acao={acaoDefinirMargem} margem={conta.margemDeSegurancaDiasUteis} maxima={MARGEM_MAXIMA} />
+        </Cartao>
+        <p className="text-sm text-muted-foreground">
+          Assine a agenda uma vez no calendário do celular e os prazos, as metas internas e as audiências aparecem lá sozinhos, com
+          lembretes. O calendário (Google, Apple ou Microsoft) recebe a descrição que você deu a cada prazo, o número do processo, o local
+          das audiências e as datas. Nomes de clientes, de partes, o assunto e o link de sala virtual nunca vão para ele: evite escrever
+          nomes na descrição dos prazos.
+        </p>
+        <Cartao>
+          <PainelDaAgenda
+            ativadaEm={conta.agendaAtivadaEm ? formatarDataHora(conta.agendaAtivadaEm) : null}
+            acaoAtivar={acaoAtivarAgenda}
+            acaoDesativar={acaoDesativarAgenda}
           />
         </Cartao>
       </Secao>

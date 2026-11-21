@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
-import { atualizarConta, excluirConta } from "@/modules/conta";
+import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
 import { confirmarSenhaAtual, exigirSessao } from "@/platform/auth";
 import { getConfig } from "@/platform/config";
 import { getMailer } from "@/platform/runtime";
+import type { EstadoDaAgenda } from "./agenda";
 
 export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const { contaId } = await exigirSessao();
@@ -31,4 +32,32 @@ export async function acaoExcluirConta(_anterior: EstadoDoFormulario, formulario
   const resultado = await excluirConta(sessao);
   if (!resultado.ok) return { erro: resultado.erro };
   redirect("/?conta=excluida");
+}
+
+export async function acaoDefinirMargem(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  const { contaId } = await exigirSessao();
+  const valores = { margem: String(formulario.get("margem") ?? "") };
+  const resultado = await definirMargemDeSeguranca(contaId, formulario.get("margem"));
+  if (!resultado.ok) return { erro: resultado.erro, valores };
+  revalidatePath("/conta");
+  revalidatePath("/prazos");
+  revalidatePath("/painel");
+  return { aviso: "Margem salva. A meta interna dos prazos já foi recalculada.", valores };
+}
+
+/** Cria ou troca o link da agenda; o link só é mostrado nesta resposta. */
+export async function acaoAtivarAgenda(): Promise<EstadoDaAgenda> {
+  const { contaId } = await exigirSessao();
+  const resultado = await ativarAgenda(contaId);
+  if (!resultado.ok) return { erro: resultado.erro };
+  revalidatePath("/conta");
+  return { link: `${getConfig().APP_URL.replace(/\/$/, "")}/agenda/${resultado.valor.token}/calendario.ics` };
+}
+
+export async function acaoDesativarAgenda(): Promise<EstadoDaAgenda> {
+  const { contaId } = await exigirSessao();
+  const resultado = await desativarAgenda(contaId);
+  if (!resultado.ok) return { erro: resultado.erro };
+  revalidatePath("/conta");
+  return { aviso: "Agenda desligada. O link deixou de funcionar e o calendário para de atualizar; os eventos que ele já baixou continuam lá até você remover a agenda assinada no próprio calendário." };
 }

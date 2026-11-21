@@ -7,6 +7,27 @@ const base: DadosDaSituacao = {
   status: "pendente", dataFinal: "2026-11-20", ultimaConferenciaEm: null, criadoEm: new Date("2026-11-12T12:00:00Z"),
 };
 
+describe("meta interna na situação", () => {
+  // Hoje é 12/11/2026; vencimento em 16/11 com meta em 11/11.
+  const comMeta = (dataFinal: string, meta: string, status: DadosDaSituacao["status"] = "pendente") =>
+    situacaoDoPrazo({ ...base, dataFinal, status }, agora, meta);
+
+  it("destaca a meta quando ela chega, inclusive no dia do vencimento", () => {
+    expect(comMeta("2026-11-16", "2026-11-13")).toMatchObject({ metaInterna: "2026-11-13", metaChegou: false });
+    expect(comMeta("2026-11-16", "2026-11-12")).toMatchObject({ metaInterna: "2026-11-12", metaChegou: true });
+    expect(comMeta("2026-11-12", "2026-11-10")).toMatchObject({ metaInterna: "2026-11-10", metaChegou: true });
+  });
+
+  it("prazo vencido ou cumprido não mostra meta", () => {
+    expect(comMeta("2026-11-11", "2026-11-09")).toMatchObject({ metaInterna: null, metaChegou: false });
+    expect(comMeta("2026-11-16", "2026-11-12", "cumprido")).toMatchObject({ metaInterna: null, metaChegou: false });
+  });
+
+  it("meta igual ao vencimento (margem zero) não é meta", () => {
+    expect(comMeta("2026-11-16", "2026-11-16")).toMatchObject({ metaInterna: null, metaChegou: false });
+  });
+});
+
 describe("status honesto", () => {
   it("diz quando vence em linguagem direta", () => {
     expect(situacaoDoPrazo({ ...base, dataFinal: "2026-11-20" }, agora).quando).toBe("vence em 8 dias");

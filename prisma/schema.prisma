@@ -96,6 +96,11 @@ model Conta {
   // Aceite dos termos de uso e da política de privacidade no cadastro.
   termosAceitosEm          DateTime?
   versaoDosTermos          String?
+  // Meta interna: quantos dias úteis antes do vencimento o advogado quer o trabalho pronto.
+  margemDeSegurancaDiasUteis Int     @default(2)
+  // Agenda assinável (feed iCalendar): só o resumo SHA-256 do link secreto.
+  agendaTokenHash          String?   @unique
+  agendaAtivadaEm          DateTime?
   criadoEm        DateTime @default(now())
   atualizadoEm    DateTime @updatedAt
 

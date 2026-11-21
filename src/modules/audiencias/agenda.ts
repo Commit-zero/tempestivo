@@ -1,3 +1,5 @@
+import { gerarCalendario } from "@/lib/icalendar";
+
 // Regras puras de audiência: horário de São Paulo, arquivo .ics e link de rota.
 
 // São Paulo está em UTC-3 o ano todo desde 2019 (o horário de verão foi extinto).
@@ -23,37 +25,21 @@ export type EventoDeAgenda = {
   descricao: string | null;
 };
 
-const paraIcs = (instante: Date) => instante.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-
-// RFC 5545: vírgula, ponto e vírgula e barra invertida são escapados; quebra de linha vira \n.
-const escapar = (texto: string) => texto.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r\n|\r|\n/g, "\\n");
-
-/** Arquivo iCalendar (.ics) de um evento, aceito por Google Agenda, Outlook e Apple. */
+/** Arquivo iCalendar (.ics) de uma audiência, com lembrete 1 hora antes. */
 export function gerarIcs(evento: EventoDeAgenda, agora: Date): string {
-  const fim = new Date(evento.inicio.getTime() + evento.duracaoMin * 60_000);
-  const linhas = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Tempestivo//Audiencias//PT-BR",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    `UID:${evento.id}@tempestivo`,
-    `DTSTAMP:${paraIcs(agora)}`,
-    `DTSTART:${paraIcs(evento.inicio)}`,
-    `DTEND:${paraIcs(fim)}`,
-    `SUMMARY:${escapar(evento.titulo)}`,
-    ...(evento.local ? [`LOCATION:${escapar(evento.local)}`] : []),
-    ...(evento.descricao ? [`DESCRIPTION:${escapar(evento.descricao)}`] : []),
-    "BEGIN:VALARM",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:Audiência em 1 hora",
-    "TRIGGER:-PT1H",
-    "END:VALARM",
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ];
-  return `${linhas.join("\r\n")}\r\n`;
+  return gerarCalendario(
+    {
+      eventos: [{
+        uid: `${evento.id}@tempestivo`,
+        titulo: evento.titulo,
+        quando: { inicio: evento.inicio, duracaoMin: evento.duracaoMin },
+        local: evento.local,
+        descricao: evento.descricao,
+        lembreteMin: -60,
+      }],
+    },
+    agora,
+  );
 }
 
 /** Link de rota no Google Maps para o endereço da audiência. */

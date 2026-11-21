@@ -66,7 +66,7 @@ export function ListaDeLinks({ children }: { children: ReactNode }) {
 export function ItemDeLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <li>
-      <Link href={href} className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/60">
+      <Link href={href} className="foco-interno flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/60">
         {children}
       </Link>
     </li>

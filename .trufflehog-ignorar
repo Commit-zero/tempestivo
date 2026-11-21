@@ -1,0 +1,2 @@
+^src/platform/config/env\.test\.ts$
+^src/platform/database/tls\.test\.ts$

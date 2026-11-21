@@ -2,6 +2,14 @@ import { z } from "zod";
 
 const segredo = () => z.string().min(32);
 
+// Banco remoto é o que tem domínio (com ponto) e não é a própria máquina. Nome sem
+// ponto é serviço da rede interna, como o `banco` do Docker no CI.
+function bancoRemoto(url: string): boolean {
+  if (!URL.canParse(url)) return false;
+  const host = new URL(url).hostname;
+  return host.includes(".") && !/^127\./.test(host) && host !== "[::1]";
+}
+
 export const schemaEnv = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]),
@@ -9,6 +17,10 @@ export const schemaEnv = z
     JOBS_SECRET: segredo(),
     AUTH_SECRET: segredo(),
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//),
+    // Conexões por instância. Em função serverless (Vercel), poucas: o pooler do banco multiplexa.
+    DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),
+    // Certificado (PEM) da autoridade do banco, para verificar o TLS. Ex.: o certificado do Supabase.
+    DATABASE_CA_CERT: z.string().optional(),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     MAILER_DRIVER: z.enum(["fake", "smtp"]).default("fake"),
     SMTP_HOST: z.string().optional(),
@@ -26,6 +38,16 @@ export const schemaEnv = z
     const local = url !== null && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
     if (url && env.NODE_ENV === "production" && url.protocol !== "https:" && !local) {
       contexto.addIssue({ code: "custom", path: ["APP_URL"], message: "precisa usar https em produção" });
+    }
+    // Em produção, banco fora da máquina e da rede interna precisa de TLS verificado:
+    // sem certificado, o driver `pg` conecta em texto puro, e a senha do banco e os dados
+    // dos clientes passariam abertos. `sslmode=verify-full` serve para banco com
+    // certificado de autoridade pública.
+    if (env.NODE_ENV === "production" && !env.DATABASE_CA_CERT && bancoRemoto(env.DATABASE_URL)) {
+      const modo = URL.canParse(env.DATABASE_URL) ? new URL(env.DATABASE_URL).searchParams.get("sslmode") : null;
+      if (modo !== "verify-full") {
+        contexto.addIssue({ code: "custom", path: ["DATABASE_CA_CERT"], message: "obrigatória em produção com banco remoto" });
+      }
     }
     const exigir = (nome: "SMTP_HOST" | "EMAIL_REMETENTE") => {
       if (!env[nome]) contexto.addIssue({ code: "custom", path: [nome], message: "obrigatória com o driver ativo" });

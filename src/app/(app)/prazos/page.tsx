@@ -63,7 +63,7 @@ export default async function PaginaDePrazos({ searchParams }: PageProps<"/prazo
       ) : (
         <ListaDePrazos prazos={prazos} />
       )}
-      <Link href="/prazos/catalogo" className="justify-self-start text-sm text-primary underline-offset-4 hover:underline">
+      <Link href="/prazos/catalogo" className="inline-flex min-h-11 items-center md:min-h-6 justify-self-start text-sm text-primary underline-offset-4 hover:underline">
         Catálogo de tipos de prazo e dias sem expediente
       </Link>
     </div>

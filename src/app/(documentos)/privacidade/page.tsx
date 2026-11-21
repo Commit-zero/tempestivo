@@ -67,6 +67,12 @@ export default function PaginaDePrivacidade() {
         nem para treinar inteligência artificial.
       </p>
       <p>Os e-mails ao advogado substituto levam só o seu nome e a data do prazo, nunca o processo ou o cliente.</p>
+      <p>
+        Se você ligar a agenda no celular, o serviço de calendário que você escolher (Google, Apple, Microsoft ou outro) passa
+        a receber, pelo link secreto, a descrição de cada prazo em aberto, o número do processo, o tribunal, as datas e o local das
+        audiências. Nomes de clientes e de partes, o assunto do processo e links de sala virtual não são enviados. Você pode
+        trocar ou desligar o link a qualquer momento na tela Conta.
+      </p>
 
       <h2>4. Por quanto tempo</h2>
       <p>

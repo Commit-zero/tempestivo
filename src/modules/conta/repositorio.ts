@@ -6,12 +6,15 @@ export type Conta = {
   substitutoNome: string | null;
   substitutoEmail: string | null;
   substitutoConfirmadoEm: Date | null;
+  margemDeSegurancaDiasUteis: number;
+  agendaAtivadaEm: Date | null;
   criadoEm: Date;
   titular: { nome: string };
 };
 
 const campos = {
   id: true, nome: true, substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, criadoEm: true,
+  margemDeSegurancaDiasUteis: true, agendaAtivadaEm: true,
   usuario: { select: { name: true } },
 } as const;
 
@@ -77,6 +80,7 @@ export async function exportar(contaId: string) {
         where: { id: contaId },
         select: {
           nome: true, substitutoNome: true, substitutoEmail: true, substitutoConfirmadoEm: true, termosAceitosEm: true, versaoDosTermos: true,
+          margemDeSegurancaDiasUteis: true, agendaAtivadaEm: true,
           criadoEm: true, usuario: { select: { name: true, email: true, emailVerified: true } },
         },
       }),
@@ -112,4 +116,20 @@ export async function exportar(contaId: string) {
 export async function excluirTudo(contaId: string, usuarioId: string): Promise<boolean> {
   const { count } = await getPrisma().user.deleteMany({ where: { id: usuarioId, conta: { id: contaId } } });
   return count === 1;
+}
+
+export async function definirMargem(contaId: string, margem: number): Promise<boolean> {
+  const { count } = await getPrisma().conta.updateMany({ where: { id: contaId }, data: { margemDeSegurancaDiasUteis: margem } });
+  return count === 1;
+}
+
+/** Grava (ou apaga, com `null`) o resumo do link da agenda; o link anterior deixa de valer. */
+export async function definirAgenda(contaId: string, tokenHash: string | null, em: Date | null): Promise<boolean> {
+  const { count } = await getPrisma().conta.updateMany({ where: { id: contaId }, data: { agendaTokenHash: tokenHash, agendaAtivadaEm: em } });
+  return count === 1;
+}
+
+/** O link da agenda é a credencial: leva a uma única conta, só para leitura do feed. */
+export async function buscarPelaAgenda(tokenHash: string): Promise<{ id: string } | null> {
+  return getPrisma().conta.findUnique({ where: { agendaTokenHash: tokenHash }, select: { id: true } });
 }

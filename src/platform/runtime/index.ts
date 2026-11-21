@@ -1,3 +1,4 @@
+import "server-only";
 import { criarExtrator, type Extrator } from "@/platform/ai";
 import { getConfig } from "@/platform/config";
 import { criarLogger, type Logger } from "@/platform/logger";

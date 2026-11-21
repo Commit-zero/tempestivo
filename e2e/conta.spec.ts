@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { cadastrarContaFicticia, semRolagemHorizontal, SENHA_FICTICIA } from "./apoio";
+import { VERSAO_DOS_TERMOS } from "../src/lib/termos";
 
 // Estes testes começam sem sessão.
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -57,7 +58,7 @@ test("exporta os dados da conta e exclui a conta só com o e-mail certo", async 
   expect(exportacao.headers()["content-disposition"]).toContain("attachment");
   // O cadastro registrou o aceite dos termos, com a versão lida.
   expect(await exportacao.json()).toMatchObject({
-    formato: "tempestivo-exportacao-v1", conta: { usuario: { email }, versaoDosTermos: "2026-11-17" }, clientes: [],
+    formato: "tempestivo-exportacao-v1", conta: { usuario: { email }, versaoDosTermos: VERSAO_DOS_TERMOS }, clientes: [],
   });
   expect((await exportacao.json()).conta.termosAceitosEm).toEqual(expect.any(String));
 

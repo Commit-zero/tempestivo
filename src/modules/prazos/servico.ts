@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { falha, primeiraMensagem, sucesso, type Resultado } from "@/lib/resultado";
+import { obterConta } from "@/modules/conta";
 import { obterProcesso } from "@/modules/processos";
 import { CATALOGO_BASE } from "./catalogo/tipos-de-prazo";
 import {
@@ -7,6 +8,7 @@ import {
 } from "./dominio/calcular-prazo";
 import { buscarTribunal, criarCalendario, type Ramo } from "./dominio/calendario";
 import { dataCivilEmSaoPaulo, ehDataCivil, somarDias } from "@/lib/datas";
+import { MARGEM_PADRAO_DIAS_UTEIS, metaInterna } from "./dominio/meta-interna";
 import { situacaoDoPrazo, type Situacao } from "./dominio/situacao";
 import * as repositorio from "./repositorio";
 import type {
@@ -52,8 +54,24 @@ const JUIZADO = /juizado|\bJEC\b|\bJEF\b|\bJECRIM\b|\bJEFAZ\b/i;
 
 export type PrazoComSituacao = Prazo & { situacao: Situacao };
 
-function comSituacao(prazo: Prazo, agora: Date): PrazoComSituacao {
-  return { ...prazo, situacao: situacaoDoPrazo(prazo, agora) };
+type CalculoDaMeta = (prazo: Prazo) => string;
+
+/** Calcula a meta interna de vários prazos com uma leitura só da margem e dos dias cadastrados. */
+async function preparadorDaMeta(contaId: string): Promise<CalculoDaMeta> {
+  const [conta, dias] = await Promise.all([obterConta(contaId), repositorio.listarDiasSemExpediente(contaId)]);
+  const margem = conta?.margemDeSegurancaDiasUteis ?? MARGEM_PADRAO_DIAS_UTEIS;
+  const calendarios = new Map<string, ReturnType<typeof criarCalendario>>();
+  return (prazo) => {
+    const tribunal = prazo.processo.tribunal;
+    if (!calendarios.has(tribunal)) {
+      calendarios.set(tribunal, criarCalendario({ tribunal, diasSemExpediente: dias.filter((dia) => dia.tribunal === tribunal) }));
+    }
+    return metaInterna(prazo.dataFinal, margem, calendarios.get(tribunal) ?? null);
+  };
+}
+
+function comSituacao(prazo: Prazo, agora: Date, meta: CalculoDaMeta): PrazoComSituacao {
+  return { ...prazo, situacao: situacaoDoPrazo(prazo, agora, meta(prazo)) };
 }
 
 // --- Cálculo -----------------------------------------------------------------
@@ -143,8 +161,11 @@ export async function listarPrazos(
     vencidos: { emAberto: true, antesDe: hoje },
     cumpridos: { cumpridos: true },
   } satisfies Record<FiltroDaLista, repositorio.FiltroDePrazos>;
-  const prazos = await repositorio.listar(contaId, { ...porFiltro[opcoes.filtro ?? "em_aberto"], processoId: opcoes.processoId });
-  return prazos.map((prazo) => comSituacao(prazo, agora));
+  const [prazos, meta] = await Promise.all([
+    repositorio.listar(contaId, { ...porFiltro[opcoes.filtro ?? "em_aberto"], processoId: opcoes.processoId }),
+    preparadorDaMeta(contaId),
+  ]);
+  return prazos.map((prazo) => comSituacao(prazo, agora, meta));
 }
 
 export type DetalheDoPrazo = PrazoComSituacao & { conferencias: Conferencia[]; historico: Alteracao[] };
@@ -152,10 +173,10 @@ export type DetalheDoPrazo = PrazoComSituacao & { conferencias: Conferencia[]; h
 export async function obterPrazo(contaId: string, id: string, agora = new Date()): Promise<DetalheDoPrazo | null> {
   const prazo = await repositorio.buscar(contaId, id);
   if (!prazo) return null;
-  const [conferencias, historico] = await Promise.all([
-    repositorio.listarConferencias(contaId, id), repositorio.listarHistorico(contaId, id),
+  const [conferencias, historico, meta] = await Promise.all([
+    repositorio.listarConferencias(contaId, id), repositorio.listarHistorico(contaId, id), preparadorDaMeta(contaId),
   ]);
-  return { ...comSituacao(prazo, agora), conferencias, historico };
+  return { ...comSituacao(prazo, agora, meta), conferencias, historico };
 }
 
 /** "Li e conferi": registra data, hora e canal. `usuarioId` fica vazio quando vem do link do e-mail. */
