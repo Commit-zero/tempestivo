@@ -181,7 +181,9 @@ describe("propriedades da contagem", () => {
       }
     }
     expect(violacoes).toEqual([]);
-  }, 20_000);
+    // Varre o calendário inteiro: cerca de 10 s sozinho com a cobertura ligada, e o dobro
+    // com os outros arquivos rodando em paralelo. O prazo próprio evita falso alarme.
+  }, 60_000);
 
   it("evento em qualquer dia da suspensão começa a contar no primeiro dia útil depois de 20/01", () => {
     // A suspensão impede o prazo de correr, mas não adia o dia do começo: a contagem
@@ -218,7 +220,9 @@ describe("propriedades da contagem", () => {
       }
     }
     expect(violacoes).toEqual([]);
-  }, 20_000);
+    // Varre o calendário inteiro: cerca de 10 s sozinho com a cobertura ligada, e o dobro
+    // com os outros arquivos rodando em paralelo. O prazo próprio evita falso alarme.
+  }, 60_000);
 
   it("o prazo em dobro é igual ao prazo simples com o dobro de dias", () => {
     for (let data = "2026-01-05"; data <= "2026-12-28"; data = somarDias(data, 7)) {

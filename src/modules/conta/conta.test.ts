@@ -8,7 +8,10 @@ import { criarTarefa } from "@/modules/tarefas";
 import { getPrisma } from "@/platform/database";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { criarFakeMailer } from "@/platform/mailer";
-import { aceitarConviteDeSubstituto, atualizarConta, excluirConta, exportarDadosDaConta, obterConta, obterConviteDeSubstituto } from "./index";
+import {
+  aceitarConviteDeSubstituto, ativarAgenda, atualizarConta, definirMargemDeSeguranca, excluirConta, exportarDadosDaConta, obterConta,
+  obterConviteDeSubstituto,
+} from "./index";
 
 const agora = new Date("2026-11-12T15:00:00Z");
 const deps = () => ({ mailer: criarFakeMailer(), appUrl: "http://localhost:3000", agora });
@@ -107,6 +110,9 @@ describe("conta (integração)", () => {
   it("exporta só os dados da própria conta, sem contaId, sem senha e sem token", async () => {
     const [contaA, contaB] = await Promise.all([criarContaDeTeste("Conta A"), criarContaDeTeste("Conta B")]);
     await Promise.all([popular(contaA, "Cliente da Conta A"), popular(contaB, "Cliente da Conta B")]);
+    await definirMargemDeSeguranca(contaA, 4);
+    const agenda = await ativarAgenda(contaA, new Date("2026-11-12T14:00:00Z"));
+    if (!agenda.ok) throw new Error(agenda.erro);
 
     const exportacao = await exportarDadosDaConta(contaA, new Date("2026-11-12T15:00:00Z"));
 
@@ -117,7 +123,10 @@ describe("conta (integração)", () => {
     expect(exportacao.conferencias).toHaveLength(1);
     expect(exportacao.alertas).toEqual([expect.objectContaining({ camada: "d5", destino: "titular" })]);
     expect(exportacao.sessoes).toEqual([]);
+    // Preferências da conta entram; o link da agenda (credencial), não.
+    expect(exportacao.conta).toMatchObject({ margemDeSegurancaDiasUteis: 4, agendaAtivadaEm: new Date("2026-11-12T14:00:00Z") });
     const texto = JSON.stringify(exportacao);
+    expect(texto).not.toContain(agenda.valor.token);
     expect(texto).not.toContain("Cliente da Conta B");
     expect(texto).not.toContain("contaId");
     expect(texto).not.toContain("password");

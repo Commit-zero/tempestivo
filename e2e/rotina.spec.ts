@@ -76,6 +76,9 @@ test("tarefas: adiciona, move entre as colunas e exclui", async ({ page }) => {
 
   await page.getByRole("button", { name: `Mover "${titulo}" para Fazendo` }).click();
   await expect(page.getByRole("region", { name: "Fazendo" }).getByText(titulo)).toBeVisible();
+  // O foco do teclado acompanha a tarefa até a nova coluna, e a mudança é anunciada.
+  await expect(page.getByRole("region", { name: "Fazendo" }).locator("li", { hasText: titulo })).toBeFocused();
+  await expect(page.getByRole("status").filter({ hasText: "Tarefa movida para Fazendo." })).toBeAttached();
 
   await page.getByRole("button", { name: `Mover "${titulo}" para Feito` }).click();
   await expect(page.getByRole("region", { name: "Feito", exact: true }).getByText(titulo)).toBeVisible();

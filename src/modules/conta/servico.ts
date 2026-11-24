@@ -123,3 +123,38 @@ export async function exportarDadosDaConta(contaId: string, agora = new Date()):
 export async function excluirConta(sessao: { contaId: string; usuarioId: string }): Promise<Resultado> {
   return (await repositorio.excluirTudo(sessao.contaId, sessao.usuarioId)) ? sucesso() : falha("Conta não encontrada.");
 }
+
+// --- Meta interna e agenda assinável ------------------------------------------------
+
+export const MARGEM_MAXIMA = 10;
+
+/** Quantos dias úteis antes do vencimento fica a meta interna de cada prazo. */
+export async function definirMargemDeSeguranca(contaId: string, margem: unknown): Promise<Resultado> {
+  const validado = z.coerce
+    .number("Informe a quantidade de dias.")
+    .int("Use um número inteiro de dias.")
+    .min(0, "A margem não pode ser negativa.")
+    .max(MARGEM_MAXIMA, `Use no máximo ${MARGEM_MAXIMA} dias úteis.`)
+    .safeParse(margem);
+  if (!validado.success) return falha(primeiraMensagem(validado.error));
+  return (await repositorio.definirMargem(contaId, validado.data)) ? sucesso() : falha("Conta não encontrada.");
+}
+
+/**
+ * Cria (ou troca) o link secreto da agenda e o devolve uma única vez: o banco guarda
+ * só o resumo. Trocar o link desliga o anterior, que pode ter vazado.
+ */
+export async function ativarAgenda(contaId: string, agora = new Date()): Promise<Resultado<{ token: string }>> {
+  const token = randomBytes(32).toString("base64url");
+  return (await repositorio.definirAgenda(contaId, resumo(token), agora)) ? sucesso({ token }) : falha("Conta não encontrada.");
+}
+
+export async function desativarAgenda(contaId: string): Promise<Resultado> {
+  return (await repositorio.definirAgenda(contaId, null, null)) ? sucesso() : falha("Conta não encontrada.");
+}
+
+/** A conta dona do link da agenda, ou `null` se o link é inválido ou foi trocado. */
+export async function contaDaAgenda(token: string): Promise<string | null> {
+  if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return null;
+  return (await repositorio.buscarPelaAgenda(resumo(token)))?.id ?? null;
+}

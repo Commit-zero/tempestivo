@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
 @theme inline {
@@ -8,6 +7,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --font-serif: var(--font-serif-marca), Georgia, serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -61,19 +61,86 @@
   --positivo-fundo: oklch(0.96 0.04 155);
   --perigo-fundo: oklch(0.96 0.03 27);
   --border: oklch(0.9 0.008 258);
-  --input: oklch(0.86 0.01 258);
+  --input: oklch(0.62 0.02 258);
   --ring: oklch(0.55 0.12 258);
   --radius: 0.625rem;
 }
 
+/* Tema escuro projetado, não invertido: superfícies em azul-tinta escuro, ação em azul
+   claro, atenção e sucesso menos saturados. O contraste é conferido em src/test/contraste.test.ts. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.17 0.02 258);
+    --foreground: oklch(0.95 0.008 85);
+    --card: oklch(0.21 0.025 258);
+    --card-foreground: oklch(0.95 0.008 85);
+    --popover: oklch(0.21 0.025 258);
+    --popover-foreground: oklch(0.95 0.008 85);
+    --primary: oklch(0.8 0.08 250);
+    --primary-foreground: oklch(0.18 0.03 258);
+    --secondary: oklch(0.27 0.03 258);
+    --secondary-foreground: oklch(0.93 0.015 258);
+    --muted: oklch(0.24 0.02 258);
+    --muted-foreground: oklch(0.76 0.02 258);
+    --accent: oklch(0.27 0.03 258);
+    --accent-foreground: oklch(0.93 0.015 258);
+    --destructive: oklch(0.74 0.16 25);
+    --atencao: oklch(0.83 0.12 80);
+    --atencao-fundo: oklch(0.27 0.05 75);
+    --positivo: oklch(0.8 0.12 155);
+    --positivo-fundo: oklch(0.26 0.05 155);
+    --perigo-fundo: oklch(0.27 0.06 25);
+    --border: oklch(0.32 0.025 258);
+    --input: oklch(0.54 0.03 258);
+    --ring: oklch(0.72 0.11 250);
+  }
+}
+
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
+  }
+  /* Foco visível com contraste de 3:1 em links e controles sem anel próprio. */
+  :focus-visible {
+    outline-width: 2px;
+    outline-style: solid;
+    outline-offset: 2px;
+  }
+  html {
+    @apply font-sans;
+    /* A barra inferior fixa do celular não pode esconder o elemento em foco. */
+    scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    /* Controles nativos (data, seleção, barras de rolagem) acompanham o tema. */
+    color-scheme: light dark;
   }
   body {
     @apply bg-background text-foreground;
   }
+  h1 {
+    @apply font-serif;
+  }
+}
+
+@media (min-width: 48rem) {
   html {
-    @apply font-sans;
+    scroll-padding-bottom: 0;
+  }
+}
+
+/* Item de lista que ocupa a largura toda: o contorno vai para dentro, senão a lista
+   (com cantos arredondados e overflow escondido) o cortaria. */
+.foco-interno:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Quem pede menos movimento não vê transições nem animações. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

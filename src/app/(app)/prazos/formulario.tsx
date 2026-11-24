@@ -66,6 +66,7 @@ export function FormularioDePrazo({
   }
 
   function calcular() {
+    if (calculando) return;
     iniciarCalculo(async () => {
       const { processoId, dataEvento, tipoEvento, dias, contagem, emDobro } = valores;
       setPrevia(await acaoPrever({ processoId, dataEvento, tipoEvento, dias, contagem, emDobro }));
@@ -153,7 +154,7 @@ export function FormularioDePrazo({
             checked={valores.emDobro}
             onChange={(evento) => mudar({ emDobro: evento.target.checked })}
           />
-          <Button type="button" variant="outline" onClick={calcular} disabled={!podeCalcular || calculando} aria-busy={calculando} className="sm:justify-self-start sm:px-5">
+          <Button type="button" variant="outline" onClick={calcular} disabled={!podeCalcular} aria-busy={calculando} className="sm:justify-self-start sm:px-5">
             {calculando ? "Calculando…" : "Calcular data final"}
           </Button>
           <div aria-live="polite" className="grid gap-3">

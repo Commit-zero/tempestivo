@@ -41,5 +41,7 @@ test("o formulário de processo recusa número inválido e mantém o que foi dig
   await page.getByRole("button", { name: "Cadastrar processo" }).click();
 
   await expect(page.getByRole("main").getByRole("alert")).toContainText("Número do processo inválido");
+  // O erro do servidor recebe o foco: no celular ele estaria fora da tela.
+  await expect(page.getByRole("main").getByRole("alert")).toBeFocused();
   await expect(page.getByLabel("Assunto")).toHaveValue("Assunto que deve permanecer");
 });

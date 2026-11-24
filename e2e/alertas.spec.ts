@@ -11,11 +11,11 @@ test("a conta salva o advogado substituto, exige o e-mail dele e espera o aceite
 
   await page.getByLabel("Nome do substituto").fill("Colega Fictício");
   await page.getByLabel("E-mail do substituto").fill("");
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("Informe o e-mail do substituto.");
 
   await page.getByLabel("E-mail do substituto").fill("colega@exemplo.test");
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(page.getByRole("main").getByRole("status").filter({ hasText: "Dados salvos." })).toContainText("Enviamos um convite ao substituto");
   await page.reload();
   await expect(page.getByRole("main").getByText("Aguardando o substituto aceitar o convite")).toBeVisible();

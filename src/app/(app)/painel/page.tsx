@@ -37,6 +37,8 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
 
   const urgentes = emAberto.filter((prazo) => prazo.situacao.vencido || prazo.situacao.urgencia === "hoje");
   const daSemana = emAberto.filter((prazo) => prazo.situacao.urgencia === "proximo");
+  // Meta interna chegou: o trabalho já devia estar pronto, mesmo faltando dias para o vencimento.
+  const metaChegou = emAberto.filter((prazo) => prazo.situacao.metaChegou && !urgentes.includes(prazo));
   const semConferencia = emAberto.filter((prazo) => prazo.situacao.conferenciaAtrasada && !urgentes.includes(prazo) && !daSemana.includes(prazo));
   const audienciasDaSemana = audiencias.filter((audiencia) => audiencia.inicio.getTime() - agora.getTime() <= SETE_DIAS);
   const tarefasAbertas = quadro.a_fazer.length + quadro.fazendo.length;
@@ -80,11 +82,18 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
             )}
           </Secao>
 
+          {metaChegou.length > 0 ? (
+            <Secao titulo={`Meta interna chegou (${metaChegou.length})`}>
+              <p className="text-sm text-muted-foreground">Prazos que ainda não venceram, mas cujo trabalho já devia estar pronto. Cálculo auxiliar: confira o vencimento nos autos.</p>
+              <ListaDePrazos prazos={metaChegou} />
+            </Secao>
+          ) : null}
+
           {daSemana.length > 0 ? (
             <Secao
               titulo="Vencem nos próximos 7 dias"
               acao={
-                <Link href="/prazos?filtro=proximos_7_dias" className="text-sm text-primary underline-offset-4 hover:underline">
+                <Link href="/prazos?filtro=proximos_7_dias" className="inline-flex min-h-11 items-center md:min-h-6 text-sm text-primary underline-offset-4 hover:underline">
                   Ver todos
                 </Link>
               }
@@ -110,7 +119,7 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
             <Secao
               titulo="Honorários"
               acao={
-                <Link href="/honorarios" className="text-sm text-primary underline-offset-4 hover:underline">
+                <Link href="/honorarios" className="inline-flex min-h-11 items-center md:min-h-6 text-sm text-primary underline-offset-4 hover:underline">
                   Ver honorários
                 </Link>
               }

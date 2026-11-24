@@ -9,6 +9,7 @@ import { COLUNAS, obterQuadro, type Tarefa } from "@/modules/tarefas";
 import { exigirSessao } from "@/platform/auth";
 import { acaoCriarTarefa, acaoExcluirTarefa, acaoMoverTarefa } from "./acoes";
 import { FormularioDeTarefa } from "./formulario";
+import { QuadroComFoco } from "./quadro-com-foco";
 
 export const metadata: Metadata = { title: "Tarefas" };
 
@@ -20,14 +21,15 @@ export default async function PaginaDeTarefas() {
   const hoje = dataCivilEmSaoPaulo(new Date());
 
   function CartaoDaTarefa({ tarefa, indiceDaColuna }: { tarefa: Tarefa; indiceDaColuna: number }) {
+    const coluna = COLUNAS[indiceDaColuna];
     const anterior = COLUNAS[indiceDaColuna - 1];
     const proxima = COLUNAS[indiceDaColuna + 1];
     const atrasada = tarefa.limite !== null && tarefa.limite < hoje && tarefa.coluna !== "feito";
     return (
-      <li className="grid gap-2 rounded-lg border bg-card p-3">
+      <li data-tarefa={tarefa.id} data-coluna={coluna.titulo} tabIndex={-1} className="grid gap-2 rounded-lg border bg-card p-3">
         <p className="font-medium break-words">{tarefa.titulo}</p>
         {tarefa.processo ? (
-          <Link href={`/processos/${tarefa.processo.id}`} className="truncate text-sm text-muted-foreground hover:text-foreground">
+          <Link href={`/processos/${tarefa.processo.id}`} className="justify-self-start text-sm break-words text-muted-foreground hover:text-foreground">
             {tarefa.processo.assunto}
           </Link>
         ) : null}
@@ -39,14 +41,14 @@ export default async function PaginaDeTarefas() {
         ) : null}
         <div className="flex items-center gap-1">
           {anterior ? (
-            <form action={acaoMoverTarefa.bind(null, tarefa.id, anterior.id)}>
+            <form action={acaoMoverTarefa.bind(null, tarefa.id, anterior.id)} data-mover-tarefa={tarefa.id}>
               <Button type="submit" variant="outline" className="w-11 md:w-9" aria-label={`Mover "${tarefa.titulo}" para ${anterior.titulo}`}>
                 <ArrowLeft aria-hidden="true" />
               </Button>
             </form>
           ) : null}
           {proxima ? (
-            <form action={acaoMoverTarefa.bind(null, tarefa.id, proxima.id)}>
+            <form action={acaoMoverTarefa.bind(null, tarefa.id, proxima.id)} data-mover-tarefa={tarefa.id}>
               <Button type="submit" variant="outline" className="w-11 md:w-9" aria-label={`Mover "${tarefa.titulo}" para ${proxima.titulo}`}>
                 <ArrowRight aria-hidden="true" />
               </Button>
@@ -68,12 +70,16 @@ export default async function PaginaDeTarefas() {
       <Cartao className="max-w-2xl">
         <FormularioDeTarefa acao={acaoCriarTarefa} processos={processos.map((processo) => ({ id: processo.id, rotulo: `${processo.cliente.nome} · ${processo.assunto}` }))} />
       </Cartao>
-      <div className="grid gap-4 md:grid-cols-3">
+      <QuadroComFoco assinatura={COLUNAS.map((coluna) => quadro[coluna.id].map((tarefa) => tarefa.id).join(",")).join("|")}>
         {COLUNAS.map((coluna, indice) => (
           <section key={coluna.id} aria-label={coluna.titulo} className="grid content-start gap-3 rounded-xl bg-muted p-3">
             <h2 className="flex items-center justify-between px-1 text-sm font-semibold">
               {coluna.titulo}
-              <span className="text-muted-foreground tabular-nums">{quadro[coluna.id].length}</span>
+              <span className="text-muted-foreground tabular-nums">
+                <span className="sr-only">, </span>
+                {quadro[coluna.id].length}
+                <span className="sr-only"> {quadro[coluna.id].length === 1 ? "tarefa" : "tarefas"}</span>
+              </span>
             </h2>
             {quadro[coluna.id].length === 0 ? (
               <p className="px-1 pb-2 text-sm text-muted-foreground">Nada aqui.</p>
@@ -86,7 +92,7 @@ export default async function PaginaDeTarefas() {
             )}
           </section>
         ))}
-      </div>
+      </QuadroComFoco>
     </div>
   );
 }
