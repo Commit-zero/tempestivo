@@ -48,7 +48,7 @@ Nunca reutilize um segredo de produção em *Preview*, no CI ou na máquina de d
 
 | Onde | Conexão | Porta | Por quê |
 |---|---|---|---|
-| App na Vercel (`DATABASE_URL`) | Supavisor, modo transação, com `?pgbouncer=true` | 6543 | Funções serverless abrem muitas conexões curtas; o modo transação não aceita *prepared statements*, e o parâmetro avisa o Prisma |
+| App na Vercel (`DATABASE_URL`) | Supavisor, modo transação, com `?pgbouncer=true` | 6543 | Funções serverless abrem muitas conexões curtas; o modo transação não aceita *prepared statements* nomeados, e o adaptador `pg` do Prisma não usa nenhum; o `?pgbouncer=true` é inofensivo e mantido por compatibilidade |
 | Migrações no GitHub Actions (`DATABASE_URL_MIGRACAO`) | Supavisor, modo sessão | 5432 | A conexão direta do plano gratuito é só IPv6, e os runners do GitHub são IPv4 |
 | Sua máquina, se precisar | Conexão direta ou modo sessão | 5432 | — |
 

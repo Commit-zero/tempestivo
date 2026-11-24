@@ -27,7 +27,7 @@ Um id de outra conta na URL (`/prazos/<id-de-outra-conta>`) dá 404, igual a um 
 
 | Método e rota | Autenticação | Resposta | Consumidor |
 |---|---|---|---|
-| `GET /api/health` | nenhuma | `200 {"status":"ok","banco":"ok","versao":"x.y.z"}` ou `503 {"status":"erro","banco":"erro"}`, `no-store` | Monitor, `HEALTHCHECK` do Docker, CI |
+| `GET /api/health` | nenhuma | `200 {"status":"ok","banco":"ok"}` ou `503 {"status":"erro","banco":"erro"}`, `no-store` | Monitor, `HEALTHCHECK` do Docker, CI |
 | `GET` ou `POST /api/jobs/alertas` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok, ...resumo}`; `502` se algum envio falhou; `401`; `500` | `jobs.yml` (a cada 2 horas) |
 | `GET` ou `POST /api/jobs/ping` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok:true}`; `503` sem banco; `401` | `jobs.yml`; mantém o banco gratuito ativo |
 | `GET /api/auth/reset-password/<token>` | token do e-mail | redireciona para `/redefinir-senha` | Link do e-mail de redefinição |
