@@ -17,6 +17,10 @@ export const ROTA_DE_ENTRADA = "/entrar";
 // Uma conta por pessoa no MVP. O `upsert` cria a conta no primeiro acesso e é
 // idempotente: mesmo que o cadastro seja interrompido, o usuário nunca fica sem conta.
 async function contaDoUsuario(usuarioId: string, nome: string): Promise<string> {
+  // Leitura primeiro: a conta quase sempre já existe, e o `upsert` abriria uma escrita
+  // a cada página, ação e rota. O `upsert` fica de fallback para o primeiro acesso.
+  const existente = await getPrisma().conta.findUnique({ where: { usuarioId }, select: { id: true } });
+  if (existente) return existente.id;
   const conta = await getPrisma().conta.upsert({
     where: { usuarioId },
     update: {},

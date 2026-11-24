@@ -3,6 +3,8 @@ import { getConfig } from "@/platform/config";
 import { getLogger, getMailer, getScheduler } from "@/platform/runtime";
 
 export const dynamic = "force-dynamic";
+// Envio de e-mail é sequencial: pede o teto de tempo da função na Vercel (o Hobby aceita até 60 s).
+export const maxDuration = 60;
 
 // Job de alertas de prazo, chamado pelo agendador a cada 2 horas. Idempotente:
 // cada aviso tem chave única, então repetir a chamada não duplica e-mail.

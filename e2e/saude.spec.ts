@@ -4,7 +4,7 @@ test("a rota de saúde confirma o banco sem vazar detalhes", async ({ request })
   const resposta = await request.get("/api/health");
 
   expect(resposta.status()).toBe(200);
-  expect(Object.keys(await resposta.json()).sort()).toEqual(["banco", "status", "versao"]);
+  expect(Object.keys(await resposta.json()).sort()).toEqual(["banco", "status"]);
   expect(await resposta.json()).toMatchObject({ status: "ok", banco: "ok" });
 });
 
