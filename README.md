@@ -195,9 +195,9 @@ Os casos de contagem para o advogado validador ficam em `src/modules/prazos/__fi
 
 | Workflow | Quando | O que faz |
 |---|---|---|
-| `ci.yml` | todo push, em qualquer branch (logo, todo PR) | lint, tipos, migrações em Postgres 17, checagem de migração pendente, testes com cobertura mínima (Postgres e Mailpit reais), build, e2e com acessibilidade nas quatro larguras; constrói a imagem, aplica as migrações, sobe o contêiner e confere `/api/health` e o usuário sem root |
-| `seguranca.yml` | todo push e toda segunda-feira | segredos em todo o histórico (TruffleHog), CVE nas dependências (Trivy), análise estática (Semgrep); CVE e SBOM da imagem (Trivy) na `main`, na varredura semanal e sob demanda |
-| `jobs.yml` | a cada 2 horas | chama os jobs do app com o segredo |
+| `ci.yml` | todo PR, inclusive de fork, e todo push na `main` | lint, tipos, migrações em Postgres 17, checagem de migração pendente, testes com cobertura mínima (Postgres e Mailpit reais), build, e2e com acessibilidade nas quatro larguras; constrói a imagem, aplica as migrações, sobe o contêiner e confere `/api/health` e o usuário sem root |
+| `seguranca.yml` | todo PR, todo push na `main` e toda segunda-feira | segredos em todo o histórico (TruffleHog), CVE nas dependências (Trivy), análise estática (Semgrep); CVE e SBOM da imagem (Trivy) na `main`, na varredura semanal e sob demanda |
+| `jobs.yml` | agendado a cada 2 horas (o GitHub costuma atrasar) | chama os jobs do app com o segredo |
 | `migrar.yml` | manual, com confirmação | aplica as migrações em produção |
 
 Achado de severidade alta ou crítica bloqueia o PR. As actions são fixadas por SHA de commit, as imagens por digest e os binários conferidos por `sha256`. O Dependabot abre atualizações agrupadas toda semana.
@@ -237,7 +237,7 @@ Limites de hoje, ditos sem rodeio:
 - **Limitador de tentativas em memória.** Vale por instância do servidor e depende de um proxy que sobrescreva o `X-Forwarded-For`.
 - **Termos de uso e Política de privacidade** descrevem o que o sistema faz, mas ainda não passaram por revisão jurídica.
 - **Uma pessoa por conta.**
-- **Deploy em Vercel e Supabase** documentado, mas ainda não executado de ponta a ponta.
+- **Hospedagem gratuita.** A produção está na Vercel (plano Hobby, só para uso não comercial) com Supabase. Antes de vender o produto, a hospedagem precisa ser revista.
 
 Próximos passos, fora do MVP:
 

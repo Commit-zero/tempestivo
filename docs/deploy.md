@@ -2,7 +2,7 @@
 
 O caminho principal é **Vercel (plano Hobby) + Supabase (plano gratuito)**, de custo zero. O app só conhece variáveis de ambiente e o PostgreSQL padrão, então trocar de hospedagem ou de banco é trocar variáveis: a imagem Docker do [caminho B](#caminho-b-imagem-docker) roda em qualquer lugar.
 
-> **Estado deste roteiro:** os passos de Vercel e Supabase seguem a documentação oficial (consultada em 17/11/2026), mas **ainda não foram executados** com contas reais. O que está provado é o que o CI roda a cada push: build sem variáveis, migrações em Postgres 17 e a imagem Docker subindo, migrando e respondendo em `/api/health`.
+> **Estado deste roteiro:** os passos de Vercel e Supabase seguem a documentação oficial (consultada em 17/11/2026), e a produção foi publicada por eles em 25/11/2026. Nem toda variação do roteiro (como o *Preview*) foi exercitada. O CI prova em todo PR e em todo push na `main`: build sem variáveis, migrações em Postgres 17 e a imagem Docker subindo, migrando e respondendo em `/api/health`.
 
 ## Arquitetura do deploy
 
@@ -56,7 +56,7 @@ O host do pooler tem a forma `aws-<n>-<região>.pooler.supabase.com`, mas o `<n>
 
 ## Caminho A: Vercel + Supabase
 
-1. **Repositório.** O plano Hobby da Vercel não faz deploy de repositório privado de organização. Escolha: tornar o repositório público, espelhar a `main` em um repositório pessoal privado ou usar o caminho B. Se tornar público, acrescente antes o gatilho `pull_request` (nunca `pull_request_target`) ao `ci.yml` e ao `seguranca.yml`: hoje eles rodam em `push`, que não cobre PR vindo de fork.
+1. **Repositório.** O plano Hobby da Vercel não faz deploy de repositório privado de organização. Escolha: tornar o repositório público, espelhar a `main` em um repositório pessoal privado ou usar o caminho B. Num repositório público, `ci.yml` e `seguranca.yml` verificam PRs de fork pelo gatilho `pull_request`, sem segredos. Nunca troque por `pull_request_target`.
 2. **Supabase.** Crie um projeto só de produção, na região `South America (São Paulo)`. Anote a senha do banco. No botão **Connect**, copie a string do modo transação (para a Vercel) e a do modo sessão (para o GitHub). Baixe o certificado em Database > SSL Configuration e ligue **Enforce SSL on incoming connections** na mesma tela, para o banco recusar conexão sem TLS. Por último, **desligue a Data API** (Integrations > Data API > *Enable Data API* > Save) antes de migrar: o app não a usa, e as tabelas criadas pelo Prisma não ligam o RLS, então a API poderia expô-las a quem tiver a chave pública do projeto.
 3. **Segredos do GitHub** (Settings > Secrets and variables > Actions):
 

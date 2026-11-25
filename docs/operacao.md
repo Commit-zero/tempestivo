@@ -10,7 +10,7 @@ O sistema existe para que nenhum prazo passe sem aviso. As perguntas que importa
 |---|---|---|
 | O app está no ar e falando com o banco? | `GET /api/health` | Navegador, `curl`, monitor externo |
 | Os alertas de prazo saíram na última execução? | Log `alertas processados` (`enviados`, `falhas`, `adiados`, `limitados`) e o status da execução | Logs da hospedagem; aba Actions, workflow **Jobs agendados** |
-| O agendador está rodando? | Execuções do `jobs.yml` a cada 2 horas | Aba Actions |
+| O agendador está rodando? | Execuções recentes do `jobs.yml` (ver [Jobs](#jobs)) | Aba Actions |
 | Alguém está tentando entrar à força? | Log `falha de autenticação` em sequência | Logs da hospedagem |
 | A configuração está certa? | O servidor recusa subir e lista as variáveis inválidas | Log de inicialização |
 
@@ -18,7 +18,7 @@ O sistema existe para que nenhum prazo passe sem aviso. As perguntas que importa
 
 `GET /api/health` faz `SELECT 1` no banco.
 
-- `200 {"status":"ok","banco":"ok","versao":"0.x.y"}`: tudo certo; `versao` vem do `package.json`.
+- `200 {"status":"ok","banco":"ok"}`: tudo certo.
 - `503 {"status":"erro","banco":"erro"}`: o app não alcança o banco.
 
 A resposta nunca traz mensagem interna, host nem string de conexão. Para monitorar de fora sem custo, cadastre a URL num monitor gratuito de disponibilidade (checagem a cada 5 minutos é suficiente). O job `ping` também chama a saúde do banco a cada 2 horas, o que evita a pausa por inatividade do plano gratuito do Supabase.
@@ -63,6 +63,8 @@ Não há métricas (taxa, erros, latência por rota), rastreamento distribuído 
 |---|---|---|---|
 | Alertas de prazo | `POST /api/jobs/alertas` | a cada 2 horas (minuto 17, UTC) | chave única por prazo, camada e data |
 | Ping | `POST /api/jobs/ping` | a cada 2 horas | só leitura |
+
+**Frequência real.** O cron pede uma execução a cada 2 horas, mas o GitHub Actions não garante o horário: entre 20/11 e 25/11/2026, os disparos agendados saíram com intervalos de 6 a 14 horas. Como o job envia tudo o que estiver pendente, um atraso adia o e-mail, sem perdê-lo enquanto a execução cair no mesmo dia. Se passar um dia sem execução, rode à mão. Para ter horário garantido, aponte outro agendador gratuito para a mesma rota.
 
 Para rodar à mão: aba Actions → **Jobs agendados** → *Run workflow*, ou:
 

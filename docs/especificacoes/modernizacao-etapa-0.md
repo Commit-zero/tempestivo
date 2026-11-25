@@ -6,7 +6,7 @@ Plano de tarefas da Etapa 0 da [modernização](modernizacao.md). Nada daqui mud
 
 ### T1. Corrigir a CVE-2026-109518 (`apt`) na imagem
 - Aceite: o Trivy, com os mesmos parâmetros do `seguranca.yml`, não acha CVE alta ou crítica com correção na imagem `runner`; a imagem constrói, migra e responde em `/api/health` sem root.
-- Verificação: `docker build` dos alvos `runner` e `migrator`, `trivy image` e o roteiro do job `imagem`.
+- Verificação local: o passo da correção, compilado sobre a imagem base, instala o `apt` 2.6.2. O build completo não roda na máquina de desenvolvimento (o HTTPS do `npm` falha com certificado não verificável dentro do contêiner), então o build, a saúde e o Trivy são conferidos pelo CI: no PR e, para a imagem, pelo disparo manual do `seguranca.yml`.
 - Arquivos: `Dockerfile`.
 
 ### T2. Verificar pull requests de fork
