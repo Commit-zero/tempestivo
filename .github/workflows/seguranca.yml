@@ -1,7 +1,6 @@
 name: Segurança
 
-# Esteira DevSecOps, inspirada na do CirculaGov e adaptada ao orçamento de minutos
-# de um repositório privado:
+# Esteira DevSecOps, inspirada na do CirculaGov:
 #
 #   1. Segredos (TruffleHog)   procura chaves e senhas em TODO o histórico do Git
 #   2. SCA (Trivy)             CVE nas dependências do pnpm-lock.yaml
@@ -10,12 +9,15 @@ name: Segurança
 #
 # Política de bloqueio: achado de severidade ALTA ou CRÍTICA termina o job com erro.
 # Actions fixadas por SHA; imagens por digest; binários conferidos por sha256.
-# CodeQL fica de fora: em repositório privado ele exige o GitHub Advanced Security, que é pago.
+# CodeQL ainda não é usado; o SAST é o Semgrep.
 
 on:
-  # Todo push, em qualquer branch. Como o repositório é privado (sem PR de fork), todo
-  # commit de PR é um push: o PR mostra estas verificações, sem rodar duas vezes.
+  # Todo PR, inclusive de fork, e todo push na main. O push fica restrito à main para um
+  # PR de branch do próprio repositório não rodar duas vezes. Nunca use pull_request_target:
+  # ele daria segredos e permissão de escrita a código de terceiros.
+  pull_request:
   push:
+    branches: [main]
   workflow_dispatch:
   # CVE novas aparecem sem que o código mude. A varredura semanal pega isso.
   schedule:
@@ -131,8 +133,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     # Varredura pesada (cerca de 5 min): só na main, na varredura semanal e sob demanda.
-    # Nos outros branches, o job `imagem` do CI já prova que a imagem constrói e sobe.
-    if: github.ref == 'refs/heads/main' || github.event_name != 'push'
+    # Nos PRs, o job `imagem` do CI já prova que a imagem constrói e sobe.
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

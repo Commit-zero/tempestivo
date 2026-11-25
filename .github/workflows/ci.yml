@@ -1,6 +1,6 @@
 name: CI
 
-# Qualidade em todo push, em qualquer branch (e, por consequência, em todo Pull Request):
+# Qualidade em todo Pull Request e em todo push na main:
 #   qualidade  lint, tipos, testes de unidade e de integração (Postgres e SMTP reais), cobertura mínima, build
 #   e2e        Playwright em 320, 360, 768 e 1280 px contra o build de produção, com acessibilidade
 #   imagem     constrói os alvos runner e migrator, aplica as migrações e confere a saúde
@@ -9,9 +9,12 @@ name: CI
 # O CI nunca recebe segredos; os valores abaixo são falsos e só existem aqui.
 
 on:
-  # Todo push, em qualquer branch. Como o repositório é privado (sem PR de fork), todo
-  # commit de PR é um push: o PR mostra estas verificações, sem rodar duas vezes.
+  # Todo PR, inclusive de fork, e todo push na main. O push fica restrito à main para um
+  # PR de branch do próprio repositório não rodar duas vezes. Nunca use pull_request_target:
+  # ele daria segredos e permissão de escrita a código de terceiros.
+  pull_request:
   push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
