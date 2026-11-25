@@ -10,8 +10,10 @@ ARG NODE_VERSION=24.22.1-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bed
 FROM node:${NODE_VERSION} AS base
 ENV NEXT_TELEMETRY_DISABLED=1
 # O OpenSSL é exigido pelos motores do Prisma (generate e migrate); a imagem slim não o traz.
+# apt e libapt-pkg6.0 entram na lista para receber a correção da CVE-2026-109518 (2.6.2),
+# que a imagem base fixada acima ainda não traz.
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl \
+  && apt-get install -y --no-install-recommends openssl apt libapt-pkg6.0 \
   && rm -rf /var/lib/apt/lists/* \
   && npm install -g pnpm@12.16.1 && npm cache clean --force
 WORKDIR /app
@@ -38,6 +40,10 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 WORKDIR /app
+# Correção da CVE-2026-109518. Pode sair quando a imagem base trouxer o apt 2.6.2 ou mais novo.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --only-upgrade apt libapt-pkg6.0 \
+  && rm -rf /var/lib/apt/lists/*
 # npm e corepack não são usados em execução; removê-los tira da imagem as CVE deles.
 RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /opt/yarn-*
 COPY --from=builder --chown=node:node /app/public ./public
