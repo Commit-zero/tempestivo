@@ -20,6 +20,8 @@ As especificações registram o objetivo, as decisões e os critérios de aceite
 | [especificacoes/base.md](especificacoes/base.md) | Fundação: portas, banco, login, CI, Docker |
 | [especificacoes/prazos.md](especificacoes/prazos.md) | Calculadora de prazos, catálogo, conferência |
 | [especificacoes/agenda.md](especificacoes/agenda.md) | Meta interna e agenda assinável |
+| [especificacoes/modernizacao.md](especificacoes/modernizacao.md) | Mapa da modernização: decisões, etapas e cronograma |
+| [especificacoes/modernizacao-etapa-0.md](especificacoes/modernizacao-etapa-0.md) | Etapa 0: proteção da `main` |
 
 As regras de contagem de prazo, com a referência legal de cada uma e o estado da validação, ficam junto do código, em [`src/modules/prazos/regras.md`](../src/modules/prazos/regras.md).
 
