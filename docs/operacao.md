@@ -64,7 +64,7 @@ Não há métricas (taxa, erros, latência por rota), rastreamento distribuído 
 | Alertas de prazo | `POST /api/jobs/alertas` | a cada 2 horas (minuto 17, UTC) | chave única por prazo, camada e data |
 | Ping | `POST /api/jobs/ping` | a cada 2 horas | só leitura |
 
-**Frequência real.** O cron pede uma execução a cada 2 horas, mas o GitHub Actions não garante o horário: entre 20/11 e 25/11/2026, os disparos agendados saíram com intervalos de 6 a 14 horas. Como o job envia tudo o que estiver pendente, um atraso adia o e-mail, sem perdê-lo enquanto a execução cair no mesmo dia. Se passar um dia sem execução, rode à mão. Para ter horário garantido, aponte outro agendador gratuito para a mesma rota.
+**Frequência real.** O cron pede uma execução a cada 2 horas, mas o GitHub Actions não garante o horário: entre 20/11 e 25/11/2026, os disparos agendados saíram com intervalos de 5 a 12 horas. Como o job envia tudo o que estiver pendente, um atraso adia o e-mail, sem perdê-lo enquanto a execução cair no mesmo dia. Se passar um dia sem execução, rode à mão. Para ter horário garantido, aponte outro agendador gratuito para a mesma rota.
 
 Para rodar à mão: aba Actions → **Jobs agendados** → *Run workflow*, ou:
 

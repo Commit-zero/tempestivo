@@ -15,7 +15,7 @@ Levar o Tempestivo de MVP a um SaaS jurídico profissional e comercializável, s
 | Segurança na `main` | **falha**: CVE-2026-109518 (alta, com correção) em `apt` e `libapt-pkg6.0` da imagem Docker. A Vercel não usa essa imagem | log da execução |
 | Proteção da `main` | **não existe** (sem proteção de branch e sem ruleset). Todo merge publica em produção | API do GitHub |
 | PR de fork | **não é verificado**: `ci.yml` e `seguranca.yml` rodam em `push` | workflows |
-| Agendador | o último disparo respondeu 200. Os disparos automáticos saem com intervalos de **6 a 14 horas**, não de 2 em 2 como dizem os documentos | histórico do `jobs.yml` (só o último log foi aberto) |
+| Agendador | o último disparo respondeu 200. Os disparos automáticos saem com intervalos de **5 a 12 horas**, não de 2 em 2 como dizem os documentos | histórico do `jobs.yml` (só o último log foi aberto) |
 | Documentos | `SECURITY.md` e `operacao.md` dizem que `/api/health` devolve a versão; o código não devolve mais | código e busca |
 | `docs/deploy.md` | passo de desligar a Data API ainda sem commit | `git diff` |
 

@@ -22,6 +22,10 @@ Plano de tarefas da Etapa 0 da [modernização](modernizacao.md). Nada daqui mud
 ### Ponto de controle
 `lint`, `typecheck`, testes com cobertura, `build`, `e2e` e revisão de segurança dos workflows.
 
+## Situação em 25/11/2026
+
+T1 a T3 prontas na branch, sem push. Passaram: lint, tipos, 370 testes com cobertura acima das metas, build e 112 testes de tela (Edge). Não rodaram: build completo da imagem, Trivy e os workflows no GitHub.
+
 ## Depois da final, com confirmação
 
 1. Conferir na Vercel que o ambiente *Preview* não tem variáveis de produção. Só então enviar a branch.
@@ -36,4 +40,5 @@ Plano de tarefas da Etapa 0 da [modernização](modernizacao.md). Nada daqui mud
 |---|---|
 | PR de fork roda código de terceiro no CI | `pull_request` não entrega segredos e o token é só de leitura (`contents: read`). Não usar `pull_request_target` |
 | Check obrigatório que não roda trava o merge | Exigir só checks que rodam em todo PR, sem filtro de caminho |
+| Um PR pode alterar o próprio workflow, o `.trivyignore` ou o `.trufflehog-ignorar` e assim ficar verde | Check obrigatório não substitui a revisão: ler com atenção qualquer mudança em `.github/` e nesses arquivos. Manter a aprovação manual do Actions para quem contribui pela primeira vez |
 | PR de branch do próprio repositório rodar duas vezes | `push` restrito à `main` |
