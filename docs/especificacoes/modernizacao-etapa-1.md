@@ -1,6 +1,6 @@
 # Etapa 1: autenticação reforçada (`autenticacao-reforcada`)
 
-**Situação:** aprovada em 25/11/2026 (Vitor), com as recomendações das três perguntas. Tarefas no [plano da Etapa 1](modernizacao-etapa-1-plano.md).
+**Situação:** aprovada em 25/11/2026 (Vitor), com as recomendações das três perguntas; implementada na branch em 26/11/2026, sem publicar. Depois da aprovação, o Vitor decidiu que o link de confirmação de e-mail não abre mais sessão (muda o "continua igual" abaixo). Tarefas no [plano da Etapa 1](modernizacao-etapa-1-plano.md).
 
 Faz parte do [mapa da modernização](modernizacao.md). A branch `modernizacao/etapa-1-autenticacao` parte da branch da [Etapa 0](modernizacao-etapa-0.md), que ainda não está na `main`. Nada vai para a `main` antes do fim da final de 27/11/2026.
 

@@ -1,6 +1,6 @@
 # Etapa 1: plano de tarefas
 
-Plano da [especificação da Etapa 1](modernizacao-etapa-1.md), aprovada em 25/11/2026. **Situação:** plano aprovado em 25/11/2026; bloco A pronto na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-1-autenticacao`, sem push antes do fim da final.
+Plano da [especificação da Etapa 1](modernizacao-etapa-1.md), aprovada em 25/11/2026. **Situação:** plano aprovado em 25/11/2026; T1 a T11 prontas na branch em 26/11/2026 (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-1-autenticacao`, sem push antes do fim da final.
 
 ## Decisões do plano
 
@@ -112,7 +112,16 @@ Os 12 critérios de aceite da especificação conferidos um a um; lint, tipos, t
 - A revisão de segurança apontou sete itens. Foram corrigidos seis: limite de avisos por trocas repetidas, links de redefinição pendentes, mensagem de falha, tempo máximo do SMTP, montagem do cabeçalho de cookies e quebra de linha no nome. As correções não passaram por uma segunda revisão.
 - **Sétimo item, decidido pelo Vitor em 25/11/2026:** o link de confirmação deixou de abrir sessão (`autoSignInAfterVerification: false`) e passou a levar a `/email-confirmado`. Links enviados antes ainda apontam para `/painel`: confirmam o e-mail e, sem sessão, caem no login sem o aviso. A exigência de e-mail confirmado para ativar a verificação continua, como segunda proteção.
 - **Também aberto:** o Better Auth não troca a senha em uma transação só (`transaction: true` precisa de teste próprio); falta teste de login simultâneo à troca; o limite continua por instância (D11).
-- Antes do PR do bloco A: rodar `qa-responsivo`.
+- O `qa-responsivo` rodou no fim do bloco B, com as telas dos dois blocos.
+
+**Bloco B (T5 a T11), pronto em 26/11/2026.** Resultado final: lint, tipos, 473 testes em 44 arquivos com cobertura acima das metas (95,3% das instruções e 89,7% dos ramos), build e 130 testes de tela (Edge, 360, 768 e 1280 px). Os 12 critérios de aceite da especificação têm teste. **Não rodaram:** build da imagem Docker, Trivy e os workflows no GitHub (branch sem push).
+
+- Achado ao montar os testes: quem usa a verificação seria barrado depois de 5 logins certos em 15 minutos. O limite passou a ser zerado quando o segundo fator completa a entrada.
+- A segunda revisão de segurança não achou problema crítico nem alto. O principal (médio) era que as ações do código na entrada aceitavam quem já estava conectado, e assim ligavam uma ativação pendente sem aviso. Corrigido, junto com: voltar versão desliga a proteção (aviso na operação), falha do banco ao registrar o código, passos pendentes depois de trocar a senha, links depois de falha parcial, falhas depois de ligar, SQL para troca urgente do `AUTH_SECRET` (ensaiado em banco descartável) e conferência do e-mail no SQL de perda de acesso.
+- Ficaram registrados, sem correção: o teto de 10 erros pode ser ultrapassado por envios simultâneos (biblioteca); a biblioteca grava "ligada" e "verificada" em duas escritas, e uma falha entre elas exige atendimento; o tempo máximo do SMTP é por fase, não total, e não foi conferido contra o limite da hospedagem. A consulta de DNS já é limitada pelo tempo de conexão.
+- **Anterior a esta etapa, não corrigido:** o nome do advogado substituto aceita quebra de linha e vai para o e-mail do convite.
+- O QA responsivo apontou oito itens, corrigidos nas telas novas. Alvos de toque pequenos em links de telas antigas ficaram como estavam. Não houve teste com leitor de tela nem em celular físico.
+- As correções da segunda revisão e do QA passaram pelos testes, mas não por nova revisão. Não houve uma revisão de código geral separada das revisões de segurança.
 
 ## Publicação, depois da final e com confirmação
 
