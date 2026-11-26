@@ -40,7 +40,7 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
             <Marca />
           </Link>
         </header>
-        <main id="conteudo" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-7 sm:px-6 md:pb-10">
+        <main id="conteudo" tabIndex={-1} className="outline-none mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-7 sm:px-6 md:pb-10">
           {children}
         </main>
         <AvisoDaPagina mensagem={aviso} />

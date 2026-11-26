@@ -102,3 +102,34 @@ test("honorários, audiências, prazos e catálogo avisam cada ação", async ({
   await page.getByRole("alertdialog").getByRole("button", { name: "Excluir dia" }).click();
   await esperarAviso(page, "Dia sem expediente excluído.");
 });
+
+test("o sucesso antigo sai na ação seguinte, mesmo que ela não avise", async ({ page }) => {
+  const titulo = unico("Tarefa fictícia");
+  await page.goto("/tarefas");
+  await page.getByLabel("Nova tarefa").fill(titulo);
+  await page.getByRole("button", { name: "Adicionar tarefa" }).click();
+  await esperarAviso(page, "Tarefa adicionada.");
+  // Mover não gera aviso próprio: o anterior não pode parecer a resposta.
+  await page.getByRole("button", { name: `Mover "${titulo}" para Fazendo` }).click();
+  await expect(regiao(page)).toBeEmpty();
+});
+
+test("a mesma mensagem de novo é um aviso novo, com faixa lateral; fechar não perde o foco", async ({ page }) => {
+  await page.goto("/tarefas");
+  async function adicionar() {
+    await page.getByLabel("Nova tarefa").fill(unico("Tarefa fictícia"));
+    await page.getByRole("button", { name: "Adicionar tarefa" }).click();
+    await esperarAviso(page, "Tarefa adicionada.");
+  }
+  await adicionar();
+  const caixa = regiao(page).locator("> div");
+  await expect(caixa).toHaveCSS("border-left-width", "4px");
+  await caixa.evaluate((elemento) => elemento.setAttribute("data-antigo", "sim"));
+  await adicionar();
+  // Elemento novo na região: o leitor de tela anuncia de novo.
+  await expect(regiao(page).locator("[data-antigo]")).toHaveCount(0);
+
+  await regiao(page).getByRole("button", { name: "Fechar o aviso" }).press("Enter");
+  await expect(regiao(page)).toBeEmpty();
+  await expect(page.locator("#conteudo")).toBeFocused();
+});

@@ -43,10 +43,18 @@ test("meta interna e agenda assinável: ajusta a margem, cria, troca e desliga o
   await expect(page.getByLabel("Link da agenda")).toBeVisible();
   expect((await baixarFeed()).status()).toBe(404);
 
-  await page.reload();
+  // Sem recarregar: desligar tem de tirar da tela o link que deixou de funcionar.
   await page.getByRole("button", { name: "Desligar a agenda" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Desligar a agenda" }).click();
   await expect(page.getByRole("main").getByRole("status").filter({ hasText: "Agenda desligada" })).toBeVisible();
+  await expect(page.getByLabel("Link da agenda")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Desligar a agenda" })).toHaveCount(0);
+
+  // Criar de novo: o aviso de desligada sai, e o bloco do link novo recebe o foco.
+  await page.getByRole("button", { name: "Criar o link da agenda" }).click();
+  await expect(page.getByLabel("Link da agenda")).toBeVisible();
+  await expect(page.getByTestId("link-novo-da-agenda")).toBeFocused();
+  await expect(page.getByText("Agenda desligada.")).toHaveCount(0);
 });
 
 test("link de agenda inválido responde 404 sem revelar nada", async ({ request }) => {

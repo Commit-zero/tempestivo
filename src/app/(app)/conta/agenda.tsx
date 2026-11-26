@@ -2,7 +2,7 @@
 
 import { Aviso } from "@/components/app/aviso";
 import { Check, Copy } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
@@ -46,8 +46,13 @@ function LinkDaAgenda({ link }: { link: string }) {
       setCopiado(false);
     }
   }
+  // O link só aparece esta vez: o foco vai até ele, e o leitor de tela o anuncia.
+  const bloco = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    bloco.current?.focus();
+  }, []);
   return (
-    <Aviso tipo="sucesso" como="div" semAnuncio className="grid gap-3">
+    <Aviso tipo="sucesso" como="div" semAnuncio ref={bloco} tabIndex={-1} data-testid="link-novo-da-agenda" className="grid gap-3">
       <p className="font-medium text-positivo">Link criado. Copie agora: por segurança, ele não aparece de novo.</p>
       <p className="text-foreground">
         Não compartilhe este link: quem o tiver vê os seus vencimentos até você trocá-lo ou desligar a agenda.
@@ -95,13 +100,21 @@ export function PainelDaAgenda({
 }) {
   const [estadoAtivacao, ativar] = useActionState(acaoAtivar, {});
   const [estadoDesativacao, desativar] = useActionState(acaoDesativar, {});
-  const ativa = ativadaEm !== null || estadoAtivacao.link !== undefined;
+  // Vale só o resultado mais recente: depois de desligar, o link anterior não funciona
+  // mais, e depois de criar, o aviso de desligada deixa de ser verdade.
+  const [visto, setVisto] = useState<{ ativacao: EstadoDaAgenda; desativacao: EstadoDaAgenda; ultima: "ativacao" | "desativacao" | null }>({
+    ativacao: estadoAtivacao, desativacao: estadoDesativacao, ultima: null,
+  });
+  if (visto.ativacao !== estadoAtivacao) setVisto({ ...visto, ativacao: estadoAtivacao, ultima: "ativacao" });
+  else if (visto.desativacao !== estadoDesativacao) setVisto({ ...visto, desativacao: estadoDesativacao, ultima: "desativacao" });
+  const resultado = visto.ultima === "desativacao" ? estadoDesativacao : visto.ultima === "ativacao" ? estadoAtivacao : {};
+  const link = "link" in resultado ? resultado.link : undefined;
+  const ativa = ativadaEm !== null || link !== undefined;
   return (
     <div className="grid gap-4">
-      <MensagemDoFormulario estado={estadoDesativacao} />
-      {estadoAtivacao.erro ? <MensagemDoFormulario estado={estadoAtivacao} /> : null}
-      {estadoAtivacao.link ? <LinkDaAgenda link={estadoAtivacao.link} /> : null}
-      {ativa && !estadoAtivacao.link ? (
+      <MensagemDoFormulario estado={resultado} />
+      {link ? <LinkDaAgenda key={link} link={link} /> : null}
+      {ativa && !link ? (
         <p role="status" className="text-sm text-positivo">
           Agenda ligada desde {ativadaEm}. Se não tiver mais o link, troque-o: o anterior deixa de funcionar.
         </p>

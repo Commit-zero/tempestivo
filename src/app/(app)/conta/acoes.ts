@@ -90,7 +90,11 @@ export async function acaoDefinirMargem(_anterior: EstadoDoFormulario, formulari
 export async function acaoAtivarAgenda(_anterior: EstadoDaAgenda, formulario: FormData): Promise<EstadoDaAgenda> {
   const { contaId } = await exigirSessao();
   // Criar não apaga nada; trocar derruba o link anterior e pede confirmação.
-  if ((await obterConta(contaId))?.agendaAtivadaEm && !foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
+  if ((await obterConta(contaId))?.agendaAtivadaEm && !foiConfirmado(formulario)) {
+    // A tela estava desatualizada (agenda ligada em outra aba): atualiza para mostrar o botão certo.
+    revalidatePath("/conta");
+    return { erro: "O link da agenda já existe. Para criar outro, use Trocar o link e confirme." };
+  }
   const resultado = await ativarAgenda(contaId);
   if (!resultado.ok) return { erro: resultado.erro };
   revalidatePath("/conta");
