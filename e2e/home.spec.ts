@@ -153,7 +153,13 @@ test.describe("sem JavaScript", () => {
     await trilho.scrollIntoViewIfNeeded();
     await trilho.hover();
     await page.mouse.wheel(10_000, 0);
-    await expect(carrossel.getByRole("heading", { level: 3, name: TELAS[3] })).toBeInViewport();
+    await expect.poll(() => trilho.evaluate((e) => Math.round(e.scrollWidth - e.clientWidth - e.scrollLeft))).toBeLessThanOrEqual(1);
+    // Confere só na horizontal: no celular a faixa é mais alta que a janela, e o título
+    // pode ficar acima dela conforme a fonte do sistema.
+    const faixa = (await trilho.boundingBox())!;
+    const titulo = (await carrossel.getByRole("heading", { level: 3, name: TELAS[3] }).boundingBox())!;
+    expect(titulo.x).toBeGreaterThanOrEqual(faixa.x);
+    expect(titulo.x + titulo.width).toBeLessThanOrEqual(faixa.x + faixa.width + 1);
     await expect(carrossel.getByRole("button")).toHaveCount(0);
     await semRolagemHorizontal(page);
   });
