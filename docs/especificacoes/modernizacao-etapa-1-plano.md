@@ -1,6 +1,6 @@
 # Etapa 1: plano de tarefas
 
-Plano da [especificação da Etapa 1](modernizacao-etapa-1.md), aprovada em 25/11/2026. **Situação:** plano proposto, aguardando aprovação. Tudo fica na branch `modernizacao/etapa-1-autenticacao`, sem push antes do fim da final.
+Plano da [especificação da Etapa 1](modernizacao-etapa-1.md), aprovada em 25/11/2026. **Situação:** plano aprovado em 25/11/2026; bloco A pronto na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-1-autenticacao`, sem push antes do fim da final.
 
 ## Decisões do plano
 
@@ -101,6 +101,18 @@ Lint, tipos, testes com cobertura, build, testes de tela e revisão com `revisor
 
 ### Ponto de controle final
 Os 12 critérios de aceite da especificação conferidos um a um; lint, tipos, testes com cobertura, build e testes de tela; `revisor-seguranca-lgpd`, `qa-responsivo` e revisão de código; resumo do que ficou pronto, do que ficou de fora e por quê.
+
+## Andamento
+
+**Bloco A (T1 a T4), pronto em 25/11/2026.** Passaram: lint, tipos, 426 testes com cobertura acima das metas, build e 118 testes de tela (Edge).
+
+- O apoio de teste com cookies simulados, previsto para a T6, entrou já na T2.
+- Na redefinição, deu para identificar o dono do link sem gastá-lo.
+- O teste de tela da T4 achou um erro que a simulação não pega: depois da troca, o Next atualiza `cookies()` mas não `headers()`, e a pessoa parecia deslogada. `sessao.ts` passou a ler os cookies atuais. A T8 depende disso.
+- A revisão de segurança apontou sete itens. Foram corrigidos seis: limite de avisos por trocas repetidas, links de redefinição pendentes, mensagem de falha, tempo máximo do SMTP, montagem do cabeçalho de cookies e quebra de linha no nome. As correções não passaram por uma segunda revisão.
+- **Aberto, depende de decisão:** com o e-mail ainda não confirmado, o link de confirmação (24 horas) cria sessão sem senha, mesmo depois de uma troca de senha. Comportamento anterior à etapa. A saída é `autoSignInAfterVerification: false`, que faz quem confirmar o e-mail em outro aparelho ter de entrar com a senha.
+- **Também aberto:** o Better Auth não troca a senha em uma transação só (`transaction: true` precisa de teste próprio); falta teste de login simultâneo à troca; o limite continua por instância (D11).
+- Antes do PR do bloco A: rodar `qa-responsivo`.
 
 ## Publicação, depois da final e com confirmação
 
