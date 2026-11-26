@@ -9,7 +9,7 @@ import { criarLimitador } from "@/lib/limitador";
 import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { enviarAvisoDeSeguranca } from "./avisos";
-import { ipDoCliente, MUITAS_TENTATIVAS, registrarFalha } from "./comum";
+import { ipDoCliente, liberarEntrada, MUITAS_TENTATIVAS, permitirEntrada, registrarFalha } from "./comum";
 import { invalidarLinksDeRedefinicao } from "./links-de-redefinicao";
 import { conferirSenha } from "./senha";
 
@@ -19,7 +19,6 @@ import { conferirSenha } from "./senha";
 export type ResultadoAuth = { ok: true } | { ok: false; erro: string };
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
-const tentativasDeEntrada = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
 const tentativasDeCadastro = criarLimitador({ maximo: 10, janelaMs: QUINZE_MINUTOS });
 const pedidosDeRedefinicao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
@@ -88,14 +87,11 @@ export type ResultadoDaEntrada = ResultadoAuth | { ok: true; segundoFator: true 
 export async function entrar(dados: { email: unknown; senha: unknown }): Promise<ResultadoDaEntrada> {
   const validado = schemaEntrada.safeParse(dados);
   if (!validado.success) return primeiroErro(validado.error);
-  const chave = `${await ipDoCliente()}:${validado.data.email}`;
-  if (!tentativasDeEntrada.permitir(chave)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  if (!(await permitirEntrada(validado.data.email))) return { ok: false, erro: MUITAS_TENTATIVAS };
   try {
     const resposta = await getAuth().api.signInEmail({ body: { email: validado.data.email, password: validado.data.senha } });
-    // Com o segundo fator, o limite não é zerado: quem só tem a senha não abre
-    // passos pendentes à vontade para adivinhar o código.
     if ("twoFactorRedirect" in resposta) return { ok: true, segundoFator: true };
-    tentativasDeEntrada.liberar(chave);
+    await liberarEntrada(validado.data.email);
     return { ok: true };
   } catch (erro) {
     registrarFalha("entrada", erro);

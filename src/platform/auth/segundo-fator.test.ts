@@ -85,6 +85,23 @@ describe("login com segundo fator (integração)", () => {
     expect(await obterSessao()).toBeNull();
   });
 
+  it("quem completa o segundo fator não é barrado pelo limite de login; quem para na senha é", async () => {
+    const { email, codigos } = await comSegundoFator();
+    const aqui = "198.18.200.1";
+    for (let vez = 0; vez < 6; vez += 1) {
+      novoNavegador(aqui);
+      expect(await entrar({ email, senha: SENHA })).toEqual({ ok: true, segundoFator: true });
+      expect(await confirmarCodigoDeRecuperacao(codigos[vez])).toEqual({ ok: true });
+    }
+    const soComASenha = [];
+    for (let vez = 0; vez < 6; vez += 1) {
+      novoNavegador(aqui);
+      soComASenha.push(await entrar({ email, senha: SENHA }));
+    }
+
+    expect(soComASenha.at(-1)).toEqual({ ok: false, erro: "Muitas tentativas. Aguarde alguns minutos e tente de novo." });
+  }, 60_000);
+
   it("o mesmo código não entra duas vezes", async () => {
     const { email, usuarioId, chave } = await comSegundoFator();
     const codigo = codigoTotp(chave);

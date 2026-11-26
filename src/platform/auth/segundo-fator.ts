@@ -8,7 +8,7 @@ import { getConfig } from "@/platform/config";
 import { getLogger, getMailer } from "@/platform/runtime";
 import { getAuth } from "./auth";
 import { enviarAvisoDeSeguranca } from "./avisos";
-import { ipDoCliente, MUITAS_TENTATIVAS, registrarFalha } from "./comum";
+import { ipDoCliente, liberarEntrada, MUITAS_TENTATIVAS, registrarFalha } from "./comum";
 
 // Verificação em duas etapas por aplicativo autenticador (plugin `twoFactor`).
 // Depois da senha certa, o Better Auth não cria sessão: guarda um passo pendente
@@ -81,7 +81,7 @@ export async function confirmarCodigoDeEntrada(codigo: unknown): Promise<Resulta
   const validado = schemaDoCodigo.safeParse(codigo);
   if (!validado.success) return { ok: false, erro: FORA_DO_FORMATO };
   if (!tentativasDeCodigo.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
-  let entrada: { token: string; user: { id: string } };
+  let entrada: { token: string; user: { id: string; email: string } };
   try {
     entrada = await getAuth().api.verifyTOTP({ body: { code: validado.data }, headers: await headers() });
   } catch (erro) {
@@ -95,7 +95,10 @@ export async function confirmarCodigoDeEntrada(codigo: unknown): Promise<Resulta
   } catch (erro) {
     registrarFalha("registro do código usado", erro);
   }
-  if (primeiroUso) return { ok: true };
+  if (primeiroUso) {
+    await liberarEntrada(entrada.user.email);
+    return { ok: true };
+  }
   await getPrisma().session.deleteMany({ where: { token: entrada.token } });
   return recomeco("repetido");
 }
@@ -112,6 +115,7 @@ export async function confirmarCodigoDeRecuperacao(codigo: unknown): Promise<Res
   } catch (erro) {
     return traduzir("código de recuperação", erro);
   }
+  await liberarEntrada(titular.email);
   await enviarAvisoDeSeguranca("codigo-usado", { nome: titular.name, email: titular.email }, {
     mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL,
   });
