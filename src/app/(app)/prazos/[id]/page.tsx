@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -37,9 +38,9 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
       <CabecalhoDaPagina titulo={prazo.descricao} voltar={{ href: "/prazos", rotulo: "Prazos" }} />
 
       {conferencia === "zerada" ? (
-        <p role="status" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+        <Aviso tipo="atencao" role="status">
           A data do prazo mudou e a conferência foi zerada. Confira de novo e registre.
-        </p>
+        </Aviso>
       ) : null}
 
       <Cartao className="grid gap-5">

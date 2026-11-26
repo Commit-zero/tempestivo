@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { Check, Copy } from "lucide-react";
 import { useActionState, useState } from "react";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
@@ -45,7 +46,7 @@ function LinkDaAgenda({ link }: { link: string }) {
     }
   }
   return (
-    <div className="grid gap-3 rounded-xl border border-positivo/30 bg-positivo-fundo p-4 text-sm">
+    <Aviso tipo="sucesso" como="div" semAnuncio className="grid gap-3">
       <p className="font-medium text-positivo">Link criado. Copie agora: por segurança, ele não aparece de novo.</p>
       <p className="text-foreground">
         Não compartilhe este link: quem o tiver vê os seus vencimentos até você trocá-lo ou desligar a agenda.
@@ -80,7 +81,7 @@ function LinkDaAgenda({ link }: { link: string }) {
           <strong>Google Agenda:</strong> no computador, em Outras agendas, escolha &quot;Do URL&quot; e cole o link.
         </li>
       </ul>
-    </div>
+    </Aviso>
   );
 }
 

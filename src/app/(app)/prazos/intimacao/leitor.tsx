@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import Link from "next/link";
 import { useActionState } from "react";
 import { BotaoEnviar, CampoDeTexto } from "@/components/formulario";
@@ -47,9 +48,9 @@ export function LeitorDeIntimacao() {
     <div className="grid gap-6">
       <form action={enviar} className="grid gap-4">
         {estado.erro ? (
-          <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+          <Aviso tipo="erro">
             {estado.erro}
-          </p>
+          </Aviso>
         ) : null}
         <CampoDeTexto
           rotulo="Texto da intimação"
@@ -75,9 +76,9 @@ export function LeitorDeIntimacao() {
                 {CONFIANCA[rascunho.confianca].texto}
               </span>
             </div>
-            <p className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+            <Aviso tipo="atencao">
               Isto é só uma sugestão. O prazo só será criado depois que você conferir cada campo, calcular a data e salvar.
-            </p>
+            </Aviso>
             <dl className="grid gap-4 sm:grid-cols-2">
               <Linha rotulo="Processo" valor={rascunho.processo?.assunto ?? null} evidencia={rascunho.evidencias.numeroProcesso} />
               <Linha rotulo="Tipo de ato" valor={rascunho.descricao} evidencia={rascunho.evidencias.descricao} />

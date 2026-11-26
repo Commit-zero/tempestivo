@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Cartao, CabecalhoDaPagina, EstadoVazio } from "@/components/app/pagina";
@@ -35,9 +36,9 @@ export default async function PaginaDeNovoPrazo({ searchParams }: PageProps<"/pr
         }
       />
       {doRascunho ? (
-        <p role="status" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+        <Aviso tipo="atencao" role="status">
           Rascunho lido da intimação. Confira cada campo, calcule a data final e só então salve.
-        </p>
+        </Aviso>
       ) : null}
       {processos.length === 0 ? (
         <EstadoVazio

@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Marca } from "@/components/app/marca";
@@ -42,9 +43,9 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
                 <dd className="text-xl font-semibold tracking-tight">{formatarDataComSemana(prazo.dataFinal)}</dd>
               </div>
             </dl>
-            <p className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+            <Aviso tipo="atencao">
               Cálculo auxiliar, confira. Só registre depois de conferir a data nos autos.
-            </p>
+            </Aviso>
             <FormularioDeConferencia acao={acaoConfirmarPeloLink.bind(null, token)} cumprido={prazo.cumprido} />
           </>
         ) : (

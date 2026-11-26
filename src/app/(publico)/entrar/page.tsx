@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MOTIVOS_DE_RECOMECO } from "@/platform/auth";
@@ -16,14 +17,14 @@ export default async function PaginaDeEntrada({ searchParams }: PageProps<"/entr
         <p className="text-sm text-muted-foreground">Acesse os seus prazos e honorários.</p>
       </div>
       {senha === "redefinida" ? (
-        <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
+        <Aviso tipo="sucesso">
           Senha alterada. Entre com a nova senha.
-        </p>
+        </Aviso>
       ) : null}
       {recomeco ? (
-        <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+        <Aviso tipo="erro">
           {recomeco}
-        </p>
+        </Aviso>
       ) : null}
       <FormularioDeEntrada />
       <div className="grid gap-2 text-sm">

@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ListaDeAudiencias } from "@/components/app/audiencia";
@@ -54,9 +55,9 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
 
       {sessao.emailConfirmado ? (
         email === "confirmado" ? (
-          <p role="status" className="rounded-xl border border-positivo/30 bg-positivo-fundo px-4 py-3 text-sm text-positivo">
+          <Aviso tipo="sucesso">
             E-mail confirmado. Os alertas de prazo chegam neste endereço.
-          </p>
+          </Aviso>
         ) : null
       ) : (
         <AvisoDeConfirmacaoDeEmail email={sessao.email} acao={acaoReenviarConfirmacao} />
@@ -76,7 +77,7 @@ export default async function PaginaDoPainel({ searchParams }: PageProps<"/paine
         <>
           <Secao titulo="Pede a sua atenção hoje">
             {urgentes.length === 0 ? (
-              <p className="rounded-xl border bg-positivo-fundo px-4 py-3 text-sm text-positivo">Nenhum prazo vencido ou vencendo hoje.</p>
+              <Aviso tipo="sucesso" semAnuncio>Nenhum prazo vencido ou vencendo hoje.</Aviso>
             ) : (
               <ListaDePrazos prazos={urgentes} />
             )}

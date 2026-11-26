@@ -45,12 +45,12 @@ export function Secao({ titulo, acao, children, className }: { titulo: string; a
 }
 
 export function Cartao({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("rounded-xl border bg-card p-4 sm:p-5", className)}>{children}</div>;
+  return <div className={cn("rounded-md border bg-card p-4 sm:p-5", className)}>{children}</div>;
 }
 
 export function EstadoVazio({ titulo, descricao, acao }: { titulo: string; descricao?: string; acao?: ReactNode }) {
   return (
-    <div className="grid justify-items-center gap-3 rounded-xl border border-dashed bg-card px-4 py-10 text-center">
+    <div className="grid justify-items-center gap-3 rounded-md border border-dashed bg-card px-4 py-10 text-center">
       <p className="font-medium">{titulo}</p>
       {descricao ? <p className="max-w-sm text-sm text-muted-foreground">{descricao}</p> : null}
       {acao}
@@ -60,7 +60,7 @@ export function EstadoVazio({ titulo, descricao, acao }: { titulo: string; descr
 
 /** Lista de itens clicáveis, com alvo de toque confortável no celular. */
 export function ListaDeLinks({ children }: { children: ReactNode }) {
-  return <ul className="divide-y overflow-hidden rounded-xl border bg-card">{children}</ul>;
+  return <ul className="divide-y overflow-hidden rounded-md border bg-card">{children}</ul>;
 }
 
 export function ItemDeLink({ href, children }: { href: string; children: ReactNode }) {

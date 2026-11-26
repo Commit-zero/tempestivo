@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { useEffect, useId, useRef, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { cn } from "cn";
@@ -94,16 +95,16 @@ export function MensagemDoFormulario({ estado }: { estado: EstadoDoFormulario })
   }, [estado]);
   if (estado.erro) {
     return (
-      <p ref={alerta} role="alert" tabIndex={-1} className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+      <Aviso tipo="erro" ref={alerta} tabIndex={-1}>
         {estado.erro}
-      </p>
+      </Aviso>
     );
   }
   if (estado.aviso) {
     return (
-      <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
+      <Aviso tipo="sucesso">
         {estado.aviso}
-      </p>
+      </Aviso>
     );
   }
   return null;

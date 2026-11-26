@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import { formatarDataComSemana } from "@/lib/datas";
 
 // "Como contamos": a data calculada nunca aparece sem os passos, os avisos e as regras.
@@ -15,11 +16,11 @@ export function MemoriaDoCalculo({
         <p className="text-sm text-muted-foreground">Data final calculada</p>
         <p className="text-xl font-semibold tracking-tight">{formatarDataComSemana(dataFinal)}</p>
       </div>
-      <ul className="grid gap-1.5 rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+      <Aviso tipo="atencao" como="ul" className="grid gap-1.5">
         {avisos.map((aviso) => (
           <li key={aviso}>{aviso}</li>
         ))}
-      </ul>
+      </Aviso>
       <div className="grid gap-2">
         <h3 className="text-sm font-semibold">Como contamos</h3>
         <ol className="grid list-decimal gap-1.5 pl-5 text-sm">

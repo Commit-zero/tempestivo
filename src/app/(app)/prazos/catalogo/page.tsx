@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +21,9 @@ export default async function PaginaDoCatalogo() {
   return (
     <div className="grid max-w-3xl gap-8">
       <CabecalhoDaPagina titulo="Catálogo de prazos" voltar={{ href: "/prazos", rotulo: "Prazos" }} />
-      <p role="note" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+      <Aviso tipo="atencao" role="note">
         Os dias de cada tipo são um ponto de partida e ainda não foram validados por um advogado. O valor usado é responsabilidade sua: confira na lei e ajuste aqui.
-      </p>
+      </Aviso>
 
       <Secao titulo="Tipos do catálogo">
         <ul className="divide-y rounded-xl border bg-card">

@@ -15,7 +15,7 @@ const corDaUrgencia: Record<Situacao["urgencia"], string> = {
 
 export function SeloDeVencimento({ situacao, className }: { situacao: Situacao; className?: string }) {
   return (
-    <span className={cn("inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-xs font-medium", corDaUrgencia[situacao.urgencia], className)}>
+    <span className={cn("inline-flex h-6 shrink-0 items-center rounded-sm px-2 text-xs font-medium", corDaUrgencia[situacao.urgencia], className)}>
       {situacao.quando}
     </span>
   );
@@ -33,7 +33,7 @@ export function TextoDaConferencia({ situacao, className }: { situacao: Situacao
 
 export function ListaDePrazos({ prazos, mostrarProcesso = true }: { prazos: PrazoComSituacao[]; mostrarProcesso?: boolean }) {
   return (
-    <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+    <ul className="divide-y overflow-hidden rounded-md border bg-card">
       {prazos.map((prazo) => (
         <li key={prazo.id}>
           <Link href={`/prazos/${prazo.id}`} className="foco-interno grid gap-1.5 px-4 py-3 transition-colors hover:bg-secondary/60">

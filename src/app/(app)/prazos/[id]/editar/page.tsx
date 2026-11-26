@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina } from "@/components/app/pagina";
@@ -18,9 +19,9 @@ export default async function PaginaDeEdicaoDoPrazo({ params }: PageProps<"/praz
   return (
     <div className="grid max-w-2xl gap-6">
       <CabecalhoDaPagina titulo="Editar prazo" descricao={`${prazo.processo.cliente.nome} · ${prazo.processo.assunto}`} voltar={{ href: `/prazos/${id}`, rotulo: "Prazo" }} />
-      <p role="note" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+      <Aviso tipo="atencao" role="note">
         Mudar a data final ou qualquer dado da contagem zera a conferência: você precisará conferir o prazo de novo. A mudança fica no histórico.
-      </p>
+      </Aviso>
       <Cartao>
         <FormularioDePrazo
           editando

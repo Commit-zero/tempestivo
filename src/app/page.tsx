@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import Link from "next/link";
 import { BellRing, CalendarCheck2, CalendarSync, CircleDollarSign, ListChecks, ShieldCheck } from "lucide-react";
 import { Marca } from "@/components/app/marca";
@@ -82,9 +83,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       </header>
       <main className="flex flex-col gap-16">
         {conta === "excluida" ? (
-          <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
+          <Aviso tipo="sucesso">
             A conta e todos os dados foram excluídos.
-          </p>
+          </Aviso>
         ) : null}
         <section className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col items-start gap-6">
