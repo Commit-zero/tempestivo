@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Aviso } from "@/components/app/aviso";
 import { Marca } from "@/components/app/marca";
+import { Carrossel } from "@/components/capa/carrossel";
 import { FaixaDeContagem } from "@/components/capa/faixa-de-contagem";
 import { Diferenciais, ProblemasESolucoes } from "@/components/capa/secoes";
+import { NOMES_DAS_TELAS, TelasDoProduto } from "@/components/capa/telas";
 import { Button } from "@/components/ui/button";
 
 const botaoDaChamada = "h-12 px-6 text-base md:h-12";
@@ -46,6 +48,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <FaixaDeContagem />
         </section>
         <ProblemasESolucoes />
+        <section aria-labelledby="titulo-telas" className="grid min-w-0 gap-6">
+          <h2 id="titulo-telas" className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Como é por dentro
+          </h2>
+          <Carrossel rotulo="Telas do Tempestivo" nomes={NOMES_DAS_TELAS}>
+            {TelasDoProduto()}
+          </Carrossel>
+        </section>
         <Diferenciais />
         <section aria-labelledby="titulo-limites" className="grid justify-items-start gap-5 rounded-md bg-secondary p-6 text-secondary-foreground sm:p-10">
           <h2 id="titulo-limites" className="text-2xl font-bold tracking-tight sm:text-3xl">

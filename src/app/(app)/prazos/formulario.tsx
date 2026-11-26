@@ -6,7 +6,7 @@ import { BotaoEnviar, Campo, CampoDeEscolha, CampoDeMarcar, MensagemDoFormulario
 import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
 import type { ResultadoCalculo } from "@/modules/prazos";
-import { MemoriaDoCalculo } from "./memoria";
+import { MemoriaDoCalculo } from "@/components/app/memoria";
 import type { DadosDaPrevia } from "./acoes";
 
 type Acao = (anterior: EstadoDoFormulario, formulario: FormData) => Promise<EstadoDoFormulario>;

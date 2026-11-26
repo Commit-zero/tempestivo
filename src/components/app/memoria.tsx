@@ -29,14 +29,16 @@ export function MemoriaDoCalculo({
           ))}
         </ol>
       </div>
-      <details className="text-sm">
-        <summary className="flex min-h-11 cursor-pointer items-center font-medium md:min-h-0">Regras aplicadas ({regrasAplicadas.length})</summary>
-        <ul className="mt-2 grid list-disc gap-1.5 pl-5 text-muted-foreground">
-          {regrasAplicadas.map((regra) => (
-            <li key={regra}>{regra}</li>
-          ))}
-        </ul>
-      </details>
+      {regrasAplicadas.length > 0 ? (
+        <details className="text-sm">
+          <summary className="flex min-h-11 cursor-pointer items-center font-medium md:min-h-0">Regras aplicadas ({regrasAplicadas.length})</summary>
+          <ul className="mt-2 grid list-disc gap-1.5 pl-5 text-muted-foreground">
+            {regrasAplicadas.map((regra) => (
+              <li key={regra}>{regra}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </div>
   );
 }

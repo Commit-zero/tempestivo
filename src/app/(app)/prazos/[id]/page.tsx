@@ -11,7 +11,7 @@ import { obterPrazo } from "@/modules/prazos";
 import { formatarNumeroCnj } from "@/modules/processos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoConfirmarConferencia, acaoDesfazerCumprido, acaoExcluirPrazo, acaoMarcarComoCumprido } from "../acoes";
-import { MemoriaDoCalculo } from "../memoria";
+import { MemoriaDoCalculo } from "@/components/app/memoria";
 
 export const metadata: Metadata = { title: "Prazo" };
 

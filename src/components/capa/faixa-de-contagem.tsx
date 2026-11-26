@@ -55,7 +55,11 @@ export function FaixaDeContagem() {
           Exemplo fictício, {exemplo.tribunal}. Intimação em {formatarData(exemplo.intimacao)}.
         </span>
       </figcaption>
-      <ol aria-label="Contagem do prazo, dia a dia" className="grid grid-cols-[repeat(auto-fill,minmax(2.4rem,1fr))] gap-1">
+      <ol
+        aria-label="Contagem do prazo, dia a dia"
+        // No computador, os 23 dias numa linha só; nas telas menores, quebra em linhas.
+        className="grid grid-cols-[repeat(auto-fill,minmax(2.4rem,1fr))] gap-1 lg:grid-cols-[repeat(23,minmax(0,1fr))]"
+      >
         {exemplo.faixa.map((dia, posicao) => (
           <Celula key={dia.data} dia={dia} posicao={posicao} />
         ))}
