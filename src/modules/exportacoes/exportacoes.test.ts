@@ -2,10 +2,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPlanilha } from "@/lib/planilha";
 import { criarCliente, listarClientes } from "@/modules/clientes";
 import { criarAudiencia } from "@/modules/audiencias";
-import { criarHonorario, definirPagamentoDaParcela, listarHonorarios } from "@/modules/honorarios";
+import { criarHonorario, definirPagamentoDaParcela, listarHonorarios, resumoFinanceiro } from "@/modules/honorarios";
 import { cadastrarPrazo, listarPrazos, marcarComoCumprido } from "@/modules/prazos";
 import { criarProcesso, listarProcessos, mudarStatusDoProcesso } from "@/modules/processos";
 import { criarTarefa, moverTarefa } from "@/modules/tarefas";
+import { getPrisma } from "@/platform/database";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { lerPlanilha, valores } from "@/test/ler-planilha";
 import { ehLista, montarPlanilha, permitirPlanilha, type FiltrosDaPlanilha, type Lista } from "./index";
@@ -300,5 +301,88 @@ describe("planilhas de audiências e de tarefas", () => {
       ["Protocolar AlfaDaContaA", "Descrição fictícia", "Fazendo", 46_359, "Ação de cobrança AlfaDaContaA"],
     ]);
     expect(tudo).not.toContain("BetaDaContaB");
+  });
+});
+
+// Por último no arquivo: usa tudo o que os blocos anteriores cadastraram.
+describe("planilha completa", () => {
+  const ABAS = [
+    "Resumo", "Clientes", "Processos", "Prazos", "Leia-me", "Honorários", "Parcelas", "Audiências próximas",
+    "Audiências realizadas", "Tarefas",
+  ];
+
+  it("tem uma aba por lista, mais o resumo, e só dados da própria conta", async () => {
+    const { lida, tudo, nomeDoArquivo } = await abrir(contaA, "completa");
+
+    expect(lida.abas.map((aba) => aba.nome)).toEqual(ABAS);
+    expect(nomeDoArquivo).toBe("tempestivo-completa-2026-11-26.xlsx");
+    expect(tudo).toContain("AlfaDaContaA");
+    expect(tudo).not.toContain("BetaDaContaB");
+  });
+
+  it("ignora os filtros do endereço: traz processos arquivados e prazos cumpridos", async () => {
+    const completa = await abrir(contaA, "completa", { busca: "nada-casa-com-isto", status: "arquivado", filtro: "vencidos" });
+    const processos = await abrir(contaA, "processos", { status: "todos" });
+    const abertos = await abrir(contaA, "prazos", { filtro: "em_aberto" });
+    const cumpridos = await abrir(contaA, "prazos", { filtro: "cumpridos" });
+    const clientes = await abrir(contaA, "clientes");
+
+    expect(valores(completa.aba("Clientes"))).toEqual(valores(clientes.aba("Clientes")));
+    expect(valores(completa.aba("Processos"))).toEqual(valores(processos.aba("Processos")));
+    expect(valores(completa.aba("Prazos"))).toEqual([...valores(abertos.aba("Prazos")), ...valores(cumpridos.aba("Prazos"))]);
+    expect(completa.cabecalho("Prazos")).toEqual(abertos.cabecalho("Prazos"));
+    expect(valores(completa.aba("Leia-me"))).toContainEqual(["Cálculo auxiliar, confira."]);
+  });
+
+  it("o resumo bate com as abas e com os totais da tela de honorários", async () => {
+    const { aba, cabecalho } = await abrir(contaA, "completa");
+    const financeiro = await resumoFinanceiro(contaA, AGORA);
+    const resumo = new Map(valores(aba("Resumo")).map(([item, quantidade, valor]) => [item, quantidade ?? valor]));
+
+    expect(cabecalho("Resumo")).toEqual(["Item", "Quantidade", "Valor"]);
+    for (const [item, nomeDaAba] of [
+      ["Clientes", "Clientes"], ["Processos", "Processos"], ["Honorários", "Honorários"], ["Tarefas", "Tarefas"],
+      ["Audiências próximas", "Audiências próximas"], ["Audiências realizadas", "Audiências realizadas"],
+    ] as const) {
+      expect(resumo.get(item), item).toBe(aba(nomeDaAba).linhas.length - 1);
+    }
+    expect(Number(resumo.get("Prazos em aberto")) + Number(resumo.get("Prazos cumpridos"))).toBe(aba("Prazos").linhas.length - 1);
+    expect(resumo.get("Honorários a receber")).toBe(financeiro.aReceberCentavos / 100);
+    expect(resumo.get("Honorários em atraso")).toBe(financeiro.emAtrasoCentavos / 100);
+    expect(resumo.get("Honorários recebidos neste mês")).toBe(financeiro.recebidoNoMesCentavos / 100);
+  });
+
+  it("não leva identificadores, tokens, dados de acesso nem o link da sala", async () => {
+    const conta = await getPrisma().conta.findUniqueOrThrow({ where: { id: contaA }, select: { usuarioId: true } });
+    const ids = (
+      await Promise.all([
+        getPrisma().cliente.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().processo.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().prazo.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().parcela.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().audiencia.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().tarefa.findMany({ where: { contaId: contaA }, select: { id: true } }),
+      ])
+    ).flat();
+    await getPrisma().conta.update({
+      where: { id: contaA },
+      data: { agendaTokenHash: `HASH-DA-AGENDA-${contaA}`, substitutoTokenHash: `HASH-DO-CONVITE-${contaA}` },
+    });
+
+    const { tudo } = await abrir(contaA, "completa");
+
+    expect(ids.length).toBeGreaterThan(10);
+    for (const segredo of [contaA, conta.usuarioId, ...ids.map(({ id }) => id), "HASH-DA-AGENDA", "HASH-DO-CONVITE", "SENHA-DA-SALA"]) {
+      expect(tudo, segredo).not.toContain(segredo);
+    }
+  });
+
+  it("conta sem nada gera todas as abas só com o cabeçalho", async () => {
+    const vazia = await criarContaDeTeste("Conta vazia");
+    const { lida } = await abrir(vazia, "completa");
+
+    expect(lida.abas.map((aba) => aba.nome)).toEqual(ABAS);
+    for (const aba of lida.abas.filter((a) => !["Resumo", "Leia-me"].includes(a.nome))) expect(aba.linhas, aba.nome).toHaveLength(1);
+    await apagarContaDeTeste(vazia);
   });
 });

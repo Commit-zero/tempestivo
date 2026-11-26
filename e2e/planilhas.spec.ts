@@ -30,6 +30,31 @@ test("clientes: o botão baixa a planilha com a busca da tela", async ({ page })
   expect(valores(planilha.abas[0]!).map((linha) => linha[0])).toEqual([procurado]);
 });
 
+test("cada lista e a conta oferecem a planilha com o filtro da tela, em alvos de 44 px no celular", async ({ page }) => {
+  await cadastrarContaFicticia(page);
+  for (const [rota, destino, nome] of [
+    ["/clientes", "/exportar/clientes", "Baixar planilha"],
+    ["/processos?status=todos", "/exportar/processos?status=todos", "Baixar planilha"],
+    ["/prazos?filtro=vencidos", "/exportar/prazos?filtro=vencidos", "Baixar planilha"],
+    ["/honorarios", "/exportar/honorarios", "Baixar planilha"],
+    ["/audiencias", "/exportar/audiencias", "Baixar planilha"],
+    ["/tarefas", "/exportar/tarefas", "Baixar planilha"],
+    ["/conta", "/exportar/completa", "Baixar a planilha completa"],
+  ] as const) {
+    await page.goto(rota);
+    const botao = page.getByRole("link", { name: nome });
+    await expect(botao).toHaveAttribute("href", destino);
+    if (page.viewportSize()!.width < 768) expect((await botao.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await semRolagemHorizontal(page);
+  }
+
+  const { arquivo, planilha } = await baixar(page, "Baixar a planilha completa");
+
+  expect(arquivo).toMatch(/^tempestivo-completa-/);
+  expect(planilha.abas.map((aba) => aba.nome)).toContain("Resumo");
+  expect(planilha.temFormula).toBe(false);
+});
+
 test("sem sessão é 401, lista desconhecida é 404 e há limite por minuto", async ({ page }) => {
   expect((await page.request.get("/exportar/clientes")).status()).toBe(401);
 
