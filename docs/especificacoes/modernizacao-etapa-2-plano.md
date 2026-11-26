@@ -1,6 +1,6 @@
 # Etapa 2: plano de tarefas
 
-Plano da [especificação da Etapa 2](modernizacao-etapa-2.md), aprovada em 26/11/2026. **Situação:** plano proposto, aguardando aprovação. Tudo fica na branch `modernizacao/etapa-2-identidade`, sem push antes do fim da final.
+Plano da [especificação da Etapa 2](modernizacao-etapa-2.md), aprovada em 26/11/2026. **Situação:** plano aprovado em 26/11/2026; bloco A pronto na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-2-identidade`, sem push antes do fim da final.
 
 ## Decisões do plano
 
@@ -109,6 +109,19 @@ Lint, tipos, testes com cobertura, build, testes de tela, e revisão de código.
 - Verificação: todos os comandos, `qa-responsivo` e revisão de código.
 - Arquivos: `docs/`, `README.md`.
 - Depende de: T12. Tamanho: P.
+
+## Andamento
+
+**Bloco A (T1 a T7), pronto em 26/11/2026.** Passaram: lint, tipos, 514 testes com cobertura acima das metas, build e 157 testes de tela (Edge, 360, 768 e 1280 px). Não rodaram: build da imagem Docker, Trivy e os workflows no GitHub (branch sem push). O `qa-responsivo` fica para a T13.
+
+- **T1:** três símbolos em [simbolos/](simbolos/); **a escolha está pendente** e nada foi aplicado. O símbolo antigo continua na marca, nos ícones e na imagem de compartilhamento, que ainda têm as cores antigas (T12).
+- **T2:** o verde vale para "conferido" e também para ação concluída (aviso de sucesso, regra de senha atendida).
+- **T3:** o componente `Aviso` substituiu 23 blocos repetidos.
+- **T4 e T5:** o aviso usa cookie, e não o endereço (ver "Decisões do plano"). A política de privacidade não lista cookies e não foi alterada.
+- **T6:** o teste achou o aviso cobrindo o botão "Excluir cliente" no celular; ele passou a ocupar o próprio espaço no fim da página.
+- **T7:** um botão de envio escondido, no primeiro desenho do diálogo, seria "apertado" pelo Enter e apagaria a conta sem confirmação. Virou um campo escondido, com teste. Trocar e desligar o link da agenda também pedem confirmação.
+- **Revisão de segurança e código:** nada crítico nem alto. Corrigidos: sucesso antigo depois de uma ação que não avisa, link morto no painel da agenda, repetição não anunciada, faixa lateral, anúncio do link novo, tela desatualizada da agenda e foco ao fechar o aviso. Essas correções não passaram por nova revisão. Quando uma ação sem formulário falha em silêncio, o aviso antigo some, mas não aparece erro.
+- **Em aberto, anterior à etapa:** em `prazos`, `audiencias` e `honorarios`, alguns serviços ignoram o retorno da gravação. Se o registro for apagado em outra aba no instante de salvar, o aviso diz que deu certo. Mexer em `prazos` pede o `revisor-de-prazos`.
 
 ## Publicação, depois da final e com confirmação
 
