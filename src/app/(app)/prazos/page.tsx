@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cn } from "cn";
@@ -54,6 +55,7 @@ export default async function PaginaDePrazos({ searchParams }: PageProps<"/prazo
           ))}
         </ul>
       </nav>
+      <BaixarPlanilha lista="prazos" filtros={{ filtro }} />
       {prazos.length === 0 ? (
         <EstadoVazio
           titulo={VAZIO[filtro]}

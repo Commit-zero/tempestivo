@@ -2,12 +2,13 @@ import { criarLimitador } from "@/lib/limitador";
 import { dataCivilEmSaoPaulo } from "@/lib/datas";
 import type { Aba } from "@/lib/planilha";
 import { abasDeClientes } from "./clientes";
+import { abasDePrazos } from "./prazos";
 import { abasDeProcessos } from "./processos";
 
 // O que fica de fora de toda planilha: identificadores internos, tokens, dados de acesso
 // e o link de sala virtual (que costuma levar a senha). Cada coluna é escolhida à mão.
 
-export const LISTAS = ["clientes", "processos"] as const;
+export const LISTAS = ["clientes", "processos", "prazos"] as const;
 export type Lista = (typeof LISTAS)[number];
 
 /** Os filtros que as telas das listas aceitam, como chegam no endereço. */
@@ -19,6 +20,7 @@ type Montador = (contaId: string, filtros: FiltrosDaPlanilha, agora: Date) => Pr
 
 const MONTADORES: Record<Lista, Montador> = {
   clientes: abasDeClientes,
+  prazos: abasDePrazos,
   processos: abasDeProcessos,
 };
 

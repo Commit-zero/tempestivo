@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPlanilha } from "@/lib/planilha";
 import { criarCliente, listarClientes } from "@/modules/clientes";
+import { cadastrarPrazo, listarPrazos, marcarComoCumprido } from "@/modules/prazos";
 import { criarProcesso, listarProcessos, mudarStatusDoProcesso } from "@/modules/processos";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { lerPlanilha, valores } from "@/test/ler-planilha";
@@ -142,5 +143,69 @@ describe("planilha de processos", () => {
     const esperados = await listarProcessos(contaA, naTela);
 
     expect(valores(aba("Processos")).map((linha) => linha[2])).toEqual(esperados.map((processo) => processo.assunto));
+  });
+});
+
+describe("planilha de prazos", () => {
+  beforeAll(async () => {
+    for (const conta of [contaA, contaB]) {
+      const marca = conta === contaA ? "AlfaDaContaA" : "BetaDaContaB";
+      const processo = (await listarProcessos(conta, { status: "ativo" }))[0]!;
+      const calculado = await cadastrarPrazo(conta, {
+        origem: "calculada", processoId: processo.id, descricao: `Contestação ${marca}`, dataEvento: "2026-11-12",
+        tipoEvento: "intimacao", dias: "15", contagem: "uteis", emDobro: false, conferiNosAutos: true,
+      });
+      if (!calculado.ok) throw new Error(calculado.erro);
+      const vencido = await cadastrarPrazo(conta, { origem: "manual", processoId: processo.id, descricao: `Vencido ${marca}`, dataFinal: "2026-11-20" });
+      const cumprido = await cadastrarPrazo(conta, { origem: "manual", processoId: processo.id, descricao: `Cumprido ${marca}`, dataFinal: "2026-12-10" });
+      if (!vencido.ok || !cumprido.ok) throw new Error("prazo");
+      await marcarComoCumprido(conta, cumprido.valor.id, new Date("2026-11-25T02:30:00Z"));
+    }
+  });
+
+  it("leva 'cálculo auxiliar, confira' no cabeçalho da data e tem o Leia-me com o aviso das regras", async () => {
+    const { cabecalho, aba, tudo } = await abrir(contaA, "prazos");
+
+    expect(cabecalho("Prazos")).toEqual([
+      "Descrição", "Cliente", "Processo", "Número", "Tribunal", "Data final (cálculo auxiliar, confira)", "Origem da data",
+      "Meta interna", "Situação", "Última conferência", "Cumprido em",
+    ]);
+    const avisos = valores(aba("Leia-me")).map((linha) => linha[0]);
+    expect(avisos).toContain("Cálculo auxiliar, confira.");
+    expect(avisos.some((aviso) => String(aviso).includes("ainda não foram validadas por um advogado"))).toBe(true);
+    expect(tudo).not.toContain("BetaDaContaB");
+  });
+
+  it("mostra a data, a origem, a meta e a situação como a tela", async () => {
+    const { aba } = await abrir(contaA, "prazos");
+    const naTela = await listarPrazos(contaA, { filtro: "em_aberto" }, AGORA);
+    const linhas = valores(aba("Prazos"));
+
+    expect(linhas.map((linha) => linha[0])).toEqual(naTela.map((prazo) => prazo.descricao));
+    const calculado = linhas.find((linha) => String(linha[0]).startsWith("Contestação"))!;
+    // 04/12/2026 e 02/12/2026 como números de série do Excel.
+    expect([calculado[5], calculado[6], calculado[7]]).toEqual([46_360, "calculada", 46_358]);
+    expect(calculado[8]).toBe(naTela.find((prazo) => prazo.descricao.startsWith("Contestação"))!.situacao.quando);
+    expect(aba("Prazos").linhas[1]![5]!.formato).toBe("dd/mm/yyyy");
+    const vencido = linhas.find((linha) => String(linha[0]).startsWith("Vencido"))!;
+    expect([vencido[6], vencido[7]]).toEqual(["manual", null]);
+  });
+
+  it.each([
+    ["em_aberto", "em_aberto"], ["vencidos", "vencidos"], ["cumpridos", "cumpridos"], ["proximos_7_dias", "proximos_7_dias"],
+    ["inventado", "em_aberto"],
+  ] as const)("o filtro %s é o mesmo da tela", async (filtro, naTela) => {
+    const { aba } = await abrir(contaA, "prazos", { filtro });
+    const esperados = await listarPrazos(contaA, { filtro: naTela }, AGORA);
+
+    expect(valores(aba("Prazos")).map((linha) => linha[0])).toEqual(esperados.map((prazo) => prazo.descricao));
+  });
+
+  it("prazo cumprido sai com o instante no horário de São Paulo", async () => {
+    const { aba } = await abrir(contaA, "prazos", { filtro: "cumpridos" });
+
+    // 24/11/2026 23:30 em São Paulo.
+    expect(aba("Prazos").linhas[1]![10]).toMatchObject({ formato: "dd/mm/yyyy hh:mm" });
+    expect(aba("Prazos").linhas[1]![10]!.valor).toBeCloseTo(46_350 + 23.5 / 24, 6);
   });
 });
