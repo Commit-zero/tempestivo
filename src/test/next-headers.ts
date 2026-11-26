@@ -32,6 +32,10 @@ export async function cookies() {
   return {
     // Sem `toString()` de propósito: no Next, em server action, ele sai no formato de `Set-Cookie`.
     getAll: () => [...navegador.cookies].map(([name, value]) => ({ name, value })),
+    get(nome: string) {
+      const value = navegador.cookies.get(nome);
+      return value === undefined ? undefined : { name: nome, value };
+    },
     set(nome: string, valor: string, opcoes?: { maxAge?: number; expires?: Date }) {
       const expirado = opcoes?.maxAge === 0 || (opcoes?.expires !== undefined && opcoes.expires.getTime() <= Date.now());
       if (expirado || !valor) navegador.cookies.delete(nome);

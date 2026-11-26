@@ -2,6 +2,7 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins";
 import { TAMANHO_MAXIMO_DA_SENHA, TAMANHO_MINIMO_DA_SENHA } from "@/lib/regras-de-senha";
 import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
@@ -81,7 +82,9 @@ function criarAuth() {
     rateLimit: { enabled: true, window: 60, max: 60 },
     advanced: { cookiePrefix: "tempestivo" },
     // Precisa ser o último plugin: grava os cookies de sessão nas server actions.
-    plugins: [nextCookies()],
+    // `twoFactor`: só o aplicativo autenticador (sem código por e-mail ou SMS). O segredo
+    // e os códigos de recuperação são gravados cifrados com o AUTH_SECRET.
+    plugins: [twoFactor({ issuer: "Tempestivo" }), nextCookies()],
   });
 }
 

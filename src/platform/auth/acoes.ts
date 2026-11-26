@@ -9,6 +9,7 @@ import { criarLimitador } from "@/lib/limitador";
 import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { enviarAvisoDeSeguranca } from "./avisos";
+import { ipDoCliente, MUITAS_TENTATIVAS, registrarFalha } from "./comum";
 import { invalidarLinksDeRedefinicao } from "./links-de-redefinicao";
 import { conferirSenha } from "./senha";
 
@@ -22,7 +23,6 @@ const tentativasDeEntrada = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS
 const tentativasDeCadastro = criarLimitador({ maximo: 10, janelaMs: QUINZE_MINUTOS });
 const pedidosDeRedefinicao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
-const MUITAS_TENTATIVAS = "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
 const ROTA_APOS_CONFIRMAR = "/email-confirmado";
 const reenviosDeConfirmacao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
@@ -56,18 +56,6 @@ function primeiroErro(erro: z.ZodError): ResultadoAuth {
   return { ok: false, erro: erro.issues[0]?.message ?? "Dados inválidos." };
 }
 
-async function ipDoCliente(): Promise<string> {
-  const cabecalhos = await headers();
-  return cabecalhos.get("x-forwarded-for")?.split(",")[0]?.trim() || cabecalhos.get("x-real-ip") || "desconhecido";
-}
-
-function registrarFalha(operacao: string, erro: unknown): void {
-  getLogger().warn("falha de autenticação", {
-    operacao,
-    tipo: erro instanceof Error ? erro.name : typeof erro,
-  });
-}
-
 export async function cadastrar(dados: { nome: unknown; email: unknown; senha: unknown; confirmacao: unknown }): Promise<ResultadoAuth> {
   const validado = schemaCadastro.safeParse(dados);
   if (!validado.success) return primeiroErro(validado.error);
@@ -94,13 +82,19 @@ export async function cadastrar(dados: { nome: unknown; email: unknown; senha: u
   }
 }
 
-export async function entrar(dados: { email: unknown; senha: unknown }): Promise<ResultadoAuth> {
+/** `segundoFator`: a senha está certa, mas a sessão só nasce depois do código. */
+export type ResultadoDaEntrada = ResultadoAuth | { ok: true; segundoFator: true };
+
+export async function entrar(dados: { email: unknown; senha: unknown }): Promise<ResultadoDaEntrada> {
   const validado = schemaEntrada.safeParse(dados);
   if (!validado.success) return primeiroErro(validado.error);
   const chave = `${await ipDoCliente()}:${validado.data.email}`;
   if (!tentativasDeEntrada.permitir(chave)) return { ok: false, erro: MUITAS_TENTATIVAS };
   try {
-    await getAuth().api.signInEmail({ body: { email: validado.data.email, password: validado.data.senha } });
+    const resposta = await getAuth().api.signInEmail({ body: { email: validado.data.email, password: validado.data.senha } });
+    // Com o segundo fator, o limite não é zerado: quem só tem a senha não abre
+    // passos pendentes à vontade para adivinhar o código.
+    if ("twoFactorRedirect" in resposta) return { ok: true, segundoFator: true };
     tentativasDeEntrada.liberar(chave);
     return { ok: true };
   } catch (erro) {
