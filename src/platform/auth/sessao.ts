@@ -36,7 +36,7 @@ async function contaDoUsuario(usuarioId: string, nome: string): Promise<string> 
  * monta a página de novo na mesma requisição: com o cookie antigo, a sessão pareceria
  * encerrada.
  */
-async function cabecalhosComCookiesAtuais(): Promise<Headers> {
+export async function cabecalhosComCookiesAtuais(): Promise<Headers> {
   const cabecalhos = new Headers(await headers());
   // Montado à mão: em server action, `cookies().toString()` sai no formato de `Set-Cookie`.
   const atuais = (await cookies())

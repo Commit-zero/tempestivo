@@ -34,8 +34,8 @@ const QUINZE_MINUTOS = 15 * 60 * 1000;
 const DOIS_MINUTOS = 2 * 60 * 1000;
 const tentativasDeCodigo = criarLimitador({ maximo: 15, janelaMs: QUINZE_MINUTOS });
 
-const FORA_DO_FORMATO = "Digite os 6 números do aplicativo.";
-const schemaDoCodigo = z.string(FORA_DO_FORMATO).transform((valor) => valor.replace(/\s/g, "")).pipe(z.string().regex(/^\d{6}$/, FORA_DO_FORMATO));
+export const FORA_DO_FORMATO = "Digite os 6 números do aplicativo.";
+export const schemaDoCodigo = z.string(FORA_DO_FORMATO).transform((valor) => valor.replace(/\s/g, "")).pipe(z.string().regex(/^\d{6}$/, FORA_DO_FORMATO));
 const SEM_RECUPERACAO = "Digite um dos códigos de recuperação.";
 // Os códigos têm letras maiúsculas e minúsculas: não se muda a caixa.
 const schemaDaRecuperacao = z.string(SEM_RECUPERACAO).trim().min(1, SEM_RECUPERACAO).max(32, "Código de recuperação incorreto ou já usado.");

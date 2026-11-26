@@ -4,10 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
-import { confirmarSenhaAtual, exigirSessao, trocarSenha } from "@/platform/auth";
+import { confirmarAtivacao, confirmarSenhaAtual, exigirSessao, iniciarAtivacao, trocarSenha } from "@/platform/auth";
 import { getConfig } from "@/platform/config";
 import { getMailer } from "@/platform/runtime";
 import type { EstadoDaAgenda } from "./agenda";
+import type { EstadoDaConfirmacao, EstadoDoInicio } from "./segundo-fator";
 
 export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const { contaId } = await exigirSessao();
@@ -32,6 +33,19 @@ export async function acaoTrocarSenha(_anterior: EstadoDoFormulario, formulario:
   });
   if (!resultado.ok) return { erro: resultado.erro };
   return { aviso: "Senha trocada. As sessões em outros aparelhos foram encerradas." };
+}
+
+export async function acaoIniciarSegundoFator(_anterior: EstadoDoInicio, formulario: FormData): Promise<EstadoDoInicio> {
+  const resultado = await iniciarAtivacao(await exigirSessao(), formulario.get("senha"));
+  if (!resultado.ok) return { erro: resultado.erro };
+  return { qrCode: resultado.qrCode, chave: resultado.chave };
+}
+
+export async function acaoConfirmarSegundoFator(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {
+  const resultado = await confirmarAtivacao(await exigirSessao(), formulario.get("codigo"));
+  if (!resultado.ok) return { erro: resultado.erro };
+  revalidatePath("/conta");
+  return { codigos: resultado.codigos };
 }
 
 // Pede a senha atual: uma sessão esquecida aberta não basta para apagar tudo.
