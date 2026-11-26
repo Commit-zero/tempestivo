@@ -206,7 +206,8 @@ describe("troca de senha com a sessão aberta (integração)", () => {
   });
 
   it("falha que não é senha errada não é anunciada como senha errada", async () => {
-    const { titular } = await titularLogado();
+    const { email, titular } = await titularLogado();
+    await pedirRedefinicaoDeSenha({ email });
     const falha = vi.spyOn(getAuth().api, "changePassword").mockRejectedValueOnce(new Error("banco fora do ar"));
 
     expect(await trocarSenha(titular, troca(SENHA))).toEqual({
@@ -214,6 +215,9 @@ describe("troca de senha com a sessão aberta (integração)", () => {
       erro: "Não foi possível confirmar a troca. Saia e entre de novo; se a senha atual não funcionar, tente a nova.",
     });
     falha.mockRestore();
+    // Não se sabe se a senha mudou: os links antigos deixam de valer.
+    const pendentes = { value: titular.usuarioId, identifier: { startsWith: "reset-password:" } };
+    expect(await getPrisma().verification.count({ where: pendentes })).toBe(0);
   });
 
   it("bloqueia depois de 5 tentativas com a senha atual errada", async () => {

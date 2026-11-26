@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
 
 export type EstadoDoInicio = { erro?: string; qrCode?: string; chave?: string };
-export type EstadoDaConfirmacao = { erro?: string; codigos?: string[] };
+export type EstadoDaConfirmacao = { erro?: string; codigos?: string[]; atencao?: string };
 
 type Acao<Estado> = (anterior: Estado, formulario: FormData) => Promise<Estado>;
 
@@ -30,7 +30,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
   const [desligamento, desativar] = useActionState(acaoDesativar, {});
 
   const codigos = ligado ? (novos.codigos ?? confirmacao.codigos) : undefined;
-  if (codigos) return <CodigosDeRecuperacao codigos={codigos} />;
+  if (codigos) return <CodigosDeRecuperacao codigos={codigos} atencao={novos.codigos ? undefined : confirmacao.atencao} />;
 
   if (ligado) {
     return (
@@ -38,6 +38,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
         <p className="text-sm text-positivo">
           <strong>Ligada.</strong> O login pede o código do aplicativo.
         </p>
+        {confirmacao.erro ? <MensagemDoFormulario estado={confirmacao} /> : null}
         <form action={gerar} className="grid gap-4">
           <MensagemDoFormulario estado={novos} />
           <Campo
@@ -106,7 +107,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
   );
 }
 
-export function CodigosDeRecuperacao({ codigos }: { codigos: string[] }) {
+function CodigosDeRecuperacao({ codigos, atencao }: { codigos: string[]; atencao?: string }) {
   const [copiados, setCopiados] = useState<boolean | null>(null);
 
   async function copiar() {
@@ -125,6 +126,7 @@ export function CodigosDeRecuperacao({ codigos }: { codigos: string[] }) {
         fique sem o celular. Guarde num lugar seguro, separado do aparelho. Sem o celular e sem eles, o acesso depende de atendimento
         manual.
       </p>
+      {atencao ? <MensagemDoFormulario estado={{ erro: atencao }} /> : null}
       <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-2 font-mono text-sm">
         {codigos.map((codigo) => (
           <li key={codigo} className="rounded-md border px-2 py-1 text-center">

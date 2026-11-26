@@ -45,9 +45,9 @@ export async function acaoIniciarSegundoFator(_anterior: EstadoDoInicio, formula
 
 export async function acaoConfirmarSegundoFator(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {
   const resultado = await confirmarAtivacao(await exigirSessao(), formulario.get("codigo"));
-  if (!resultado.ok) return { erro: resultado.erro };
+  // Mesmo com erro a proteção pode ter ligado: a tela sempre mostra o estado atual.
   revalidatePath("/conta");
-  return { codigos: resultado.codigos };
+  return resultado.ok ? { codigos: resultado.codigos, atencao: resultado.atencao } : { erro: resultado.erro };
 }
 
 export async function acaoGerarCodigos(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {

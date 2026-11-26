@@ -17,7 +17,7 @@ import { cabecalhosComCookiesAtuais } from "./sessao";
 
 export type Titular = { usuarioId: string; nome: string; email: string };
 export type InicioDaAtivacao = { ok: true; qrCode: string; chave: string } | { ok: false; erro: string };
-export type FimDaAtivacao = { ok: true; codigos: string[] } | { ok: false; erro: string };
+export type FimDaAtivacao = { ok: true; codigos: string[]; atencao?: string } | { ok: false; erro: string };
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 const senhasNaAtivacao = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
@@ -90,17 +90,26 @@ export async function confirmarAtivacao(titular: Titular, codigo: unknown): Prom
     if (falha instanceof APIError && falha.body?.code === "INVALID_CODE") return { ok: false, erro: "Código incorreto." };
     return { ok: false, erro: "Não foi possível conferir o código. Tente de novo." };
   }
-  // Daqui em diante a proteção está ligada: nada pode esconder os códigos de recuperação.
+  // Daqui em diante a proteção está ligada: uma falha não pode passar em silêncio.
+  const registrar = (falha: unknown) =>
+    getLogger().error("falha depois de ligar o segundo fator", { tipo: falha instanceof Error ? falha.name : typeof falha });
+  await registrarCodigoUsado(titular.usuarioId, validado.data).catch(registrar);
+  let atencao: string | undefined;
   try {
-    await registrarCodigoUsado(titular.usuarioId, validado.data);
     await encerrarOutrasSessoes(titular.usuarioId);
   } catch (falha) {
-    getLogger().error("falha depois de ligar o segundo fator", { tipo: falha instanceof Error ? falha.name : typeof falha });
+    registrar(falha);
+    atencao = "Não foi possível encerrar as sessões em outros aparelhos. Troque a senha para encerrá-las.";
   }
   await avisar("segundo-fator-ligado", titular);
-  // Função só de servidor da biblioteca; o id vem da sessão, nunca do navegador.
-  const { backupCodes } = await getAuth().api.viewBackupCodes({ body: { userId: titular.usuarioId } });
-  return { ok: true, codigos: backupCodes };
+  try {
+    // Função só de servidor da biblioteca; o id vem da sessão, nunca do navegador.
+    const { backupCodes } = await getAuth().api.viewBackupCodes({ body: { userId: titular.usuarioId } });
+    return { ok: true, codigos: backupCodes, atencao };
+  } catch (falha) {
+    registrar(falha);
+    return { ok: false, erro: "A verificação foi ligada, mas não deu para mostrar os códigos de recuperação. Gere códigos novos abaixo." };
+  }
 }
 
 // --- Com a proteção ligada --------------------------------------------------------

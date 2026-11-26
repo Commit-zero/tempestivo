@@ -6,6 +6,7 @@ import { getMailer } from "@/platform/runtime";
 import { novoNavegador, usarNavegador } from "@/test/next-headers";
 import { codigoTotp } from "@/test/totp";
 import { cadastrar, entrar } from "./acoes";
+import { getAuth } from "./auth";
 import { confirmarAtivacao, desativarSegundoFator, gerarNovosCodigos, iniciarAtivacao, segundoFatorLigado } from "./ativacao";
 import { confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao } from "./segundo-fator";
 import { obterSessao } from "./sessao";
@@ -135,6 +136,38 @@ describe("ativação do segundo fator (integração)", () => {
     outroNavegador();
     await entrar({ email, senha: SENHA });
     expect(await confirmarCodigoDeRecuperacao(resultado.codigos[0])).toEqual({ ok: true });
+  });
+
+  it("se os códigos não puderem ser lidos, diz que ligou e manda gerar novos", async () => {
+    const { titular } = await titularLogado();
+    const { chave } = await iniciar(titular);
+    const falha = vi.spyOn(getAuth().api, "viewBackupCodes").mockRejectedValueOnce(new Error("banco fora"));
+
+    expect(await confirmarAtivacao(titular, codigoTotp(chave))).toEqual({
+      ok: false, erro: "A verificação foi ligada, mas não deu para mostrar os códigos de recuperação. Gere códigos novos abaixo.",
+    });
+    falha.mockRestore();
+    expect(await segundoFatorLigado(titular.usuarioId)).toBe(true);
+  });
+
+  it("se as outras sessões não puderem ser encerradas, avisa quem ligou", async () => {
+    const { titular } = await titularLogado();
+    const { chave } = await iniciar(titular);
+    // Só a limpeza das outras sessões falha; a biblioteca também apaga sessões ao ligar.
+    const { session } = getPrisma();
+    const original = session.deleteMany.bind(session);
+    const falha = vi.spyOn(session, "deleteMany").mockImplementation(((argumentos: Parameters<typeof original>[0]) =>
+      JSON.stringify(argumentos?.where?.token ?? "").includes('"not"')
+        ? Promise.reject(new Error("banco fora"))
+        : original(argumentos)) as typeof session.deleteMany);
+
+    const resultado = await confirmarAtivacao(titular, codigoTotp(chave));
+
+    expect(falha).toHaveBeenCalled();
+    falha.mockRestore();
+    expect(resultado).toMatchObject({
+      ok: true, atencao: "Não foi possível encerrar as sessões em outros aparelhos. Troque a senha para encerrá-las.",
+    });
   });
 
   it("já ligada, não recomeça nem mostra os códigos de novo", async () => {

@@ -77,18 +77,39 @@ export async function registrarCodigoUsado(usuarioId: string, codigo: string, ag
   return count === 1;
 }
 
+const JA_CONECTADO: ResultadoDoSegundoFator = { ok: false, erro: "Você já está conectado. Abra o painel." };
+
+/**
+ * Cabeçalhos para conferir um código na entrada, ou `null` se já há sessão. Com
+ * sessão, a biblioteca confere o código sem o limite do login e ainda liga uma
+ * ativação pendente, sem o aviso nem o encerramento das outras sessões. A tela já
+ * redireciona quem está conectado, mas a server action pode ser chamada direto.
+ */
+async function cabecalhosDeQuemEstaEntrando(): Promise<Headers | null> {
+  const cabecalhos = await headers();
+  return (await getAuth().api.getSession({ headers: cabecalhos })) ? null : cabecalhos;
+}
+
+/** Tira do navegador o cookie de sessão que a biblioteca acabou de gravar. */
+async function descartarCookieDaSessao(): Promise<void> {
+  const { name, attributes } = (await getAuth().$context).authCookies.sessionToken;
+  (await cookies()).set(name, "", { path: attributes.path, secure: attributes.secure, httpOnly: true, sameSite: "lax", maxAge: 0 });
+}
+
 export async function confirmarCodigoDeEntrada(codigo: unknown): Promise<ResultadoDoSegundoFator> {
   const validado = schemaDoCodigo.safeParse(codigo);
   if (!validado.success) return { ok: false, erro: FORA_DO_FORMATO };
   if (!tentativasDeCodigo.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
+  const cabecalhos = await cabecalhosDeQuemEstaEntrando();
+  if (!cabecalhos) return JA_CONECTADO;
   let entrada: { token: string; user: { id: string; email: string } };
   try {
-    entrada = await getAuth().api.verifyTOTP({ body: { code: validado.data }, headers: await headers() });
+    entrada = await getAuth().api.verifyTOTP({ body: { code: validado.data }, headers: cabecalhos });
   } catch (erro) {
     return traduzir("código de entrada", erro);
   }
-  // Só aqui se sabe de quem é o código. Na dúvida (repetido ou banco falhando), a
-  // sessão recém-criada é apagada.
+  // Só aqui se sabe de quem é o código. Na dúvida (repetido ou banco falhando), o
+  // cookie sai do navegador e a sessão recém-criada é apagada.
   let primeiroUso = false;
   try {
     primeiroUso = await registrarCodigoUsado(entrada.user.id, validado.data);
@@ -99,7 +120,12 @@ export async function confirmarCodigoDeEntrada(codigo: unknown): Promise<Resulta
     await liberarEntrada(entrada.user.email);
     return { ok: true };
   }
-  await getPrisma().session.deleteMany({ where: { token: entrada.token } });
+  await descartarCookieDaSessao();
+  try {
+    await getPrisma().session.deleteMany({ where: { token: entrada.token } });
+  } catch (erro) {
+    registrarFalha("sessão do código recusado", erro);
+  }
   return recomeco("repetido");
 }
 
@@ -107,9 +133,11 @@ export async function confirmarCodigoDeRecuperacao(codigo: unknown): Promise<Res
   const validado = schemaDaRecuperacao.safeParse(codigo);
   if (!validado.success) return { ok: false, erro: validado.error.issues[0]?.message ?? SEM_RECUPERACAO };
   if (!tentativasDeCodigo.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
+  const cabecalhos = await cabecalhosDeQuemEstaEntrando();
+  if (!cabecalhos) return JA_CONECTADO;
   let titular: { name: string; email: string };
   try {
-    ({ user: titular } = await getAuth().api.verifyBackupCode({ body: { code: validado.data }, headers: await headers() }) as {
+    ({ user: titular } = await getAuth().api.verifyBackupCode({ body: { code: validado.data }, headers: cabecalhos }) as {
       user: { name: string; email: string };
     });
   } catch (erro) {

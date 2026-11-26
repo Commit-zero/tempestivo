@@ -5,9 +5,10 @@ import { GET, POST } from "@/app/api/auth/[...all]/route";
 import { getPrisma } from "@/platform/database";
 import type { FakeMailer } from "@/platform/mailer";
 import { getMailer } from "@/platform/runtime";
-import { novoNavegador } from "@/test/next-headers";
+import { cookies as pote, novoNavegador, usarNavegador } from "@/test/next-headers";
 import { codigoTotp } from "@/test/totp";
-import { cadastrar, entrar, pedirRedefinicaoDeSenha, redefinirSenha } from "./acoes";
+import { cadastrar, entrar, pedirRedefinicaoDeSenha, redefinirSenha, trocarSenha } from "./acoes";
+import { confirmarAtivacao, iniciarAtivacao } from "./ativacao";
 import { getAuth } from "./auth";
 import {
   confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao, haPassoPendente, registrarCodigoUsado,
@@ -214,5 +215,88 @@ describe("login com segundo fator (integração)", () => {
 
     expect((await GET(new Request(endereco))).status).toBe(404);
     expect(POST().status).toBe(404);
+  });
+});
+
+describe("as ações do código na entrada não valem para quem já está conectado", () => {
+  const JA_CONECTADO = { ok: false, erro: "Você já está conectado. Abra o painel." };
+
+  it("não ligam uma ativação pendente (sem aviso e sem encerrar sessões)", async () => {
+    const email = `teste.${randomUUID().slice(0, 8)}@exemplo.test`;
+    emails.push(email);
+    outroNavegador();
+    await cadastrar({ nome: "Advogada Fictícia", email, senha: SENHA, confirmacao: SENHA });
+    await getPrisma().user.update({ where: { email }, data: { emailVerified: true } });
+    const sessao = (await obterSessao())!;
+    const inicio = await iniciarAtivacao({ usuarioId: sessao.usuarioId, nome: sessao.nome, email }, SENHA);
+    if (!inicio.ok) throw new Error(inicio.erro);
+
+    expect(await confirmarCodigoDeEntrada(codigoTotp(inicio.chave))).toEqual(JA_CONECTADO);
+    expect(await confirmarCodigoDeRecuperacao("abcde-fghij")).toEqual(JA_CONECTADO);
+
+    const usuario = await getPrisma().user.findUniqueOrThrow({ where: { email } });
+    expect(usuario.twoFactorEnabled).toBeFalsy();
+    // A ativação pela tela Conta continua possível.
+    expect(await confirmarAtivacao({ usuarioId: sessao.usuarioId, nome: sessao.nome, email }, codigoTotp(inicio.chave)))
+      .toMatchObject({ ok: true });
+  });
+
+  it("não gastam códigos com a proteção ligada", async () => {
+    const { email, chave, codigos } = await comSegundoFator();
+    await passarPelaSenha(email);
+    await confirmarCodigoDeEntrada(codigoTotp(chave));
+
+    expect(await confirmarCodigoDeRecuperacao(codigos[0])).toEqual(JA_CONECTADO);
+
+    await passarPelaSenha(email);
+    expect(await confirmarCodigoDeRecuperacao(codigos[0])).toEqual({ ok: true });
+  });
+});
+
+describe("falhas e senha trocada no meio do login", () => {
+  it("se o banco falhar ao registrar o código, o navegador fica sem sessão", async () => {
+    const { email, chave } = await comSegundoFator();
+    await passarPelaSenha(email);
+    const registrar = vi.spyOn(getPrisma().verification, "createMany").mockRejectedValueOnce(new Error("banco fora"));
+    const apagar = vi.spyOn(getPrisma().session, "deleteMany").mockRejectedValueOnce(new Error("banco fora"));
+
+    expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toMatchObject({ ok: false });
+
+    registrar.mockRestore();
+    apagar.mockRestore();
+    expect((await pote()).getAll().filter((cookie) => cookie.name.includes("session_token"))).toEqual([]);
+    expect(await obterSessao()).toBeNull();
+  });
+
+  it("redefinir a senha cancela o passo pendente de quem passou pela senha antiga", async () => {
+    const { email, chave } = await comSegundoFator();
+    const invasor = outroNavegador();
+    await entrar({ email, senha: SENHA });
+    outroNavegador();
+    await pedirRedefinicaoDeSenha({ email });
+    const texto = enviados().findLast((e) => e.para === email && e.assunto.startsWith("Redefinir"))!.texto;
+    const nova = "outra-frase-bem-comprida";
+    await redefinirSenha({ token: /reset-password\/([A-Za-z0-9_-]+)/.exec(texto)![1]!, senha: nova, confirmacao: nova });
+
+    usarNavegador(invasor);
+    expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toMatchObject({ ok: false, recomecar: "expirado" });
+    expect(await obterSessao()).toBeNull();
+  });
+
+  it("trocar a senha também cancela o passo pendente", async () => {
+    const { email, usuarioId, chave, codigos } = await comSegundoFator();
+    const titular = outroNavegador();
+    await entrar({ email, senha: SENHA });
+    await confirmarCodigoDeRecuperacao(codigos[0]);
+    const invasor = outroNavegador();
+    await entrar({ email, senha: SENHA });
+
+    usarNavegador(titular);
+    const nova = "outra-frase-bem-comprida";
+    expect(await trocarSenha({ usuarioId, nome: "Advogada Fictícia", email }, { senhaAtual: SENHA, senha: nova, confirmacao: nova }))
+      .toEqual({ ok: true });
+
+    usarNavegador(invasor);
+    expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toMatchObject({ ok: false, recomecar: "expirado" });
   });
 });

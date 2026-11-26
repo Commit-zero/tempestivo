@@ -10,7 +10,7 @@ import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { enviarAvisoDeSeguranca } from "./avisos";
 import { ipDoCliente, liberarEntrada, MUITAS_TENTATIVAS, permitirEntrada, registrarFalha } from "./comum";
-import { invalidarLinksDeRedefinicao } from "./links-de-redefinicao";
+import { invalidarPendenciasDaSenha } from "./pendencias-da-senha";
 import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
@@ -200,12 +200,14 @@ export async function trocarSenha(
     registrarFalha("troca de senha", erro);
     if (erro instanceof APIError && erro.body?.code === "INVALID_PASSWORD") return { ok: false, erro: "Senha atual incorreta." };
     // A biblioteca não troca em uma transação só: não dá para garantir o que ficou valendo.
+    // Na dúvida, o que estava aberto com a senha antiga deixa de valer.
+    await invalidarPendenciasDaSenha(titular.usuarioId, getLogger());
     return {
       ok: false,
       erro: "Não foi possível confirmar a troca. Saia e entre de novo; se a senha atual não funcionar, tente a nova.",
     };
   }
-  await invalidarLinksDeRedefinicao(titular.usuarioId, getLogger());
+  await invalidarPendenciasDaSenha(titular.usuarioId, getLogger());
   await enviarAvisoDeSeguranca("senha-alterada", titular, { mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL });
   return { ok: true };
 }

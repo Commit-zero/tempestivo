@@ -52,7 +52,7 @@ Uma linha JSON por evento, na saída padrão:
 | `alertas adiados para a próxima execução` | warn | A execução atingiu o tempo máximo; o restante vai na próxima | Se for frequente, aumentar a frequência do cron |
 | `falha ao enviar a confirmação de e-mail`, `falha ao enviar a redefinição de senha` | error | SMTP indisponível no cadastro ou na recuperação | Ver "E-mails não chegam" |
 | `falha ao enviar o aviso de segurança` | error | SMTP indisponível depois de trocar ou redefinir a senha; a ação não é desfeita | Ver "E-mails não chegam" |
-| `falha ao invalidar links de redefinição` | error | O banco falhou logo depois de trocar ou redefinir a senha; os links antigos vencem sozinhos em até 1 hora | Conferir o banco |
+| `falha ao invalidar pendências da senha` | error | O banco falhou logo depois de trocar ou redefinir a senha; links antigos vencem em até 1 hora e passos pendentes em até 10 minutos | Conferir o banco |
 | `falha de autenticação` | warn | Login, cadastro ou redefinição recusados (sem e-mail no log) | Muitos seguidos do mesmo IP: força bruta, contida pelo limitador |
 
 ### Lacunas conhecidas
@@ -118,7 +118,7 @@ Quem liga a verificação em duas etapas e fica sem o aplicativo entra com um c�
 
 1. **Quem atende:** só o responsável pelo serviço (Vitor).
 2. **Identidade:** o pedido precisa vir do e-mail da conta. Confirme também por um contato que a pessoa já tinha com você, quando houver (telefone ou mensagem já conhecidos). Nunca por um contato que chegou junto com o pedido. O e-mail sozinho não prova identidade: quem o invadiu poderia fazer o mesmo pedido, e este é o ponto mais fraco do procedimento. Na dúvida, não atenda.
-3. **No banco** (em produção, só com a confirmação de quem responde pelo serviço), troque `EMAIL_DO_TITULAR` pelo e-mail em minúsculas, sem aspas extras, e rode o bloco inteiro. Confira antes que o e-mail não tem aspas simples. O bloco desliga o segundo fator, encerra as sessões, cancela passos pendentes e links, e apaga a senha atual:
+3. **No banco** (em produção, só com a confirmação de quem responde pelo serviço): antes, `select id from "user" where email = 'EMAIL_DO_TITULAR';` precisa devolver exatamente uma linha. Com um e-mail errado, o bloco abaixo termina sem erro e **não faz nada**. Troque `EMAIL_DO_TITULAR` pelo e-mail em minúsculas e rode o bloco inteiro; confira antes que o e-mail não tem aspas simples e, depois, que o último `update` alterou uma linha. O bloco desliga o segundo fator, encerra as sessões, cancela passos pendentes e links, e apaga a senha atual:
 
 ```sql
 begin;
@@ -145,7 +145,22 @@ O teste `src/platform/auth/perda-de-acesso.test.ts` roda esse SQL num banco de t
 | Senha do banco | No Supabase (Database > Settings), depois `DATABASE_URL` na hospedagem e `DATABASE_URL_MIGRACAO` no GitHub | Conexões antigas caem |
 | Senha SMTP | No provedor de e-mail, depois `SMTP_PASS` | — |
 
-**Aviso sobre o `AUTH_SECRET`:** o segredo do aplicativo autenticador e os códigos de recuperação são cifrados com ele. Depois da troca, o servidor não consegue mais lê-los, e quem usa a verificação não entra nem com código de recuperação. Se a troca for urgente (vazamento), troque, apague as linhas de `"twoFactor"`, ponha `"twoFactorEnabled" = false` em `"user"`, encerre as sessões e avise essas pessoas para trocar a senha e ligar a verificação de novo. Enquanto isso, as contas delas ficam só com a senha. O Better Auth tem segredos com versão (`BETTER_AUTH_SECRETS`), que permitiriam trocar sem esse efeito; o app ainda não os adota nem os testou.
+**Aviso sobre o `AUTH_SECRET`:** o segredo do aplicativo autenticador e os códigos de recuperação são cifrados com ele. Depois da troca, o servidor não consegue mais lê-los, e quem usa a verificação não entra nem com código de recuperação. O Better Auth tem segredos com versão (`BETTER_AUTH_SECRETS`), que permitiriam trocar sem esse efeito; o app ainda não os adota nem os testou.
+
+Se a troca for urgente (vazamento), troque o segredo e rode o bloco abaixo (em produção, só com a confirmação de quem responde pelo serviço). Ele apaga a senha de quem usava a verificação: sem isso, essas contas ficariam protegidas só pela senha, que pode ter vazado junto, e quem a tivesse ligaria o próprio segundo fator. Também apaga todas as sessões (voltar ao segredo antigo as faria valer de novo) e tudo o que estava pendente.
+
+```sql
+begin;
+update "account" set password = null
+  where "providerId" = 'credential' and "userId" in (select "userId" from "twoFactor");
+update "user" set "twoFactorEnabled" = false where id in (select "userId" from "twoFactor");
+delete from "twoFactor";
+delete from "session";
+delete from "verification";
+commit;
+```
+
+Depois, avise essas pessoas para criar uma senha nova em **Esqueci a senha** e ligar a verificação de novo. A caixa de e-mail passa a ser a única prova de identidade até lá.
 
 Gere valores novos com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Nunca reaproveite um segredo entre ambientes.
 
@@ -169,5 +184,7 @@ pg_dump --format=custom --no-owner "$DATABASE_URL_MIGRACAO" > tempestivo-$(date 
 Guarde o arquivo cifrado e fora do repositório: ele contém dados pessoais. Teste a restauração num banco local (`pg_restore --no-owner -d postgresql://postgres:postgres@localhost:54329/tempestivo_restauro tempestivo-AAAA-MM-DD.dump`) antes de precisar dela.
 
 ## Rollback
+
+**Atenção com a verificação em duas etapas:** uma versão anterior a ela não cobra o segundo fator (e ainda abria sessão pelo link de confirmação). Depois que alguém a ligar, voltar a versão faz essa conta entrar só com a senha, sem nenhum erro visível. Prefira corrigir para a frente. Se a volta for inevitável, encerre as sessões, avise quem usa a verificação e volte para a versão nova o quanto antes.
 
 Código: na Vercel, *Instant Rollback* para o deploy anterior. Banco: migrações não têm volta automática. Por isso, mudanças que removem coluna são feitas em duas entregas (ver [modelo-de-dados.md](modelo-de-dados.md#como-mudar-o-esquema)), e qualquer deploy pode voltar uma versão sem quebrar com o esquema atual.
