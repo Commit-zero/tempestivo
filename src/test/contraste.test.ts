@@ -44,7 +44,7 @@ const TEXTO: [string, string][] = [
   ["foreground", "atencao-fundo"], ["foreground", "positivo-fundo"], ["foreground", "perigo-fundo"],
 ];
 
-// Direção "Protocolo" (docs/especificacoes/modernizacao-etapa-2.md). Cada cor quente tem um
+// Direção "Protocolo" (docs/adr/0013-identidade-avisos-e-confirmacao.md). Cada cor quente tem um
 // único sentido: âmbar pede atenção, verde diz conferido ou concluído, vermelho é atraso,
 // erro ou exclusão. A ação usa a tinta de carimbo.
 const PALETA = {

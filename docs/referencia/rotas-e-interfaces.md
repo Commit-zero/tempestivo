@@ -34,7 +34,7 @@ Um id de outra conta na URL (`/prazos/<id-de-outra-conta>`) dá 404, igual a um 
 | `GET` ou `POST /api/jobs/ping` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok:true}`; `503` sem banco; `401` | `jobs.yml`; mantém o banco gratuito ativo |
 | `GET /api/auth/reset-password/<token>` | token do e-mail | redireciona para `/redefinir-senha` | Link do e-mail de redefinição |
 | `GET /api/auth/verify-email?token=...` | token do e-mail | confirma o e-mail e redireciona | Link do e-mail de confirmação |
-| qualquer outra `/api/auth/*` | — | `404` | Fechada de propósito (decisão D6) |
+| qualquer outra `/api/auth/*` | — | `404` | Fechada de propósito ([ADR 0006](../adr/0006-login-proprio-com-api-fechada.md)) |
 | `GET /agenda/<token>/calendario.ics` | token secreto da agenda | `200 text/calendar`, `no-store`; `404 "Agenda não encontrada."`; `429` acima de 60 por IP a cada 15 min | App de calendário |
 | `GET /audiencias/<id>/agenda.ics` | sessão | `200 text/calendar` (anexo); `401`; `404` | Botão "Adicionar à agenda" |
 | `GET /conta/exportar` | sessão | `200 application/json` (anexo), `private, no-store`; `401` | Link "Exportar os dados" em Conta (LGPD) |
@@ -55,7 +55,7 @@ curl -fsS -X POST -H "Authorization: Bearer $JOBS_SECRET" "$APP_URL/api/jobs/ale
 
 - O token tem 43 caracteres base64url (256 bits). Formato inválido responde 404 sem consultar o banco.
 - Token trocado, desligado ou inexistente: 404, com a mesma mensagem, para não revelar qual é o caso.
-- O conteúdo segue a RFC 5545 e a [especificação da agenda](especificacoes/agenda.md).
+- O conteúdo segue a RFC 5545. Leva vencimentos em aberto, metas internas e audiências, sem nome de cliente, parte ou assunto.
 
 ## Server Actions
 
@@ -96,6 +96,7 @@ Regras:
 | `(app)/audiencias/acoes.ts` | `acaoSalvarAudiencia`, `acaoExcluirAudiencia` |
 | `(app)/tarefas/acoes.ts` | `acaoCriarTarefa`, `acaoMoverTarefa`, `acaoExcluirTarefa` |
 | `(app)/conta/acoes.ts` | `acaoSalvarConta`, `acaoExcluirConta` (pede a senha), `acaoDefinirMargem`, `acaoAtivarAgenda`, `acaoDesativarAgenda`, `acaoTrocarSenha` (pede a senha atual), `acaoIniciarSegundoFator`, `acaoConfirmarSegundoFator`, `acaoGerarCodigos`, `acaoDesativarSegundoFator` |
+| `(publico)/entrar/codigo/acoes.ts` | `acaoConfirmarCodigo`, `acaoConfirmarRecuperacao` |
 | `conferir/[token]/acoes.ts` | `acaoConfirmarPeloLink` |
 | `substituto/[token]/acoes.ts` | `acaoAceitarConvite` |
 

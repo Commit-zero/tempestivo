@@ -11,10 +11,10 @@ const ler = (caminho: string) => readFileSync(resolve(process.cwd(), caminho), "
 const formas = (svg: string) => [...svg.replace(/strokeWidth/g, "stroke-width").matchAll(/\b(?:d|x|y|width|height|rx|fill|stroke)="([^"]+)"/g)].map((m) => m[1]!.toUpperCase());
 const semMoldura = (svg: string) => svg.slice(svg.indexOf("<rect"), svg.lastIndexOf("</svg>"));
 
-describe("símbolo Quadra (opção 1, escolhida em 26/11/2026)", () => {
-  const escolhido = formas(semMoldura(ler("docs/especificacoes/simbolos/opcao-1-quadra.svg")));
+describe("símbolo Quadra (referência em docs/identidade)", () => {
+  const escolhido = formas(semMoldura(ler("docs/identidade/simbolo.svg")));
 
-  it("o ícone do app é a opção escolhida", () => {
+  it("o ícone do app é o símbolo de referência", () => {
     expect(formas(semMoldura(ler("src/app/icon.svg")))).toEqual(escolhido);
   });
 

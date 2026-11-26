@@ -1,4 +1,4 @@
-# Deploy
+# Guia de publicação
 
 O caminho principal é **Vercel (plano Hobby) + Supabase (plano gratuito)**, de custo zero. O app só conhece variáveis de ambiente e o PostgreSQL padrão, então trocar de hospedagem ou de banco é trocar variáveis: a imagem Docker do [caminho B](#caminho-b-imagem-docker) roda em qualquer lugar.
 
@@ -20,14 +20,14 @@ O Supabase é usado só como PostgreSQL: o app não usa a API, a autenticação 
 
 ## Variáveis de ambiente
 
-A lista completa, com um comentário por variável, está em [`.env.example`](../.env.example). Variável ausente ou inválida derruba a subida com a lista dos nomes (nunca dos valores).
+A lista completa, com um comentário por variável, está em [`.env.example`](../../.env.example). A [referência de configuração](../referencia/configuracao.md) traz os padrões e as validações. Esta tabela diz o que usar em produção.
 
 | Variável | Produção na Vercel |
 |---|---|
 | `NODE_ENV` | `production` (a Vercel já define) |
 | `APP_URL` | URL pública em `https`, sem barra no final. Entra nos links dos e-mails, no feed da agenda e nos cookies |
 | `JOBS_SECRET` | 64 caracteres aleatórios. O mesmo valor vai nos segredos do GitHub |
-| `AUTH_SECRET` | 64 caracteres aleatórios, diferente do `JOBS_SECRET`. **Não troque sem ler** [operacao.md](operacao.md#troca-de-segredos): encerra as sessões e tranca quem usa a verificação em duas etapas |
+| `AUTH_SECRET` | 64 caracteres aleatórios, diferente do `JOBS_SECRET`. **Não troque sem ler** o [runbook de troca de segredos](../operacao/runbooks/troca-de-segredos.md): encerra as sessões e tranca quem usa a verificação em duas etapas |
 | `DATABASE_URL` | Supavisor em **modo transação**: `postgresql://postgres.<ref>:<senha>@<host-do-pooler>:6543/postgres?pgbouncer=true` |
 | `DATABASE_POOL_MAX` | `3` (cada função serverless abre poucas conexões; o pooler multiplexa) |
 | `DATABASE_CA_CERT` | **Obrigatória.** Certificado do Supabase (Database > SSL Configuration > Download certificate), colado como texto. Sem ele o driver conectaria sem TLS, e o app se recusa a subir em produção com banco remoto. Com ele, os parâmetros `sslmode` da URL são ignorados e o servidor é verificado |
@@ -68,9 +68,9 @@ O host do pooler tem a forma `aws-<n>-<região>.pooler.supabase.com`, mas o `<n>
 
    Em Settings > Environments, crie o ambiente `producao` com revisores obrigatórios: o `migrar.yml` só roda depois da aprovação.
 4. **Migrar.** Rode o workflow **Migrar o banco de produção** e digite `migrar`.
-5. **Vercel.** Importe o repositório (o Next.js é detectado; o [`vercel.json`](../vercel.json) fixa a região `gru1`, em São Paulo, perto do banco). Cadastre as variáveis da tabela **antes** do primeiro deploy, em *Production*. Node 24.x. Se a instalação usar outro pnpm, defina `ENABLE_EXPERIMENTAL_COREPACK=1`.
+5. **Vercel.** Importe o repositório (o Next.js é detectado; o [`vercel.json`](../../vercel.json) fixa a região `gru1`, em São Paulo, perto do banco). Cadastre as variáveis da tabela **antes** do primeiro deploy, em *Production*. Node 24.x. Se a instalação usar outro pnpm, defina `ENABLE_EXPERIMENTAL_COREPACK=1`.
 6. **Conferir.**
-   1. `GET /api/health` responde `{"status":"ok","banco":"ok",...}`.
+   1. `GET /api/health` responde `{"status":"ok","banco":"ok"}`.
    2. Crie uma conta e **confirme o e-mail** pelo link recebido (sem isso nenhum alerta é enviado).
    3. Cadastre um prazo e rode o workflow **Jobs agendados** à mão: o alerta deve chegar.
    4. Em Conta, crie o link da agenda e assine no celular.
@@ -102,7 +102,7 @@ Qualquer outro agendador que faça `POST` com `Authorization: Bearer <JOBS_SECRE
 
 ## Ordem de uma entrega e reversão
 
-1. **Migração primeiro, código depois.** Toda migração precisa ser compatível com o código que já está no ar: acrescente colunas e tabelas; para renomear ou remover, faça em duas entregas (primeiro o código deixa de usar, depois a migração remove).
+1. **Migração primeiro, código depois.** Toda migração precisa ser compatível com o código que já está no ar: acrescente colunas e tabelas; para renomear ou remover, faça em duas entregas (primeiro o código deixa de usar, depois a migração remove). Quando o código depende da migração, siga [como mudar o esquema](../arquitetura/modelo-de-dados.md#como-mudar-o-esquema).
 2. **Publicação.** O merge na `main` publica na Vercel.
 3. **Verificação.** `/api/health` e um fluxo curto (entrar, abrir o painel).
 4. **Reversão do app.** Na Vercel, *Deployments* > o deploy anterior > **Instant Rollback**: volta em segundos, sem novo build. No caminho B, suba a imagem da versão anterior.

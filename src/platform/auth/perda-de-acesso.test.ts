@@ -13,7 +13,7 @@ import { obterSessao } from "./sessao";
 
 vi.mock("next/headers", () => import("@/test/next-headers"));
 
-// Ensaia o SQL escrito em docs/operacao.md para quem perdeu o celular e os códigos:
+// Ensaia o SQL escrito em docs/operacao/runbooks/perda-do-segundo-fator.md para quem perdeu o celular e os códigos:
 // se o esquema mudar e o procedimento deixar de funcionar, este teste quebra.
 const SENHA = "senha-ficticia-da-perda";
 const email = `teste.${randomUUID().slice(0, 8)}@exemplo.test`;
@@ -22,9 +22,9 @@ afterAll(async () => {
 });
 
 function comandosDoProcedimento(): string[] {
-  const documento = readFileSync("docs/operacao.md", "utf8").replace(/\r\n/g, "\n");
+  const documento = readFileSync("docs/operacao/runbooks/perda-do-segundo-fator.md", "utf8").replace(/\r\n/g, "\n");
   const bloco = /### Perda do celular e dos códigos[\s\S]*?```sql\n([\s\S]*?)```/.exec(documento)?.[1];
-  if (!bloco) throw new Error("docs/operacao.md não traz o SQL do procedimento.");
+  if (!bloco) throw new Error("docs/operacao/runbooks/perda-do-segundo-fator.md não traz o SQL do procedimento.");
   return bloco
     .replace(/^\s*--.*$/gm, "")
     .split(";")
@@ -32,7 +32,7 @@ function comandosDoProcedimento(): string[] {
     .filter((comando) => comando && !/^(begin|commit)$/i.test(comando));
 }
 
-describe("procedimento de perda de acesso (docs/operacao.md)", () => {
+describe("procedimento de perda de acesso (docs/operacao/runbooks/perda-do-segundo-fator.md)", () => {
   it("desliga o segundo fator, encerra as sessões e obriga a criar uma senha nova", async () => {
     const aqui = novoNavegador("192.0.2.10");
     await cadastrar({ nome: "Advogada Fictícia", email, senha: SENHA, confirmacao: SENHA });

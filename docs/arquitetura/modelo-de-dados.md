@@ -1,6 +1,6 @@
 # Modelo de dados
 
-O esquema fica em [`prisma/schema.prisma`](../prisma/schema.prisma), e as migrações versionadas em `prisma/migrations/`. Este documento explica as entidades, as regras que o banco garante e como mudar o esquema.
+O esquema fica em [`prisma/schema.prisma`](../../prisma/schema.prisma), e as migrações versionadas em `prisma/migrations/`. Este documento explica as entidades, as regras que o banco garante e como mudar o esquema.
 
 ## Diagrama
 
@@ -36,9 +36,9 @@ erDiagram
 
 | Convenção | Regra | Motivo |
 |---|---|---|
-| Dono do registro | Toda tabela de domínio tem `contaId`, com `onDelete: Cascade` a partir de `Conta` | Isolamento entre contas (regra 3) e exclusão completa pela LGPD |
+| Dono do registro | Toda tabela de domínio tem `contaId`, com `onDelete: Cascade` a partir de `Conta` | Isolamento entre contas e exclusão completa pela LGPD |
 | Identificador | `cuid()` em texto | Não revela volume nem ordem de cadastro |
-| Data civil | `char(10)` no formato `AAAA-MM-DD` (`dataFinal`, `vencimento`, `limite`, `data`) | Prazo é data, não instante; sem erro de fuso. Ver a decisão D4 em [arquitetura.md](arquitetura.md) |
+| Data civil | `char(10)` no formato `AAAA-MM-DD` (`dataFinal`, `vencimento`, `limite`, `data`) | Prazo é data, não instante; sem erro de fuso. Ver o [ADR 0004](../adr/0004-datas-civis-como-texto.md) |
 | Instante | `timestamp` em UTC (`criadoEm`, `em`, `inicio` da audiência, `pagaEm`) | Algo que aconteceu num momento real |
 | Dinheiro | `integer` em centavos (`valorCentavos`) | Sem erro de ponto flutuante; formatação em `src/lib/dinheiro.ts` |
 | Segredo | Só o resumo SHA-256 (`tokenHash`, `substitutoTokenHash`, `agendaTokenHash`), com índice único | Um vazamento do banco não entrega links válidos |
@@ -123,7 +123,7 @@ Cada linha é um e-mail **reservado antes do envio**. A `chave` única `prazoId:
    e salve em `prisma/migrations/<AAAAMMDDHHMMSS>_<nome>/migration.sql`.
 3. Aplique e regenere o cliente: `pnpm db:aplicar` e `pnpm prisma generate`.
 4. Inclua a migração no mesmo PR. O CI falha se o esquema tiver mudança sem migração (`migrate diff --exit-code`).
-5. Em produção, a migração roda pelo workflow **Migrar o banco de produção**, antes do deploy do código que depende dela.
+5. Em produção, a migração roda pelo workflow **Migrar o banco de produção**, antes do deploy do código que depende dela. Como o merge publica antes de a migração rodar, ela vai primeiro, num pull request próprio, com os campos novos marcados com `@ignore` e os modelos novos com `@@ignore`; o pull request do código retira as marcas.
 
 Regras: migração nunca é editada depois de entrar na `main`; coluna nova em tabela com dados precisa de padrão ou ser opcional; remover coluna é feito em duas entregas (o código para de usar, depois a coluna sai).
 

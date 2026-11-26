@@ -1,6 +1,6 @@
 # Estratégia de testes
 
-Como o Tempestivo é testado, o que cada nível prova e como escrever um teste novo. Os padrões gerais seguem [`.claude/references/testing-patterns.md`](../.claude/references/testing-patterns.md) e a skill `test-driven-development`: o teste vem antes do código, e um bug vira primeiro um teste que falha.
+Como o Tempestivo é testado, o que cada nível prova e como escrever um teste novo. O teste vem antes do código, e um defeito vira primeiro um teste que falha.
 
 ## Pirâmide
 
@@ -22,7 +22,7 @@ pnpm test                 # unidade + integração
 pnpm test:cobertura       # o mesmo, com cobertura e metas mínimas
 pnpm vitest run src/modules/prazos      # só uma pasta
 pnpm vitest run -t "meta interna"       # só os testes com esse nome
-pnpm e2e                  # telas (constrói antes: pnpm build)
+pnpm e2e                  # telas (fora do CI, o próprio comando faz o build)
 pnpm e2e e2e/agenda.spec.ts --project=mobile
 PLAYWRIGHT_CHANNEL=msedge pnpm e2e      # quando o Chromium baixado é bloqueado na máquina
 pnpm verificar            # lint, tipos, testes e build, na ordem do CI
@@ -38,7 +38,7 @@ Cobertura é piso, não meta: um teste que só passa pelo código sem verificar 
 
 ## Dados de teste
 
-- **Só dados fictícios** (regra 6): nomes como "Maria Cliente Sigilosa", e-mails `@exemplo.test`, números CNJ gerados por `numeroCnjFicticio()`.
+- **Só dados fictícios:** nomes como "Maria Cliente Sigilosa", e-mails `@exemplo.test`, números CNJ gerados por `numeroCnjFicticio()`.
 - **Integração:** `criarContaDeTeste()` e `apagarContaDeTeste()` (`src/test/banco.ts`) criam uma conta descartável por teste ou por `describe`. Testes podem rodar em paralelo porque cada um usa a própria conta.
 - **Relógio fixo:** funções que dependem da data recebem `agora`; os testes usam um instante fixo, como `new Date("2026-11-12T15:00:00Z")` (meio-dia em São Paulo).
 - **Ambiente:** `src/test/preparo.ts` carrega o `.env` se existir e completa com valores falsos; força `MAILER_DRIVER=fake`.
@@ -81,11 +81,11 @@ Nos testes de tela:
 
 ## Regras de prazo
 
-A calculadora tem regras próprias (skill `calculadora-de-prazos`):
+A calculadora tem regras próprias:
 
 - Cada regra tem teste com o caso, a data esperada e a referência legal.
 - Os casos para o advogado validador ficam em `src/modules/prazos/__fixtures__/casos-validados.json`; uma regra só deixa de ser `pendente` com a validação registrada.
-- Mudança em `src/modules/prazos` passa pelo agente `revisor-de-prazos`.
+- Mudança em `src/modules/prazos` pede revisão específica das regras ([guia de contribuição](../../CONTRIBUTING.md#regras-de-prazo)).
 
 ## No CI
 
