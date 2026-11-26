@@ -27,7 +27,7 @@ O login não é um módulo: fica na porta `src/platform/auth/` (Better Auth), qu
 |---|---|---|
 | `config` | variáveis de ambiente validadas com zod | — |
 | `database` | cliente Prisma único (PostgreSQL) | outra `DATABASE_URL` |
-| `auth` | Better Auth, senhas em Argon2id | — |
+| `auth` | Better Auth, senhas em Argon2id, segundo fator por aplicativo autenticador | — |
 | `mailer` | SMTP (`nodemailer`); `fake` em teste | novo adaptador + `MAILER_DRIVER` |
 | `ai` | extrator local por regras | novo adaptador + `AI_DRIVER` |
 | `scheduler` | chamada HTTP com segredo (GitHub Actions) | qualquer cron que faça `POST` |

@@ -112,14 +112,40 @@ O app não alcança o banco. Confira se o projeto do Supabase está pausado (pla
 3. Se um link de agenda vazou, o titular troca o link em Conta; o anterior para na hora.
 4. Avalie o dever de comunicar a ANPD e os titulares (LGPD, art. 48) com quem responde juridicamente pelo serviço.
 
+### Perda do celular e dos códigos
+
+Quem liga a verificação em duas etapas e fica sem o aplicativo entra com um código de recuperação (tela do código, "Estou sem o celular"). Sem o aplicativo **e** sem os códigos, não há botão nem rota que contorne o segundo fator: o atendimento é manual.
+
+1. **Quem atende:** só o responsável pelo serviço (Vitor).
+2. **Identidade:** o pedido precisa vir do e-mail da conta. Confirme também por um contato que a pessoa já tinha com você, quando houver (telefone ou mensagem já conhecidos). Nunca por um contato que chegou junto com o pedido. O e-mail sozinho não prova identidade: quem o invadiu poderia fazer o mesmo pedido, e este é o ponto mais fraco do procedimento. Na dúvida, não atenda.
+3. **No banco** (em produção, só com a confirmação de quem responde pelo serviço), troque `EMAIL_DO_TITULAR` pelo e-mail em minúsculas, sem aspas extras, e rode o bloco inteiro. Confira antes que o e-mail não tem aspas simples. O bloco desliga o segundo fator, encerra as sessões, cancela passos pendentes e links, e apaga a senha atual:
+
+```sql
+begin;
+delete from "twoFactor" where "userId" = (select id from "user" where email = 'EMAIL_DO_TITULAR');
+delete from "session" where "userId" = (select id from "user" where email = 'EMAIL_DO_TITULAR');
+delete from "verification" where value = (select id from "user" where email = 'EMAIL_DO_TITULAR');
+update "account" set password = null
+  where "providerId" = 'credential' and "userId" = (select id from "user" where email = 'EMAIL_DO_TITULAR');
+update "user" set "twoFactorEnabled" = false where email = 'EMAIL_DO_TITULAR';
+commit;
+```
+
+4. Peça à pessoa para criar uma senha nova em **Esqueci a senha** e, depois de entrar, ligar de novo a verificação.
+5. Registre quando atendeu e como confirmou a identidade, sem copiar dados de clientes.
+
+O teste `src/platform/auth/perda-de-acesso.test.ts` roda esse SQL num banco de teste.
+
 ## Troca de segredos
 
 | Segredo | Como trocar | Efeito |
 |---|---|---|
-| `AUTH_SECRET` | Novo valor na hospedagem e novo deploy | Encerra todas as sessões; todos entram de novo |
+| `AUTH_SECRET` | **Leia o aviso abaixo antes.** Novo valor na hospedagem e novo deploy | Encerra todas as sessões **e tranca quem usa a verificação em duas etapas** |
 | `JOBS_SECRET` | Mesmo valor novo na hospedagem e nos segredos do GitHub, juntos | Execuções no meio da troca recebem 401 e repetem na próxima |
 | Senha do banco | No Supabase (Database > Settings), depois `DATABASE_URL` na hospedagem e `DATABASE_URL_MIGRACAO` no GitHub | Conexões antigas caem |
 | Senha SMTP | No provedor de e-mail, depois `SMTP_PASS` | — |
+
+**Aviso sobre o `AUTH_SECRET`:** o segredo do aplicativo autenticador e os códigos de recuperação são cifrados com ele. Depois da troca, o servidor não consegue mais lê-los, e quem usa a verificação não entra nem com código de recuperação. Se a troca for urgente (vazamento), troque, apague as linhas de `"twoFactor"`, ponha `"twoFactorEnabled" = false` em `"user"`, encerre as sessões e avise essas pessoas para trocar a senha e ligar a verificação de novo. Enquanto isso, as contas delas ficam só com a senha. O Better Auth tem segredos com versão (`BETTER_AUTH_SECRETS`), que permitiriam trocar sem esse efeito; o app ainda não os adota nem os testou.
 
 Gere valores novos com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Nunca reaproveite um segredo entre ambientes.
 
@@ -129,7 +155,7 @@ Gere valores novos com `node -e "console.log(require('crypto').randomBytes(32).t
 |---|---|
 | Acesso e portabilidade | O próprio usuário baixa tudo em Conta → **Exportar os dados** (JSON) |
 | Correção | Pelas telas de cadastro |
-| Exclusão | O próprio usuário exclui em Conta, com a senha; a exclusão é definitiva e em cascata |
+| Exclusão | O próprio usuário exclui em Conta, com a senha; a exclusão é definitiva e em cascata, inclusive do segundo fator |
 | Pedido de um cliente do advogado | O advogado é o controlador desses dados; o Tempestivo, como operador, apoia pelas mesmas ferramentas |
 
 ## Backup

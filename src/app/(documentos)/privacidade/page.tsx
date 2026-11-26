@@ -42,6 +42,13 @@ export default function PaginaDePrivacidade() {
             <td>Entrar na conta e receber os alertas</td>
           </tr>
           <tr>
+            <td>
+              Se você ligar a verificação em duas etapas: a chave do aplicativo autenticador e os códigos de recuperação (cifrados) e a
+              contagem de códigos errados
+            </td>
+            <td>Segurança da conta</td>
+          </tr>
+          <tr>
             <td>Endereço IP e navegador de cada sessão</td>
             <td>Segurança da conta</td>
           </tr>

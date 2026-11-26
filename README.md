@@ -37,7 +37,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 | **Audiências** | Agenda com rota, sala virtual e arquivo `.ics` para qualquer calendário. |
 | **Tarefas** | Quadro de três colunas. |
 | **Painel** | O que pede atenção hoje, a semana, as audiências e o dinheiro, em uma tela feita para o celular. |
-| **Conta e LGPD** | Termos de uso e Política de privacidade com aceite registrado. Confirmação do e-mail da conta. Exportação de todos os dados em JSON e exclusão definitiva, confirmada com a senha. |
+| **Conta e LGPD** | Termos de uso e Política de privacidade com aceite registrado. Confirmação do e-mail da conta, troca de senha e verificação em duas etapas por aplicativo autenticador, com códigos de recuperação. Exportação de todos os dados em JSON e exclusão definitiva, confirmada com a senha. |
 
 ## O que o diferencia
 
@@ -57,7 +57,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 | Aplicação | Next.js 16 (App Router), React 19, TypeScript estrito |
 | Interface | Tailwind CSS 4, shadcn/ui (Radix), ícones lucide, Geist e Source Serif 4 (next/font), tema claro e escuro |
 | Banco | PostgreSQL 17, Prisma 7 |
-| Login | Better Auth, senhas em Argon2id, sessão em cookie `HttpOnly` |
+| Login | Better Auth, senhas em Argon2id, sessão em cookie `HttpOnly`, segundo fator opcional (TOTP) |
 | E-mail | SMTP via nodemailer (Gmail ou Brevo; Mailpit em desenvolvimento) |
 | Validação | zod |
 | Testes | Vitest com cobertura mínima (unidade e integração com Postgres e SMTP reais), Playwright (telas em 320, 360, 768 e 1280 px, com verificação de acessibilidade) |
