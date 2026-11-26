@@ -19,7 +19,7 @@ export function Simbolo({ className }: { className?: string }) {
 
 export function Marca({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5 font-serif text-xl font-semibold tracking-tight text-primary", className)}>
+    <span className={cn("inline-flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground [font-stretch:112%]", className)}>
       <Simbolo />
       Tempestivo
     </span>

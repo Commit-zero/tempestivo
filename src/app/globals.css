@@ -5,9 +5,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, monospace;
   --font-heading: var(--font-sans);
-  --font-serif: var(--font-serif-marca), Georgia, serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,60 +38,61 @@
 }
 
 :root {
-  /* Identidade: azul-tinta de papel timbrado, fundo de papel e âmbar para o que pede atenção. */
-  --background: oklch(0.985 0.004 85);
-  --foreground: oklch(0.21 0.03 258);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.03 258);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 258);
-  --primary: oklch(0.32 0.09 258);
-  --primary-foreground: oklch(0.985 0.004 85);
-  --secondary: oklch(0.955 0.012 258);
-  --secondary-foreground: oklch(0.27 0.07 258);
-  --muted: oklch(0.96 0.006 85);
-  --muted-foreground: oklch(0.47 0.02 258);
-  --accent: oklch(0.955 0.012 258);
-  --accent-foreground: oklch(0.27 0.07 258);
-  --destructive: oklch(0.52 0.2 27);
-  --atencao: oklch(0.5 0.12 70);
-  --atencao-fundo: oklch(0.96 0.05 85);
-  --positivo: oklch(0.45 0.11 155);
-  --positivo-fundo: oklch(0.96 0.04 155);
-  --perigo-fundo: oklch(0.96 0.03 27);
-  --border: oklch(0.9 0.008 258);
-  --input: oklch(0.62 0.02 258);
-  --ring: oklch(0.55 0.12 258);
-  --radius: 0.625rem;
+  /* Identidade "Protocolo": tinta de carimbo na ação; âmbar só pede atenção, verde só diz
+     conferido ou concluído, vermelho só atraso, erro ou exclusão. */
+  --background: #F4F6FA;
+  --foreground: #122240;
+  --card: #FFFFFF;
+  --card-foreground: #122240;
+  --popover: #FFFFFF;
+  --popover-foreground: #122240;
+  --primary: #4136A8;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8E7F8;
+  --secondary-foreground: #2C2478;
+  --muted: #EAEDF4;
+  --muted-foreground: #4C5A74;
+  --accent: #E8E7F8;
+  --accent-foreground: #2C2478;
+  --destructive: #B3261E;
+  --atencao: #8A5200;
+  --atencao-fundo: #FBEED3;
+  --positivo: #146240;
+  --positivo-fundo: #DCF2E6;
+  --perigo-fundo: #FCE6E4;
+  --border: #D3D9E5;
+  --input: #737E96;
+  --ring: #5A4FC4;
+  --radius: 0.5rem;
 }
 
-/* Tema escuro projetado, não invertido: superfícies em azul-tinta escuro, ação em azul
-   claro, atenção e sucesso menos saturados. O contraste é conferido em src/test/contraste.test.ts. */
+/* Tema escuro projetado, não invertido: superfícies em azul-tinta escuro. O contraste é
+   conferido em src/test/contraste.test.ts. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.17 0.02 258);
-    --foreground: oklch(0.95 0.008 85);
-    --card: oklch(0.21 0.025 258);
-    --card-foreground: oklch(0.95 0.008 85);
-    --popover: oklch(0.21 0.025 258);
-    --popover-foreground: oklch(0.95 0.008 85);
-    --primary: oklch(0.8 0.08 250);
-    --primary-foreground: oklch(0.18 0.03 258);
-    --secondary: oklch(0.27 0.03 258);
-    --secondary-foreground: oklch(0.93 0.015 258);
-    --muted: oklch(0.24 0.02 258);
-    --muted-foreground: oklch(0.76 0.02 258);
-    --accent: oklch(0.27 0.03 258);
-    --accent-foreground: oklch(0.93 0.015 258);
-    --destructive: oklch(0.74 0.16 25);
-    --atencao: oklch(0.83 0.12 80);
-    --atencao-fundo: oklch(0.27 0.05 75);
-    --positivo: oklch(0.8 0.12 155);
-    --positivo-fundo: oklch(0.26 0.05 155);
-    --perigo-fundo: oklch(0.27 0.06 25);
-    --border: oklch(0.32 0.025 258);
-    --input: oklch(0.54 0.03 258);
-    --ring: oklch(0.72 0.11 250);
+    --background: #0D1424;
+    --foreground: #EEF1F8;
+    --card: #141D31;
+    --card-foreground: #EEF1F8;
+    --popover: #141D31;
+    --popover-foreground: #EEF1F8;
+    --primary: #B3AEFF;
+    --primary-foreground: #0D1424;
+    --secondary: #242B4D;
+    --secondary-foreground: #E4E2FF;
+    --muted: #1B253B;
+    --muted-foreground: #A9B4CB;
+    --accent: #242B4D;
+    --accent-foreground: #E4E2FF;
+    --destructive: #FF9A90;
+    --atencao: #F0B455;
+    --atencao-fundo: #33270F;
+    --positivo: #6FD3A2;
+    --positivo-fundo: #103126;
+    --perigo-fundo: #3C1B1A;
+    --border: #2E3954;
+    --input: #6A7794;
+    --ring: #918AF2;
   }
 }
 
@@ -116,8 +116,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Títulos usam a largura maior da Archivo; o texto fica na largura normal. */
   h1 {
-    @apply font-serif;
+    font-stretch: 112%;
   }
 }
 

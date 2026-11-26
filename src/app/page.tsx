@@ -88,7 +88,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         ) : null}
         <section className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col items-start gap-6">
-            <p className="text-sm font-medium tracking-wide text-atencao uppercase">Para o advogado autônomo</p>
+            <p className="text-sm font-medium text-muted-foreground">Para o advogado autônomo</p>
             <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Nunca perca um prazo e receba seus honorários.</h1>
             <p className="max-w-xl text-lg text-muted-foreground">
               O Tempestivo calcula o prazo e explica a contagem, cobra a sua conferência, coloca a meta interna no seu calendário e
