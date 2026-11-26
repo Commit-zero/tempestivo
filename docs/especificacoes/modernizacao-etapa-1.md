@@ -1,6 +1,6 @@
 # Etapa 1: autenticação reforçada (`autenticacao-reforcada`)
 
-**Situação:** proposta em 25/11/2026, aguardando aprovação. Nenhum código desta etapa foi escrito.
+**Situação:** aprovada em 25/11/2026 (Vitor), com as recomendações das três perguntas. Tarefas no [plano da Etapa 1](modernizacao-etapa-1-plano.md).
 
 Faz parte do [mapa da modernização](modernizacao.md). A branch `modernizacao/etapa-1-autenticacao` parte da branch da [Etapa 0](modernizacao-etapa-0.md), que ainda não está na `main`. Nada vai para a `main` antes do fim da final de 27/11/2026.
 
@@ -67,7 +67,7 @@ Conferidos no código instalado do Better Auth 1.7.27, além da documentação.
 | # | Achado | Tratamento |
 |---|---|---|
 | 1 | O segundo fator só é cobrado no login por senha. O link de confirmação de e-mail, liberado em `/api/auth/verify-email`, com `autoSignInAfterVerification` **cria sessão sem senha e sem segundo fator** quando o e-mail ainda não está confirmado | Só ativar com e-mail confirmado; para e-mail já confirmado, o link não cria sessão. Um teste prova isso. Qualquer forma de login nova, inclusive troca de e-mail, precisa rever este ponto |
-| 2 | A biblioteca aceita o mesmo código do aplicativo mais de uma vez enquanto ele vale (cerca de 90 segundos) | Registrar no banco o código já usado e recusar a repetição, de forma atômica. A forma de guardar sai no plano de tarefas |
+| 2 | A biblioteca aceita o mesmo código do aplicativo mais de uma vez enquanto ele vale (cerca de 90 segundos) | Registrar no banco o código já usado e recusar a repetição, de forma atômica (como, no plano de tarefas) |
 | 3 | O bloqueio da conta vale no login, não na confirmação de quem já está logado; o limite do plugin vale só para chamadas HTTP, que ficam fechadas | Limitador próprio em todas as server actions novas, como nas atuais |
 | 4 | Com a verificação ligada, `signInEmail` responde `twoFactorRedirect` em vez de erro. O `entrar()` atual trataria isso como login concluído | Tratar a resposta e levar à segunda tela, com teste |
 | 5 | O segredo e os códigos de recuperação são cifrados com o `AUTH_SECRET` | Trocar o segredo sem preparo tranca quem usa a verificação. Atualizar `docs/operacao.md` e `docs/deploy.md`, que hoje dizem que a troca só encerra sessões. Conferir na documentação oficial a rotação com segredos versionados |
@@ -77,8 +77,9 @@ Conferidos no código instalado do Better Auth 1.7.27, além da documentação.
 Uma migração só aditiva:
 
 - tabela `twoFactor`: `id`, `userId` (apagada em cascata com o usuário), `secret` e `backupCodes` (cifrados), `verified`, `failedVerificationCount`, `lockedUntil`;
-- coluna `user.twoFactorEnabled`, com padrão `false`;
-- o que o achado 2 exigir, também aditivo.
+- coluna `user.twoFactorEnabled`, com padrão `false`.
+
+O achado 2 usa a tabela `verification`, que já existe.
 
 Excluir a conta apaga esses dados. A exportação não inclui segredo nem códigos, e um teste garante isso. A política de privacidade passa a citar a verificação em duas etapas, com nova data em `VERSAO_DOS_TERMOS`. A tabela nova não tem RLS, como as outras: a Data API do Supabase continua desligada.
 
@@ -161,9 +162,9 @@ SMS e código por e-mail; chaves de acesso (passkeys); aparelho confiável; list
 11. Exportação sem segredo nem códigos; excluir a conta apaga o segundo fator.
 12. Lint, tipos, testes com cobertura, build e testes de tela passam; documentação atualizada, com o procedimento de perda de acesso.
 
-## Perguntas em aberto
+## Perguntas decididas
 
-A recomendação vale se a especificação for aprovada sem ressalvas.
+As três recomendações foram aprovadas em 25/11/2026.
 
 1. **Exigir maiúscula, número e símbolo?** Recomendo não: essas exigências levam a senhas previsíveis. As quatro regras acima protegem melhor e são mais fáceis de cumprir.
 2. **Quem atende a perda de celular e códigos, e como confere a identidade?** Recomendo: o Vitor, só a pedido vindo do e-mail da conta, com uma segunda confirmação por um contato que a pessoa já tinha, quando houver. O e-mail sozinho não prova identidade, e este continua o ponto mais fraco enquanto não houver outro canal.

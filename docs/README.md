@@ -23,6 +23,7 @@ As especificações registram o objetivo, as decisões e os critérios de aceite
 | [especificacoes/modernizacao.md](especificacoes/modernizacao.md) | Mapa da modernização: decisões, etapas e cronograma |
 | [especificacoes/modernizacao-etapa-0.md](especificacoes/modernizacao-etapa-0.md) | Etapa 0: proteção da `main` |
 | [especificacoes/modernizacao-etapa-1.md](especificacoes/modernizacao-etapa-1.md) | Etapa 1: senhas e verificação em duas etapas |
+| [especificacoes/modernizacao-etapa-1-plano.md](especificacoes/modernizacao-etapa-1-plano.md) | Plano de tarefas da Etapa 1 |
 
 As regras de contagem de prazo, com a referência legal de cada uma e o estado da validação, ficam junto do código, em [`src/modules/prazos/regras.md`](../src/modules/prazos/regras.md).
 
