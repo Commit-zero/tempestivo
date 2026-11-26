@@ -1,6 +1,6 @@
 # Etapa 2: identidade visual (`identidade-visual`)
 
-**Situação:** proposta em 26/11/2026, aguardando aprovação. Nenhum código desta etapa foi escrito.
+**Situação:** aprovada em 26/11/2026 (Vitor), com a direção A, o carrossel sem rotação automática e o símbolo feito agora. Tarefas no [plano da Etapa 2](modernizacao-etapa-2-plano.md).
 
 Faz parte do [mapa da modernização](modernizacao.md) (pedidos 1, 2 e 8). A branch `modernizacao/etapa-2-identidade` parte da branch da [Etapa 1](modernizacao-etapa-1.md), porque mexe nas telas que ela criou. Por isso, só pode ser publicada depois dela. Nada vai para a `main` antes do fim da final de 27/11/2026.
 
@@ -69,7 +69,7 @@ Nesta ordem:
 
 Regras de conteúdo: só o que o sistema faz; nada de depoimento, número de clientes ou selo inventado; nada do roadmap. A verificação em duas etapas só é citada se a Etapa 1 estiver na mesma publicação.
 
-**Carrossel**, sem dependência nova e seguindo o [padrão do WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/patterns/carousel/): sem JavaScript, os slides continuam acessíveis por rolagem; com JavaScript, há botões de anterior, próximo e pausar, e indicação de posição. Pelo plano aprovado, roda sozinho (ver a pergunta 2), mas para com o ponteiro ou o foco em cima, depois de qualquer interação e quando a página não está visível; com "reduzir movimento", não roda.
+**Carrossel**, sem dependência nova e seguindo o [padrão do WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/patterns/carousel/): sem JavaScript, os slides continuam acessíveis por rolagem; com JavaScript, há botões de anterior e próximo e indicação de posição. **Não roda sozinho** (decisão de 26/11/2026, que substitui a rotação com pausa prevista no mapa).
 
 ## Confirmações e avisos (pedido 8)
 
@@ -129,7 +129,7 @@ corepack pnpm e2e
 ```
 
 - **Unidade:** contraste de todos os pares nos dois temas; dados da faixa iguais aos da calculadora; lista de chaves de aviso.
-- **Telas, em 320, 360, 768 e 1280 px, com acessibilidade e sem rolagem horizontal:** capa, carrossel (teclado, pausa e movimento reduzido), diálogo (cancelar, confirmar, `Esc`, volta do foco) e aviso depois de cada tipo de ação.
+- **Telas, em 320, 360, 768 e 1280 px, com acessibilidade e sem rolagem horizontal:** capa, carrossel (teclado e sem JavaScript), movimento reduzido na faixa, diálogo (cancelar, confirmar, `Esc`, volta do foco) e aviso depois de cada tipo de ação.
 - Os testes atuais continuam valendo; os que usam `window.confirm` passam a usar o diálogo.
 - Antes do PR: `qa-responsivo` e revisão de código; `revisor-seguranca-lgpd` se o aviso usar cookie.
 
@@ -148,15 +148,15 @@ Nome definitivo e registro de marca; escolha manual de tema (continua seguindo o
 1. Um dos três símbolos escolhido e aplicado em marca, `favicon`, ícones, manifesto e imagem de compartilhamento.
 2. Cores e tipografia novas em todas as telas, nos dois temas, com o teste de contraste passando.
 3. Capa com as seis partes, só com o que o sistema faz; a faixa confere com a calculadora.
-4. Carrossel operável por teclado e utilizável sem JavaScript. Se rodar sozinho: com pausa e sem rotação para quem pede menos movimento.
+4. Carrossel operável por teclado, sem rotação automática e utilizável sem JavaScript.
 5. Nenhum `window.confirm`; toda ação destrutiva passa pelo diálogo.
 6. Salvar, excluir e mudar situação mostram o resultado, sem dado pessoal no endereço ou no cookie.
 7. Sem rolagem horizontal em 320, 360, 768 e 1280 px; alvos de toque de 44 px no celular.
 8. Lint, tipos, testes com cobertura, build e testes de tela passam; documentação atualizada. Informar o que não foi verificado, como leitor de tela, celular físico e desempenho medido.
 
-## Perguntas em aberto
+## Perguntas decididas
 
-A recomendação vale se a especificação for aprovada sem ressalvas.
+As três recomendações foram aprovadas em 26/11/2026.
 
 1. **Direção A ("Protocolo") ou B ("Continuidade")?** Recomendo a A. A amostra enviada junto compara as duas.
 2. **Rodar o carrossel sozinho?** O plano aprovado previa rotação com pausa. Recomendo **mudar** e não rodar sozinho: quem lê no próprio ritmo entende mais, há menos código e menos barreira de acessibilidade. Se não quiser mudar o plano, vale a rotação descrita acima.

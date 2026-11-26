@@ -87,7 +87,7 @@ Ordem: a do mapa, de cima para baixo. Cada etapa é um PR (ou poucos), publicáv
 
 ### Etapa 2: `identidade-visual`
 - Logo, ícones, imagem de compartilhamento, paleta nos tokens de `globals.css` (contraste testado nos dois temas).
-- Capa com carrossel sem dependência nova, operável por teclado, com pausa e sem rotação automática para quem pede menos movimento; problemas, soluções e diferenciais, só com o que o sistema faz.
+- Capa com carrossel sem dependência nova, operável por teclado e sem rotação automática (mudado em 26/11/2026; antes, rotação com pausa); problemas, soluções e diferenciais, só com o que o sistema faz.
 - Diálogo de confirmação no lugar de `window.confirm` e avisos de sucesso, erro, alerta e carregamento.
 - Pronto: e2e e acessibilidade nas quatro larguras, sem rolagem horizontal.
 
