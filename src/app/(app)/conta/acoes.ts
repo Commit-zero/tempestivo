@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
-import { confirmarSenhaAtual, exigirSessao } from "@/platform/auth";
+import { confirmarSenhaAtual, exigirSessao, trocarSenha } from "@/platform/auth";
 import { getConfig } from "@/platform/config";
 import { getMailer } from "@/platform/runtime";
 import type { EstadoDaAgenda } from "./agenda";
@@ -21,6 +21,17 @@ export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario:
       : "Dados salvos.",
     valores,
   };
+}
+
+export async function acaoTrocarSenha(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  const sessao = await exigirSessao();
+  const resultado = await trocarSenha(sessao, {
+    senhaAtual: formulario.get("senhaAtual"),
+    senha: formulario.get("senha"),
+    confirmacao: formulario.get("confirmacao"),
+  });
+  if (!resultado.ok) return { erro: resultado.erro };
+  return { aviso: "Senha trocada. As sessões em outros aparelhos foram encerradas." };
 }
 
 // Pede a senha atual: uma sessão esquecida aberta não basta para apagar tudo.

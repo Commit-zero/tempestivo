@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getPrisma } from "@/platform/database";
@@ -30,12 +30,26 @@ async function contaDoUsuario(usuarioId: string, nome: string): Promise<string> 
   return conta.id;
 }
 
+/**
+ * Os cabeçalhos da requisição com os cookies em vigor. Quando uma server action troca o
+ * cookie de sessão (troca de senha), o Next atualiza `cookies()` mas não `headers()`, e
+ * monta a página de novo na mesma requisição: com o cookie antigo, a sessão pareceria
+ * encerrada.
+ */
+async function cabecalhosComCookiesAtuais(): Promise<Headers> {
+  const cabecalhos = new Headers(await headers());
+  const atuais = (await cookies()).toString();
+  if (atuais) cabecalhos.set("cookie", atuais);
+  else cabecalhos.delete("cookie");
+  return cabecalhos;
+}
+
 /** Sessão validada no servidor (não só a presença do cookie). `cache` evita repetir a consulta na mesma requisição. */
 export const obterSessao = cache(async (): Promise<Sessao | null> => {
   // `headers()` vem antes de `getAuth()`: é ele que marca a página como dinâmica.
   // Na ordem inversa, o build tenta pré-renderizar a tela e exige a configuração,
   // que não existe no build da imagem Docker.
-  const cabecalhos = await headers();
+  const cabecalhos = await cabecalhosComCookiesAtuais();
   const sessao = await getAuth().api.getSession({ headers: cabecalhos });
   if (!sessao) return null;
   const { id, name, email, emailVerified } = sessao.user;

@@ -1,11 +1,13 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getPrisma } from "@/platform/database";
-import { getLogger } from "@/platform/runtime";
+import { getConfig } from "@/platform/config";
+import { getLogger, getMailer } from "@/platform/runtime";
 import { getAuth } from "./auth";
 import { criarLimitador } from "@/lib/limitador";
 import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
+import { enviarAvisoDeSeguranca } from "./avisos";
 import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
@@ -169,6 +171,38 @@ export async function confirmarSenhaAtual(usuarioId: string, senha: unknown): Pr
     return { ok: false, erro: "Senha incorreta." };
   }
   confirmacoesDeSenha.liberar(usuarioId);
+  return { ok: true };
+}
+
+const trocasDeSenha = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
+const schemaTroca = z.object({
+  senhaAtual: z.string("Informe a senha atual.").min(1, "Informe a senha atual.").max(128, "Senha atual incorreta."),
+  senha: senhaDigitada,
+  confirmacao: confirmacaoDigitada,
+});
+
+/** Troca a senha de quem está logado: mantém esta sessão e encerra as outras. */
+export async function trocarSenha(
+  titular: { usuarioId: string; nome: string; email: string },
+  dados: { senhaAtual: unknown; senha: unknown; confirmacao: unknown },
+): Promise<ResultadoAuth> {
+  const validado = schemaTroca.safeParse(dados);
+  if (!validado.success) return primeiroErro(validado.error);
+  const erroDeSenha = erroDaSenhaNova(validado.data.senha, validado.data.confirmacao, titular.email);
+  if (erroDeSenha) return { ok: false, erro: erroDeSenha };
+  if (validado.data.senha === validado.data.senhaAtual) return { ok: false, erro: "A nova senha precisa ser diferente da atual." };
+  if (!trocasDeSenha.permitir(titular.usuarioId)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  try {
+    await getAuth().api.changePassword({
+      headers: await headers(),
+      body: { currentPassword: validado.data.senhaAtual, newPassword: validado.data.senha, revokeOtherSessions: true },
+    });
+  } catch (erro) {
+    registrarFalha("troca de senha", erro);
+    return { ok: false, erro: "Senha atual incorreta." };
+  }
+  trocasDeSenha.liberar(titular.usuarioId);
+  await enviarAvisoDeSeguranca("senha-alterada", titular, { mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL });
   return { ok: true };
 }
 

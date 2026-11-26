@@ -72,6 +72,38 @@ test("o cadastro recusa senha curta e a recuperação não revela se o e-mail ex
   await expect(page.getByRole("status")).toContainText("Se houver uma conta com este e-mail");
 });
 
+test("troca a senha na tela Conta e continua com a sessão aberta", async ({ page }) => {
+  const email = await cadastrarContaFicticia(page);
+  const NOVA = "uma-frase-nova-bem-comprida";
+  await page.goto("/conta");
+  await semRolagemHorizontal(page);
+
+  async function enviarTroca(senhaAtual: string) {
+    await page.getByLabel("Senha atual").fill(senhaAtual);
+    await page.getByLabel("Nova senha", { exact: true }).fill(NOVA);
+    await page.getByLabel("Confirme a nova senha").fill(NOVA);
+    await page.getByRole("button", { name: "Trocar a senha" }).click();
+  }
+
+  await enviarTroca("senha-errada-de-teste");
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("Senha atual incorreta.");
+
+  await enviarTroca(SENHA_FICTICIA);
+  await expect(page.getByRole("status").filter({ hasText: "Senha trocada." })).toBeVisible();
+  await expect(page).toHaveURL(/\/conta$/);
+
+  // A sessão deste aparelho continua valendo, e a senha nova é a que entra.
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Conta" })).toBeVisible();
+  await page.goto("/mais");
+  await page.getByRole("main").getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL(/\/entrar$/);
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByLabel("Senha", { exact: true }).fill(NOVA);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(/\/painel$/);
+});
+
 test("exporta os dados da conta e exclui a conta só com o e-mail certo", async ({ page }) => {
   const email = await cadastrarContaFicticia(page);
   await page.goto("/conta");

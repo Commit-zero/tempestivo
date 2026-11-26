@@ -5,9 +5,10 @@ import { formatarDataHora } from "@/lib/datas";
 import { MARGEM_MAXIMA, obterConta } from "@/modules/conta";
 import { exigirSessao } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
-import { acaoAtivarAgenda, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoSalvarConta } from "./acoes";
+import { acaoAtivarAgenda, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoSalvarConta, acaoTrocarSenha } from "./acoes";
 import { FormularioDaMargem, PainelDaAgenda } from "./agenda";
 import { FormularioDaConta, FormularioDeExclusaoDaConta } from "./formularios";
+import { FormularioDeTrocaDeSenha } from "./seguranca";
 
 export const metadata: Metadata = { title: "Conta" };
 
@@ -55,6 +56,14 @@ export default async function PaginaDaConta() {
             acaoAtivar={acaoAtivarAgenda}
             acaoDesativar={acaoDesativarAgenda}
           />
+        </Cartao>
+      </Secao>
+      <Secao titulo="Segurança">
+        <p className="text-sm text-muted-foreground">
+          Ao trocar a senha, as sessões abertas em outros aparelhos são encerradas e você recebe um aviso por e-mail.
+        </p>
+        <Cartao>
+          <FormularioDeTrocaDeSenha acao={acaoTrocarSenha} email={sessao.email} />
         </Cartao>
       </Secao>
       <Secao titulo="Seus dados">
