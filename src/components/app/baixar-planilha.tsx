@@ -16,14 +16,14 @@ export function BaixarPlanilha({ lista, filtros = {}, rotulo = "Baixar planilha"
     Object.entries(filtros).filter((par): par is [string, string] => Boolean(par[1])),
   ).toString();
   return (
-    <div className="grid justify-items-start gap-1.5">
-      <Button asChild variant="outline" className="h-11 px-4 md:h-9">
+    <div className="grid gap-1.5 sm:justify-items-start">
+      <Button asChild variant="outline" className="w-full px-5 sm:w-auto">
         <a href={`/exportar/${lista}${parametros ? `?${parametros}` : ""}`}>
           <Download aria-hidden="true" />
           {rotulo}
         </a>
       </Button>
-      <p className="text-xs text-muted-foreground">O arquivo traz dados pessoais dos seus clientes: guarde com cuidado.</p>
+      <p className="text-sm text-muted-foreground">O arquivo traz dados pessoais dos seus clientes: guarde com cuidado.</p>
     </div>
   );
 }

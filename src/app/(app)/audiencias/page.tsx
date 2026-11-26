@@ -20,7 +20,7 @@ export default async function PaginaDeAudiencias() {
   return (
     <div className="grid gap-8">
       <CabecalhoDaPagina titulo="Audiências" acao={nova} />
-      <BaixarPlanilha lista="audiencias" />
+      {proximas.length + passadas.length > 0 ? <BaixarPlanilha lista="audiencias" /> : null}
       <Secao titulo="Próximas">
         {proximas.length === 0 ? (
           <EstadoVazio titulo="Nenhuma audiência marcada." descricao="Cadastre a audiência para ter a rota, a sala virtual e o arquivo da agenda à mão no dia." acao={nova} />

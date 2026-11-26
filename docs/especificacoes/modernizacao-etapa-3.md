@@ -10,7 +10,7 @@ O advogado baixa em `.xlsx` o que vê nas listas, para filtrar, somar e guardar 
 
 ## Planilhas
 
-Um botão **Baixar planilha** em cada lista. Ele leva junto o filtro e a busca que estão na tela. É um link, então funciona sem JavaScript.
+Um botão **Baixar planilha** em cada lista que tem registros na tela (ajuste do QA: com a lista vazia ele só empurrava o conteúdo). Ele leva junto o filtro e a busca que estão na tela. É um link, então funciona sem JavaScript.
 
 | Lista | Filtro levado | Abas e colunas |
 |---|---|---|

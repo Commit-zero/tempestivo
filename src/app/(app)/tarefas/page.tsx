@@ -71,7 +71,6 @@ export default async function PaginaDeTarefas() {
   return (
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Tarefas" />
-      <BaixarPlanilha lista="tarefas" />
       <Cartao className="max-w-2xl">
         <FormularioDeTarefa acao={acaoCriarTarefa} processos={processos.map((processo) => ({ id: processo.id, rotulo: `${processo.cliente.nome} · ${processo.assunto}` }))} />
       </Cartao>
@@ -98,6 +97,7 @@ export default async function PaginaDeTarefas() {
           </section>
         ))}
       </QuadroComFoco>
+      {COLUNAS.some((coluna) => quadro[coluna.id].length > 0) ? <BaixarPlanilha lista="tarefas" /> : null}
     </div>
   );
 }

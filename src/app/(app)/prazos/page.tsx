@@ -55,7 +55,7 @@ export default async function PaginaDePrazos({ searchParams }: PageProps<"/prazo
           ))}
         </ul>
       </nav>
-      <BaixarPlanilha lista="prazos" filtros={{ filtro }} />
+      {prazos.length > 0 ? <BaixarPlanilha lista="prazos" filtros={{ filtro }} /> : null}
       {prazos.length === 0 ? (
         <EstadoVazio
           titulo={VAZIO[filtro]}

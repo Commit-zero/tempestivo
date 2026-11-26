@@ -23,7 +23,7 @@ export default async function PaginaDeClientes({ searchParams }: PageProps<"/cli
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Clientes" acao={novo} />
       <Busca rotulo="Buscar por nome" valor={termo} />
-      <BaixarPlanilha lista="clientes" filtros={{ busca: termo }} />
+      {clientes.length > 0 ? <BaixarPlanilha lista="clientes" filtros={{ busca: termo }} /> : null}
       {clientes.length === 0 ? (
         <EstadoVazio
           titulo={termo ? "Nenhum cliente com esse nome." : "Nenhum cliente cadastrado."}

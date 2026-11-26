@@ -21,7 +21,7 @@ export default async function PaginaDeHonorarios() {
   return (
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Honorários" acao={novo} />
-      <BaixarPlanilha lista="honorarios" />
+      {honorarios.length > 0 ? <BaixarPlanilha lista="honorarios" /> : null}
       {honorarios.length === 0 ? (
         <EstadoVazio titulo="Nenhum honorário cadastrado." descricao="Cadastre o valor combinado e as parcelas para acompanhar o que falta receber." acao={novo} />
       ) : (

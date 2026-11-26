@@ -78,6 +78,23 @@ describe("rota das planilhas", () => {
     await apagarContaDeTeste(vitima);
   });
 
+  it("quem chega pelo navegador recebe uma página legível, com o caminho de volta", async () => {
+    const navegador = { accept: "text/html,application/xhtml+xml,*/*;q=0.8" };
+
+    const semSessao = await pedir("clientes", navegador, null);
+    const pagina = await semSessao.text();
+
+    expect(semSessao.status).toBe(401);
+    expect(semSessao.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(pagina).toContain('<html lang="pt-BR">');
+    expect(pagina).toContain('name="viewport" content="width=device-width, initial-scale=1"');
+    expect(pagina).toContain("Entre na sua conta de novo para baixar a planilha.");
+    expect(pagina).toContain('href="/entrar"');
+    const desconhecida = await pedir("usuarios", navegador);
+    expect(await desconhecida.text()).toContain('href="/painel"');
+    expect(desconhecida.headers.get("cache-control")).toBe("private, no-store");
+  });
+
   it("HEAD não monta planilha", () => {
     expect(HEAD().status).toBe(405);
   });

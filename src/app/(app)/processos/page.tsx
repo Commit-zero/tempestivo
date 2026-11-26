@@ -48,7 +48,7 @@ export default async function PaginaDeProcessos({ searchParams }: PageProps<"/pr
           ))}
         </select>
       </Busca>
-      <BaixarPlanilha lista="processos" filtros={{ busca: termo, status: filtro }} />
+      {processos.length > 0 ? <BaixarPlanilha lista="processos" filtros={{ busca: termo, status: filtro }} /> : null}
       {processos.length === 0 ? (
         <EstadoVazio
           titulo={semFiltro ? "Nenhum processo ativo." : "Nenhum processo encontrado."}
