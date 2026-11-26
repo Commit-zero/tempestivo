@@ -2,5 +2,8 @@
 // sessão em cookie HttpOnly. As telas só conhecem o que este arquivo exporta.
 export { getAuth } from "./auth";
 export { cadastrar, confirmarSenhaAtual, entrar, reenviarConfirmacaoDeEmail, pedirRedefinicaoDeSenha, redefinirSenha, sair, trocarSenha, type ResultadoAuth, type ResultadoDaEntrada } from "./acoes";
-export { confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao, haPassoPendente, type ResultadoDoSegundoFator } from "./segundo-fator";
+export {
+  confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao, haPassoPendente, MOTIVOS_DE_RECOMECO,
+  type MotivoDeRecomeco, type ResultadoDoSegundoFator,
+} from "./segundo-fator";
 export { exigirSessao, obterSessao, ROTA_DE_ENTRADA, type Sessao } from "./sessao";

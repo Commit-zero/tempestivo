@@ -15,8 +15,20 @@ import { ipDoCliente, MUITAS_TENTATIVAS, registrarFalha } from "./comum";
 // num cookie (10 minutos, 5 tentativas). O bloqueio por 10 erros seguidos fica no
 // banco. `trustDevice` nunca é enviado: o código é pedido em todo login.
 
-/** `recomecar`: o passo pendente acabou e só a senha começa outro. */
-export type ResultadoDoSegundoFator = { ok: true } | { ok: false; erro: string; recomecar?: true };
+/** O passo pendente acabou, e só a senha começa outro. A tela de entrada mostra o motivo. */
+export const MOTIVOS_DE_RECOMECO = {
+  expirado: "O tempo para digitar o código acabou. Entre de novo com a senha.",
+  tentativas: "Foram muitas tentativas. Entre de novo com a senha.",
+  bloqueado: "Muitos códigos errados. Aguarde 15 minutos e entre de novo.",
+  repetido: "Este código já foi usado. Espere o aplicativo mostrar o próximo e entre de novo.",
+} as const;
+export type MotivoDeRecomeco = keyof typeof MOTIVOS_DE_RECOMECO;
+
+export type ResultadoDoSegundoFator = { ok: true } | { ok: false; erro: string; recomecar?: MotivoDeRecomeco };
+
+const recomeco = (motivo: MotivoDeRecomeco): ResultadoDoSegundoFator => ({
+  ok: false, recomecar: motivo, erro: MOTIVOS_DE_RECOMECO[motivo],
+});
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 const DOIS_MINUTOS = 2 * 60 * 1000;
@@ -31,9 +43,9 @@ const schemaDaRecuperacao = z.string(SEM_RECUPERACAO).trim().min(1, SEM_RECUPERA
 const ERROS: Record<string, ResultadoDoSegundoFator> = {
   INVALID_CODE: { ok: false, erro: "Código incorreto." },
   INVALID_BACKUP_CODE: { ok: false, erro: "Código de recuperação incorreto ou já usado." },
-  INVALID_TWO_FACTOR_COOKIE: { ok: false, recomecar: true, erro: "O tempo para digitar o código acabou. Entre de novo com a senha." },
-  TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: { ok: false, recomecar: true, erro: "Foram muitas tentativas. Entre de novo com a senha." },
-  ACCOUNT_TEMPORARILY_LOCKED: { ok: false, recomecar: true, erro: "Muitos códigos errados. Aguarde 15 minutos e entre de novo." },
+  INVALID_TWO_FACTOR_COOKIE: recomeco("expirado"),
+  TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: recomeco("tentativas"),
+  ACCOUNT_TEMPORARILY_LOCKED: recomeco("bloqueado"),
 };
 
 function traduzir(operacao: string, erro: unknown): ResultadoDoSegundoFator {
@@ -85,7 +97,7 @@ export async function confirmarCodigoDeEntrada(codigo: unknown): Promise<Resulta
   }
   if (primeiroUso) return { ok: true };
   await getPrisma().session.deleteMany({ where: { token: entrada.token } });
-  return { ok: false, recomecar: true, erro: "Este código já foi usado. Espere o aplicativo mostrar o próximo e entre de novo." };
+  return recomeco("repetido");
 }
 
 export async function confirmarCodigoDeRecuperacao(codigo: unknown): Promise<ResultadoDoSegundoFator> {

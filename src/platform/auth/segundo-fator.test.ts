@@ -94,7 +94,7 @@ describe("login com segundo fator (integração)", () => {
     await passarPelaSenha(email);
 
     expect(await confirmarCodigoDeEntrada(codigo)).toEqual({
-      ok: false, recomecar: true,
+      ok: false, recomecar: "repetido",
       erro: "Este código já foi usado. Espere o aplicativo mostrar o próximo e entre de novo.",
     });
     expect(await obterSessao()).toBeNull();
@@ -134,7 +134,7 @@ describe("login com segundo fator (integração)", () => {
     await passarPelaSenha(email);
     for (let vez = 0; vez < 5; vez += 1) await confirmarCodigoDeEntrada(errado(chave));
 
-    expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toMatchObject({ ok: false, recomecar: true });
+    expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toMatchObject({ ok: false, recomecar: "tentativas" });
     expect(await obterSessao()).toBeNull();
   });
 
@@ -147,7 +147,7 @@ describe("login com segundo fator (integração)", () => {
     await passarPelaSenha(email);
 
     expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toEqual({
-      ok: false, recomecar: true, erro: "Muitos códigos errados. Aguarde 15 minutos e entre de novo.",
+      ok: false, recomecar: "bloqueado", erro: "Muitos códigos errados. Aguarde 15 minutos e entre de novo.",
     });
     expect(await obterSessao()).toBeNull();
   });
@@ -158,7 +158,7 @@ describe("login com segundo fator (integração)", () => {
 
     expect(await haPassoPendente()).toBe(false);
     expect(await confirmarCodigoDeEntrada(codigoTotp(chave))).toEqual({
-      ok: false, recomecar: true, erro: "O tempo para digitar o código acabou. Entre de novo com a senha.",
+      ok: false, recomecar: "expirado", erro: "O tempo para digitar o código acabou. Entre de novo com a senha.",
     });
   });
 

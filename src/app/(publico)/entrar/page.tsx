@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MOTIVOS_DE_RECOMECO } from "@/platform/auth";
 import { FormularioDeEntrada } from "../formularios";
 
 export const metadata: Metadata = { title: "Entrar" };
 
 export default async function PaginaDeEntrada({ searchParams }: PageProps<"/entrar">) {
-  const { senha } = await searchParams;
+  const { senha, codigo } = await searchParams;
+  // O endereço só escolhe entre as mensagens fixas: nada dele é mostrado.
+  const recomeco = Object.entries(MOTIVOS_DE_RECOMECO).find(([motivo]) => motivo === codigo)?.[1];
   return (
     <div className="grid gap-6">
       <div className="grid gap-1">
@@ -15,6 +18,11 @@ export default async function PaginaDeEntrada({ searchParams }: PageProps<"/entr
       {senha === "redefinida" ? (
         <p role="status" className="rounded-lg border border-positivo/30 bg-positivo-fundo px-3 py-2 text-sm text-positivo">
           Senha alterada. Entre com a nova senha.
+        </p>
+      ) : null}
+      {recomeco ? (
+        <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+          {recomeco}
         </p>
       ) : null}
       <FormularioDeEntrada />

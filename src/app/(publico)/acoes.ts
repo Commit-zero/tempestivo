@@ -2,14 +2,32 @@
 
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
-import { cadastrar, entrar, pedirRedefinicaoDeSenha, redefinirSenha } from "@/platform/auth";
+import {
+  cadastrar, confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao, entrar, pedirRedefinicaoDeSenha, redefinirSenha,
+  type ResultadoDoSegundoFator,
+} from "@/platform/auth";
 
 const ROTA_INICIAL = "/painel";
 
 export async function acaoEntrar(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const resultado = await entrar({ email: formulario.get("email"), senha: formulario.get("senha") });
   if (!resultado.ok) return { erro: resultado.erro, valores: valoresDe(formulario, ["email"]) };
+  if ("segundoFator" in resultado) redirect("/entrar/codigo");
   redirect(ROTA_INICIAL);
+}
+
+function aposOCodigo(resultado: ResultadoDoSegundoFator): EstadoDoFormulario {
+  if (resultado.ok) redirect(ROTA_INICIAL);
+  if (resultado.recomecar) redirect(`/entrar?codigo=${resultado.recomecar}`);
+  return { erro: resultado.erro };
+}
+
+export async function acaoConfirmarCodigo(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  return aposOCodigo(await confirmarCodigoDeEntrada(formulario.get("codigo")));
+}
+
+export async function acaoConfirmarRecuperacao(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  return aposOCodigo(await confirmarCodigoDeRecuperacao(formulario.get("codigo")));
 }
 
 export async function acaoCadastrar(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {

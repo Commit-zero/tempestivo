@@ -17,6 +17,7 @@ O Tempestivo não tem API JSON pública. A interface com o navegador são as **p
 | Área logada | `/clientes`, `/clientes/novo`, `/clientes/[id]` | sessão | |
 | Área logada | `/honorarios`, `/honorarios/novo`, `/honorarios/[id]` | sessão | |
 | Área logada | `/audiencias`, `/audiencias/nova`, `/audiencias/[id]` | sessão | |
+| Segundo fator | `/entrar/codigo` | passo pendente (cookie) | Código do aplicativo ou de recuperação; sem passo pendente, volta a `/entrar` |
 | Confirmação de e-mail | `/email-confirmado` | — | Destino do link de confirmação, que não abre sessão |
 | Área logada | `/tarefas`, `/conta`, `/mais` | sessão | `/mais` é o menu do celular |
 
