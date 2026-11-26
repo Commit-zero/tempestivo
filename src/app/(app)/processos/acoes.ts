@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarProcesso, criarProcesso, excluirProcesso, mudarStatusDoProcesso, type StatusProcesso } from "@/modules/processos";
 import { exigirId } from "@/lib/ids";
+import { avisar } from "../avisar";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["clienteId", "numero", "tribunal", "vara", "assunto", "parteContraria"] as const;
@@ -18,20 +19,23 @@ export async function acaoSalvarProcesso(id: string | null, _anterior: EstadoDoF
     const criado = await criarProcesso(contaId, valores);
     if (!criado.ok) return { erro: criado.erro, valores };
     revalidatePath("/processos");
+    await avisar("processo-cadastrado");
     redirect(`/processos/${criado.valor.id}`);
   }
   const atualizado = await atualizarProcesso(contaId, id, valores);
   if (!atualizado.ok) return { erro: atualizado.erro, valores };
   revalidatePath("/processos");
+  await avisar("processo-salvo");
   redirect(`/processos/${id}`);
 }
 
 export async function acaoMudarStatusDoProcesso(id: string, status: StatusProcesso): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
-  await mudarStatusDoProcesso(contaId, id, status);
+  const mudou = await mudarStatusDoProcesso(contaId, id, status);
   revalidatePath("/processos");
   revalidatePath(`/processos/${id}`);
+  if (mudou.ok) await avisar(status === "arquivado" ? "processo-arquivado" : "processo-reativado");
 }
 
 export async function acaoExcluirProcesso(id: string): Promise<EstadoDoFormulario> {
@@ -40,5 +44,6 @@ export async function acaoExcluirProcesso(id: string): Promise<EstadoDoFormulari
   const excluido = await excluirProcesso(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   revalidatePath("/processos");
+  await avisar("processo-excluido");
   redirect("/processos");
 }

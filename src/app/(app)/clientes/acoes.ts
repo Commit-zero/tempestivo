@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarCliente, criarCliente, excluirCliente } from "@/modules/clientes";
 import { exigirId } from "@/lib/ids";
+import { avisar } from "../avisar";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["nome", "documento", "email", "telefone", "observacoes"] as const;
@@ -22,6 +23,7 @@ export async function acaoSalvarCliente(id: string | null, _anterior: EstadoDoFo
     const criado = await criarCliente(contaId, valores);
     if (!criado.ok) return { erro: criado.erro, valores };
     revalidatePath("/clientes");
+    await avisar("cliente-cadastrado");
     redirect(`/clientes/${criado.valor.id}`);
   }
   const atualizado = await atualizarCliente(contaId, id, valores);
@@ -36,5 +38,6 @@ export async function acaoExcluirCliente(id: string): Promise<EstadoDoFormulario
   const excluido = await excluirCliente(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   revalidatePath("/clientes");
+  await avisar("cliente-excluido");
   redirect("/clientes");
 }

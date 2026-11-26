@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { AvisoDaPagina } from "@/components/app/aviso-da-pagina";
 import { Marca } from "@/components/app/marca";
 import { NavegacaoInferior, NavegacaoLateral } from "@/components/app/navegacao";
 import { Button } from "@/components/ui/button";
+import { COOKIE_DO_AVISO, lerAviso } from "@/lib/avisos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoSair } from "./acoes";
 
@@ -9,6 +12,7 @@ import { acaoSair } from "./acoes";
 // cada ação repete a validação antes de tocar em dados.
 export default async function LayoutDoApp({ children }: { children: React.ReactNode }) {
   const sessao = await exigirSessao();
+  const aviso = lerAviso((await cookies()).get(COOKIE_DO_AVISO)?.value);
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2">
@@ -40,6 +44,7 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
           {children}
         </main>
       </div>
+      <AvisoDaPagina mensagem={aviso} />
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
         <NavegacaoInferior />
       </div>
