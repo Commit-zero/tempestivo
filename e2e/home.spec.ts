@@ -125,6 +125,8 @@ test("carrossel: botões e teclado trocam de tela, sem rodar sozinho", async ({ 
   // Insistir na ponta não pode travar a posição: depois, a rolagem por outro meio vale.
   await proxima.click();
   await expect(posicao).toHaveText(`4 de 4: ${TELAS[3]}`);
+  // Só depois de a rolagem suave chegar: senão ela terminaria por cima da próxima.
+  await expect.poll(() => trilho.evaluate((e) => Math.round(e.scrollWidth - e.clientWidth - e.scrollLeft))).toBeLessThanOrEqual(1);
   await proxima.click({ force: true });
   await trilho.evaluate((elemento) => elemento.scrollTo({ left: 0, behavior: "instant" }));
   await expect(posicao).toHaveText(`1 de 4: ${TELAS[0]}`);

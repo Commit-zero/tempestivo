@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 
 /**
  * O botão de baixar a planilha, com o filtro que está na tela. É um `<a>` comum, e não
- * o `Link` do Next: ele adiantaria o download só por o botão aparecer.
+ * o `Link` do Next: ele adiantaria o download só por o botão aparecer. Sem o atributo
+ * `download`: o servidor já manda o arquivo como anexo, e assim as mensagens de limite,
+ * de erro e de sessão vencida aparecem na aba, em vez de virarem um download estranho.
  */
 export function BaixarPlanilha({ lista, filtros = {}, rotulo = "Baixar planilha" }: {
   lista: string;
@@ -16,7 +18,7 @@ export function BaixarPlanilha({ lista, filtros = {}, rotulo = "Baixar planilha"
   return (
     <div className="grid justify-items-start gap-1.5">
       <Button asChild variant="outline" className="h-11 px-4 md:h-9">
-        <a href={`/exportar/${lista}${parametros ? `?${parametros}` : ""}`} download>
+        <a href={`/exportar/${lista}${parametros ? `?${parametros}` : ""}`}>
           <Download aria-hidden="true" />
           {rotulo}
         </a>

@@ -1,5 +1,5 @@
 import escreverXlsx from "write-excel-file/node";
-import type { DataCivil } from "@/lib/datas";
+import { formatarData, type DataCivil } from "@/lib/datas";
 
 // O único ponto que usa a biblioteca de planilhas. Garante, e `planilha.test.ts` prova:
 // texto digitado nunca vira fórmula, datas e horários são os de São Paulo (seja qual for
@@ -25,7 +25,9 @@ function limparTexto(valor: string): string {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u0084\u0086-\u009F\uFFFD\uFFFE\uFFFF]/g, "")
     .slice(0, LIMITE_DE_TEXTO)
     .toWellFormed()
-    .replace(/\uFFFD/g, "");
+    .replace(/\uFFFD/g, "")
+    // O Excel lê "_x0041_" como "A": o primeiro "_" é escrito como o código dele mesmo.
+    .replace(/_(?=x[0-9A-Fa-f]{4}_)/g, "_x005F_");
   // A biblioteca indexa os textos num objeto comum: "constructor" ou "__proto__"
   // acertariam uma propriedade herdada e corromperiam o arquivo. Um caractere invisível
   // (U+2060) tira o texto do caminho sem mudar o que se lê.
@@ -43,7 +45,16 @@ function relogioDeSaoPaulo(instante: Date): Date {
   return new Date(Date.UTC(parte.year!, parte.month! - 1, parte.day!, parte.hour!, parte.minute!, parte.second!));
 }
 
-const dia = (valor: Date): Celula => ({ value: valor, type: Date, format: FORMATO_DO_DIA });
+// Antes de março de 1900 o número de série do Excel não vale como data: um ano digitado
+// errado sai como texto, visível, em vez de "####".
+const PRIMEIRA_DATA_DO_EXCEL = Date.UTC(1900, 2, 1);
+
+function emData(valor: Date, formato: string): Celula {
+  if (valor.getTime() >= PRIMEIRA_DATA_DO_EXCEL) return { value: valor, type: Date, format: formato };
+  return { value: formatarData(valor.toISOString().slice(0, 10)), type: String };
+}
+
+const dia = (valor: Date): Celula => emData(valor, FORMATO_DO_DIA);
 
 export const celula = {
   texto(valor: string | null | undefined): Celula {
@@ -56,7 +67,7 @@ export const celula = {
   },
   /** Instante com a hora, no horário de São Paulo. */
   dataHora(valor: Date | null | undefined): Celula {
-    return valor ? { value: relogioDeSaoPaulo(valor), type: Date, format: FORMATO_DO_INSTANTE } : null;
+    return valor ? emData(relogioDeSaoPaulo(valor), FORMATO_DO_INSTANTE) : null;
   },
   /** Só o dia, em São Paulo, em que o instante aconteceu. */
   diaDe(valor: Date | null | undefined): Celula {

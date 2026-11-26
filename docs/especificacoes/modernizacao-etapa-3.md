@@ -21,7 +21,7 @@ Um botão **Baixar planilha** em cada lista. Ele leva junto o filtro e a busca q
 | Audiências | nenhum | Abas **Próximas** e **Realizadas**: Data, Hora, Duração em minutos, Tipo, Cliente, Processo, Número, Local, Observações |
 | Tarefas | nenhum | Título, Descrição, Coluna do quadro, Data limite, Processo |
 
-Fica **de fora**: o link de sala virtual das audiências (costuma levar a senha), identificadores internos, tokens, dados de acesso e do segundo fator.
+Fica **de fora**: o campo de link da sala virtual das audiências (costuma levar a senha), identificadores internos, tokens, dados de acesso e do segundo fator. Os textos livres (pergunta 3) vão como foram digitados, mesmo que alguém tenha colado um link ali.
 
 Na tela **Conta**, a **planilha completa** traz todas as listas, sem filtro, uma aba para cada, mais a aba **Resumo** com as quantidades e os totais de honorários (a receber, em atraso e recebido no mês).
 

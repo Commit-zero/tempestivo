@@ -52,6 +52,14 @@ describe("texto digitado", () => {
     expect(valores(lida.abas[0]!).map(([valor]) => String(valor).replace(/\u2060/g, ""))).toEqual([...palavras, ...palavras]);
   });
 
+  it("texto com a forma _xHHHH_ aparece como foi digitado, e não como o caractere do código", async () => {
+    const digitados = ["doc_x0041_.pdf", "_x0000_", "a_x0041_x0042_b", "_x005F_", "sem_x_nada"];
+
+    const lida = await gerar(digitados.map((valor) => [celula.texto(valor)]));
+
+    expect(valores(lida.abas[0]!).map(([valor]) => valor)).toEqual(digitados);
+  });
+
   it("corta no limite de caracteres de uma célula do Excel", async () => {
     const lida = await gerar([[celula.texto("a".repeat(40_000))]]);
 
@@ -93,6 +101,12 @@ describe("datas, dinheiro e números", () => {
     const lida = await gerar([[celula.diaDe(new Date("2026-11-27T02:59:00Z"))]]);
 
     expect(lida.abas[0]!.linhas[1]![0]).toMatchObject({ valor: DIA_26, formato: "dd/mm/yyyy" });
+  });
+
+  it("ano digitado errado, antes do que o Excel entende como data, sai como texto", async () => {
+    const lida = await gerar([[celula.data("0202-11-26")], [celula.data("1900-02-28")], [celula.data("1900-03-01")]]);
+
+    expect(valores(lida.abas[0]!)).toEqual([["26/11/0202"], ["28/02/1900"], [61]]);
   });
 
   it("dinheiro é número em reais, para somar", async () => {

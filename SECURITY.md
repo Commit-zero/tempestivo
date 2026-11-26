@@ -46,7 +46,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - **Cabeçalhos:** CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options` e `Referrer-Policy` em todas as respostas.
 - **Banco com TLS verificado:** em produção, o app não sobe com banco remoto sem o certificado da autoridade (`DATABASE_CA_CERT`) ou `sslmode=verify-full`; com o certificado, parâmetros de TLS da URL são descartados para não enfraquecê-lo.
 - **Contêiner** sem root, sem gerenciador de pacotes e sem a CLI de migração.
-- **Planilhas:** montadas na memória a partir da conta da sessão, sem gravação no servidor, com `private, no-store` e limite de 10 por minuto por conta. Texto digitado nunca vira fórmula; link de sala virtual, identificadores, tokens e dados de acesso não entram; o nome do arquivo não tem dado pessoal. O arquivo baixado contém dados pessoais, e a tela avisa.
+- **Planilhas:** montadas na memória a partir da conta da sessão, sem gravação no servidor, com `private, no-store` e limite de 10 por minuto por conta. Texto digitado nunca vira fórmula; o campo de link da sala virtual, identificadores, tokens e dados de acesso não entram. **Textos livres** (observações, descrições, local) vão como foram digitados, inclusive um link ou senha de sala colado ali. Pedido vindo de outro site é recusado, antes do limite; o nome do arquivo não tem dado pessoal. O arquivo baixado contém dados pessoais, e a tela avisa.
 - **LGPD:** Termos de uso e Política de privacidade com aceite registrado (data e versão), exportação de todos os dados da conta e exclusão definitiva pela própria tela.
 
 ## Limites conhecidos

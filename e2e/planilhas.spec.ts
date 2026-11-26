@@ -7,6 +7,12 @@ import { cadastrarCliente, cadastrarContaFicticia, semRolagemHorizontal, unico }
 // por conta, e a sessão compartilhada é usada pelas três larguras ao mesmo tempo.
 test.use({ storageState: { cookies: [], origins: [] } });
 
+// IP próprio por largura: os cadastros daqui não podem gastar o limite por IP dos outros testes.
+test.beforeEach(async ({ page }) => {
+  const final = { 360: 1, 768: 2, 1280: 3 }[page.viewportSize()!.width] ?? 4;
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": `192.0.2.${final}` });
+});
+
 async function baixar(page: Page, nome = "Baixar planilha") {
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: nome }).click()]);
   return { arquivo: download.suggestedFilename(), planilha: lerPlanilha(await readFile((await download.path())!)) };
@@ -68,4 +74,9 @@ test("sem sessão é 401, lista desconhecida é 404 e há limite por minuto", as
   const seguintes = [];
   for (let vez = 0; vez < 10; vez += 1) seguintes.push((await page.request.get("/exportar/clientes")).status());
   expect(seguintes).toEqual([200, 200, 200, 200, 200, 200, 200, 200, 200, 429]);
+
+  // Pelo botão, quem estourou o limite precisa ler o motivo, e não ganhar um download estranho.
+  await page.goto("/clientes");
+  await page.getByRole("link", { name: "Baixar planilha" }).click();
+  await expect(page.locator("body")).toContainText("Muitas planilhas em pouco tempo");
 });

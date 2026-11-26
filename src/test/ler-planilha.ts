@@ -8,6 +8,9 @@ export type CelulaLida = { tipo: "texto" | "numero" | "vazia"; valor: string | n
 export type AbaLida = { nome: string; linhas: CelulaLida[][]; larguras: number[]; linhasFixas: number };
 export type PlanilhaLida = { abas: AbaLida[]; arquivos: Record<string, string>; temFormula: boolean };
 
+// O Excel lê "_xHHHH_" dentro de um texto como o caractere de código HHHH (ST_Xstring).
+const comoOExcel = (texto: string) => texto.replace(/_x([0-9A-Fa-f]{4})_/g, (_, codigo: string) => String.fromCharCode(parseInt(codigo, 16)));
+
 const semEntidades = (texto: string) =>
   texto.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
 const atributo = (marca: string, nome: string) => new RegExp(`\\b${nome}="([^"]*)"`).exec(marca)?.[1];
@@ -21,7 +24,7 @@ function coluna(referencia: string): number {
 
 export function lerPlanilha(conteudo: Uint8Array): PlanilhaLida {
   const arquivos = Object.fromEntries(Object.entries(unzipSync(conteudo)).map(([nome, bytes]) => [nome, strFromU8(bytes)]));
-  const textos = elementos(arquivos["xl/sharedStrings.xml"] ?? "", "si").map((si) => semEntidades(trecho(si.corpo, "t")));
+  const textos = elementos(arquivos["xl/sharedStrings.xml"] ?? "", "si").map((si) => comoOExcel(semEntidades(trecho(si.corpo, "t"))));
   const estilos = arquivos["xl/styles.xml"] ?? "";
   const codigos = new Map(
     elementos(trecho(estilos, "numFmts"), "numFmt").map((f) => [atributo(f.atributos, "numFmtId")!, semEntidades(atributo(f.atributos, "formatCode")!)]),

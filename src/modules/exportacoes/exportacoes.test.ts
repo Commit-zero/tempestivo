@@ -162,7 +162,8 @@ describe("planilha de prazos", () => {
       if (!calculado.ok) throw new Error(calculado.erro);
       const vencido = await cadastrarPrazo(conta, { origem: "manual", processoId: processo.id, descricao: `Vencido ${marca}`, dataFinal: "2026-11-20" });
       const cumprido = await cadastrarPrazo(conta, { origem: "manual", processoId: processo.id, descricao: `Cumprido ${marca}`, dataFinal: "2026-12-10" });
-      if (!vencido.ok || !cumprido.ok) throw new Error("prazo");
+      const nestaSemana = await cadastrarPrazo(conta, { origem: "manual", processoId: processo.id, descricao: `Semana ${marca}`, dataFinal: "2026-12-01" });
+      if (!vencido.ok || !cumprido.ok || !nestaSemana.ok) throw new Error("prazo");
       await marcarComoCumprido(conta, cumprido.valor.id, new Date("2026-11-25T02:30:00Z"));
     }
   });
@@ -203,6 +204,16 @@ describe("planilha de prazos", () => {
     const esperados = await listarPrazos(contaA, { filtro: naTela }, AGORA);
 
     expect(valores(aba("Prazos")).map((linha) => linha[0])).toEqual(esperados.map((prazo) => prazo.descricao));
+  });
+
+  it("cada filtro traz exatamente os prazos esperados", async () => {
+    const nomes = async (filtro: string) =>
+      valores((await abrir(contaA, "prazos", { filtro })).aba("Prazos")).map((linha) => String(linha[0]).split(" ")[0]);
+
+    expect(await nomes("proximos_7_dias")).toEqual(["Semana"]);
+    expect(await nomes("vencidos")).toEqual(["Vencido"]);
+    expect(await nomes("cumpridos")).toEqual(["Cumprido"]);
+    expect((await nomes("em_aberto")).sort()).toEqual(["Contestação", "Semana", "Vencido"]);
   });
 
   it("prazo cumprido sai com o instante no horário de São Paulo", async () => {
@@ -306,6 +317,12 @@ describe("planilhas de audiências e de tarefas", () => {
 
 // Por último no arquivo: usa tudo o que os blocos anteriores cadastraram.
 describe("planilha completa", () => {
+  // Um pagamento neste mês, para o "recebido no mês" não ser sempre zero.
+  beforeAll(async () => {
+    const quarta = (await listarHonorarios(contaA, AGORA))[0]!.parcelas[3]!;
+    await definirPagamentoDaParcela(contaA, quarta.id, true, new Date("2026-11-25T15:00:00Z"));
+  });
+
   const ABAS = [
     "Resumo", "Clientes", "Processos", "Prazos", "Leia-me", "Honorários", "Parcelas", "Audiências próximas",
     "Audiências realizadas", "Tarefas",
@@ -346,7 +363,10 @@ describe("planilha completa", () => {
     ] as const) {
       expect(resumo.get(item), item).toBe(aba(nomeDaAba).linhas.length - 1);
     }
-    expect(Number(resumo.get("Prazos em aberto")) + Number(resumo.get("Prazos cumpridos"))).toBe(aba("Prazos").linhas.length - 1);
+    expect([resumo.get("Prazos em aberto"), resumo.get("Prazos cumpridos")]).toEqual([3, 1]);
+    expect([
+      resumo.get("Honorários a receber"), resumo.get("Honorários em atraso"), resumo.get("Honorários recebidos neste mês"),
+    ]).toEqual([500, 250, 250]);
     expect(resumo.get("Honorários a receber")).toBe(financeiro.aReceberCentavos / 100);
     expect(resumo.get("Honorários em atraso")).toBe(financeiro.emAtrasoCentavos / 100);
     expect(resumo.get("Honorários recebidos neste mês")).toBe(financeiro.recebidoNoMesCentavos / 100);
@@ -360,6 +380,7 @@ describe("planilha completa", () => {
         getPrisma().processo.findMany({ where: { contaId: contaA }, select: { id: true } }),
         getPrisma().prazo.findMany({ where: { contaId: contaA }, select: { id: true } }),
         getPrisma().parcela.findMany({ where: { contaId: contaA }, select: { id: true } }),
+        getPrisma().honorario.findMany({ where: { contaId: contaA }, select: { id: true } }),
         getPrisma().audiencia.findMany({ where: { contaId: contaA }, select: { id: true } }),
         getPrisma().tarefa.findMany({ where: { contaId: contaA }, select: { id: true } }),
       ])
