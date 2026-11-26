@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
@@ -96,6 +97,7 @@ export default async function PaginaDeTarefas() {
           </section>
         ))}
       </QuadroComFoco>
+      {COLUNAS.some((coluna) => quadro[coluna.id].length > 0) ? <BaixarPlanilha lista="tarefas" /> : null}
     </div>
   );
 }

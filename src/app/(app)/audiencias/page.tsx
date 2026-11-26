@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ListaDeAudiencias } from "@/components/app/audiencia";
@@ -19,6 +20,7 @@ export default async function PaginaDeAudiencias() {
   return (
     <div className="grid gap-8">
       <CabecalhoDaPagina titulo="Audiências" acao={nova} />
+      {proximas.length + passadas.length > 0 ? <BaixarPlanilha lista="audiencias" /> : null}
       <Secao titulo="Próximas">
         {proximas.length === 0 ? (
           <EstadoVazio titulo="Nenhuma audiência marcada." descricao="Cadastre a audiência para ter a rota, a sala virtual e o arquivo da agenda à mão no dia." acao={nova} />

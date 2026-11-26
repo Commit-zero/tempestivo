@@ -14,6 +14,7 @@ Cada módulo fica em `src/modules/<id>/` e só é usado de fora pelo seu `index.
 | `audiencias` | Audiências, rota, arquivo `.ics` | `processos` |
 | `tarefas` | Quadro de três colunas | `processos` |
 | `agenda` | Calendário assinável (iCalendar) com vencimentos, metas internas e audiências | `conta`, `prazos`, `audiencias`, `processos` |
+| `exportacoes` | Planilhas `.xlsx` de cada lista e a planilha completa; não grava nada | `clientes`, `processos`, `prazos`, `honorarios`, `audiencias`, `tarefas` |
 
 A exportação de dados da conta lê os outros módulos só nos testes; em produção, `conta` não depende de ninguém.
 

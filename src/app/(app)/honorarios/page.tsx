@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CabecalhoDaPagina, EstadoVazio, ItemDeLink, ListaDeLinks } from "@/components/app/pagina";
@@ -20,6 +21,7 @@ export default async function PaginaDeHonorarios() {
   return (
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Honorários" acao={novo} />
+      {honorarios.length > 0 ? <BaixarPlanilha lista="honorarios" /> : null}
       {honorarios.length === 0 ? (
         <EstadoVazio titulo="Nenhum honorário cadastrado." descricao="Cadastre o valor combinado e as parcelas para acompanhar o que falta receber." acao={novo} />
       ) : (

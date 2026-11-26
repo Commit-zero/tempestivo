@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
@@ -96,6 +97,11 @@ export default async function PaginaDaConta({ searchParams }: PageProps<"/conta"
         <Button asChild variant="outline" className="sm:justify-self-start sm:px-5">
           <a href="/conta/exportar">Exportar os dados</a>
         </Button>
+        <p className="text-sm text-muted-foreground">
+          Para trabalhar no Excel, baixe a planilha completa: uma aba para cada lista e um resumo. Prazos levam “cálculo auxiliar,
+          confira”.
+        </p>
+        <BaixarPlanilha lista="completa" rotulo="Baixar a planilha completa" />
       </Secao>
       <Secao titulo="Excluir a conta">
         <p className="text-sm text-muted-foreground">

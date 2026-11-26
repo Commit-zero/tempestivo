@@ -38,6 +38,7 @@ Um id de outra conta na URL (`/prazos/<id-de-outra-conta>`) dá 404, igual a um 
 | `GET /agenda/<token>/calendario.ics` | token secreto da agenda | `200 text/calendar`, `no-store`; `404 "Agenda não encontrada."`; `429` acima de 60 por IP a cada 15 min | App de calendário |
 | `GET /audiencias/<id>/agenda.ics` | sessão | `200 text/calendar` (anexo); `401`; `404` | Botão "Adicionar à agenda" |
 | `GET /conta/exportar` | sessão | `200 application/json` (anexo), `private, no-store`; `401` | Link "Exportar os dados" em Conta (LGPD) |
+| `GET /exportar/[lista]` | sessão | `200` planilha `.xlsx` (anexo), `private, no-store`; `401`; `403` pedido de outro site; `404` lista desconhecida; `405` em `HEAD`; `429` acima de 10 por minuto por conta e por instância | `lista`: `clientes` (`?busca`), `processos` (`?busca&status`), `prazos` (`?filtro`), `honorarios`, `audiencias`, `tarefas`, `completa` |
 
 ### Contrato do agendador
 
