@@ -3,18 +3,25 @@ import { notFound } from "next/navigation";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
 import { formatarDataHora } from "@/lib/datas";
 import { MARGEM_MAXIMA, obterConta } from "@/modules/conta";
-import { exigirSessao } from "@/platform/auth";
+import { exigirSessao, segundoFatorLigado } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
-import { acaoAtivarAgenda, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoSalvarConta } from "./acoes";
+import {
+  acaoAtivarAgenda, acaoConfirmarSegundoFator, acaoDefinirMargem, acaoDesativarAgenda, acaoDesativarSegundoFator, acaoExcluirConta,
+  acaoGerarCodigos, acaoIniciarSegundoFator, acaoSalvarConta, acaoTrocarSenha,
+} from "./acoes";
 import { FormularioDaMargem, PainelDaAgenda } from "./agenda";
 import { FormularioDaConta, FormularioDeExclusaoDaConta } from "./formularios";
+import { SegundoFator } from "./segundo-fator";
+import { FormularioDeTrocaDeSenha } from "./seguranca";
 
 export const metadata: Metadata = { title: "Conta" };
 
-export default async function PaginaDaConta() {
+export default async function PaginaDaConta({ searchParams }: PageProps<"/conta">) {
   const sessao = await exigirSessao();
   const conta = await obterConta(sessao.contaId);
   if (!conta) notFound();
+  const comSegundoFator = await segundoFatorLigado(sessao.usuarioId);
+  const guardouOsCodigos = (await searchParams).codigos === "guardados";
   return (
     <div className="grid max-w-2xl gap-8">
       <CabecalhoDaPagina titulo="Conta" descricao={sessao.email} />
@@ -54,6 +61,31 @@ export default async function PaginaDaConta() {
             ativadaEm={conta.agendaAtivadaEm ? formatarDataHora(conta.agendaAtivadaEm) : null}
             acaoAtivar={acaoAtivarAgenda}
             acaoDesativar={acaoDesativarAgenda}
+          />
+        </Cartao>
+      </Secao>
+      <Secao titulo="Segurança">
+        <p className="text-sm text-muted-foreground">
+          Ao trocar a senha, as sessões abertas em outros aparelhos são encerradas e você recebe um aviso por e-mail.
+        </p>
+        <Cartao>
+          <FormularioDeTrocaDeSenha acao={acaoTrocarSenha} email={sessao.email} />
+        </Cartao>
+      </Secao>
+      <Secao titulo="Verificação em duas etapas">
+        <p className="text-sm text-muted-foreground">
+          Além da senha, o login passa a pedir um código do aplicativo autenticador no seu celular. Assim, uma senha vazada não basta
+          para abrir a conta.
+        </p>
+        <Cartao>
+          <SegundoFator
+            ligado={comSegundoFator}
+            focarAoAbrir={guardouOsCodigos}
+            emailConfirmado={sessao.emailConfirmado}
+            acaoIniciar={acaoIniciarSegundoFator}
+            acaoConfirmar={acaoConfirmarSegundoFator}
+            acaoGerarCodigos={acaoGerarCodigos}
+            acaoDesativar={acaoDesativarSegundoFator}
           />
         </Cartao>
       </Secao>

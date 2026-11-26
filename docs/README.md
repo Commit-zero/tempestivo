@@ -2,7 +2,7 @@
 
 | Documento | Para quem | O que responde |
 |---|---|---|
-| [arquitetura.md](arquitetura.md) | quem vai mexer no código | Como o sistema é organizado, as camadas, o fluxo de uma requisição e o registro de decisões (D1 a D11) |
+| [arquitetura.md](arquitetura.md) | quem vai mexer no código | Como o sistema é organizado, as camadas, o fluxo de uma requisição e o registro de decisões (D1 a D12) |
 | [mapa-de-modulos.md](mapa-de-modulos.md) | quem vai mexer num módulo | Responsabilidade e dependências de cada módulo e de cada porta |
 | [modelo-de-dados.md](modelo-de-dados.md) | quem vai mudar o banco | Entidades, convenções, migrações e retenção |
 | [rotas-e-api.md](rotas-e-api.md) | quem vai criar tela, rota ou integração | Páginas, rotas HTTP, contrato do agendador e da agenda, padrão das Server Actions |
@@ -22,6 +22,8 @@ As especificações registram o objetivo, as decisões e os critérios de aceite
 | [especificacoes/agenda.md](especificacoes/agenda.md) | Meta interna e agenda assinável |
 | [especificacoes/modernizacao.md](especificacoes/modernizacao.md) | Mapa da modernização: decisões, etapas e cronograma |
 | [especificacoes/modernizacao-etapa-0.md](especificacoes/modernizacao-etapa-0.md) | Etapa 0: proteção da `main` |
+| [especificacoes/modernizacao-etapa-1.md](especificacoes/modernizacao-etapa-1.md) | Etapa 1: senhas e verificação em duas etapas |
+| [especificacoes/modernizacao-etapa-1-plano.md](especificacoes/modernizacao-etapa-1-plano.md) | Plano de tarefas da Etapa 1 |
 
 As regras de contagem de prazo, com a referência legal de cada uma e o estado da validação, ficam junto do código, em [`src/modules/prazos/regras.md`](../src/modules/prazos/regras.md).
 

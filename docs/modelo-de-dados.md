@@ -11,6 +11,7 @@ erDiagram
   User ||--o| Conta : "tem uma"
   User ||--o{ Session : ""
   User ||--o{ Account : "credencial"
+  User ||--o| TwoFactor : "segundo fator"
   Conta ||--o{ Cliente : ""
   Conta ||--o{ Processo : ""
   Conta ||--o{ Prazo : ""
@@ -48,7 +49,10 @@ erDiagram
 
 ### Autenticação (Better Auth)
 
-`User`, `Session`, `Account` e `Verification` seguem o esquema do Better Auth, com os nomes de campo dele. A senha (Argon2id) fica em `Account.password`. O app não lê essas tabelas direto: usa a porta `src/platform/auth`.
+`User`, `Session`, `Account`, `Verification` e `TwoFactor` seguem o esquema do Better Auth, com os nomes de campo dele. A senha (Argon2id) fica em `Account.password`. Só a porta `src/platform/auth` mexe nessas tabelas.
+
+- `TwoFactor` existe para quem começou a ligar a verificação em duas etapas: `secret` e `backupCodes` são cifrados com o `AUTH_SECRET`; `failedVerificationCount` e `lockedUntil` guardam o bloqueio. `User.twoFactorEnabled` só vira `true` depois de um código válido.
+- `Verification` também guarda, por 2 minutos, os códigos do aplicativo já usados (`totp-usado:<usuário>`), para não serem aceitos de novo.
 
 ### `Conta`
 
@@ -107,6 +111,7 @@ Cada linha é um e-mail **reservado antes do envio**. A `chave` única `prazoId:
 | `20261117190000_substituto_com_aceite` | Convite e aceite do substituto |
 | `20261117200000_aceite_dos_termos` | Data e versão do aceite dos termos |
 | `20261117210000_agenda_e_meta_interna` | Margem da meta interna e link da agenda |
+| `20261126030015_segundo_fator` | Verificação em duas etapas: tabela `twoFactor` e `user.twoFactorEnabled` (só acrescenta) |
 
 ### Como mudar o esquema
 
@@ -125,5 +130,5 @@ Regras: migração nunca é editada depois de entrar na `main`; coluna nova em t
 ## Retenção e exclusão
 
 - Excluir a conta apaga o `User`, e a cascata leva a `Conta` e todos os registros dela.
-- A exportação (`exportarDadosDaConta`) traz todos os dados da conta em JSON, sem `contaId`, senha nem resumos de token.
+- A exportação (`exportarDadosDaConta`) traz todos os dados da conta em JSON, sem `contaId`, senha, resumos de token nem os dados do segundo fator.
 - Não há exclusão lógica (`deletedAt`): apagar é apagar.

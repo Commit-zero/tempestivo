@@ -170,6 +170,12 @@ Cada decisão segue o formato: contexto, decisão, consequências. Decisões nov
 - **Decisão:** janela deslizante em memória (`src/lib/limitador.ts`), por IP e por e-mail.
 - **Consequências:** o limite vale por instância e depende de o proxy sobrescrever `X-Forwarded-For` (a Vercel faz isso). Evolução: guardar as tentativas no PostgreSQL. Registrado em `SECURITY.md`.
 
+### D12. Segundo fator por aplicativo autenticador
+
+- **Contexto:** uma senha vazada abria a conta. SMS custa, e código por e-mail depende da mesma caixa que recupera a senha.
+- **Decisão:** TOTP pelo plugin `twoFactor` do Better Auth, opcional, com códigos de recuperação. Ativação só com e-mail confirmado. O app acrescenta o que a biblioteca não faz: recusa código repetido (chave primária em `verification`), limita a ativação e a gestão, encerra as outras sessões ao ligar e avisa por e-mail. O link de confirmação de e-mail não abre sessão. Não há "confiar neste aparelho". O QR code é desenhado no servidor (`uqr`, MIT, sem dependências).
+- **Consequências:** o `AUTH_SECRET` passou a proteger também o segundo fator, e trocá-lo tem custo ([operacao.md](operacao.md#troca-de-segredos)). Perder o celular e os códigos exige atendimento manual. Só o login por senha cobra o segundo fator: qualquer forma de entrada nova precisa rever isso.
+
 ## Atributos de qualidade
 
 | Atributo | Como é garantido | Onde se verifica |

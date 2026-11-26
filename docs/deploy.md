@@ -27,7 +27,7 @@ A lista completa, com um comentário por variável, está em [`.env.example`](..
 | `NODE_ENV` | `production` (a Vercel já define) |
 | `APP_URL` | URL pública em `https`, sem barra no final. Entra nos links dos e-mails, no feed da agenda e nos cookies |
 | `JOBS_SECRET` | 64 caracteres aleatórios. O mesmo valor vai nos segredos do GitHub |
-| `AUTH_SECRET` | 64 caracteres aleatórios, diferente do anterior. Trocar encerra todas as sessões |
+| `AUTH_SECRET` | 64 caracteres aleatórios, diferente do `JOBS_SECRET`. **Não troque sem ler** [operacao.md](operacao.md#troca-de-segredos): encerra as sessões e tranca quem usa a verificação em duas etapas |
 | `DATABASE_URL` | Supavisor em **modo transação**: `postgresql://postgres.<ref>:<senha>@<host-do-pooler>:6543/postgres?pgbouncer=true` |
 | `DATABASE_POOL_MAX` | `3` (cada função serverless abre poucas conexões; o pooler multiplexa) |
 | `DATABASE_CA_CERT` | **Obrigatória.** Certificado do Supabase (Database > SSL Configuration > Download certificate), colado como texto. Sem ele o driver conectaria sem TLS, e o app se recusa a subir em produção com banco remoto. Com ele, os parâmetros `sslmode` da URL são ignorados e o servidor é verificado |

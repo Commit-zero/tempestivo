@@ -38,6 +38,14 @@ async function popular(contaId: string, nomeDoCliente: string) {
   await getPrisma().alerta.create({ data: { contaId, prazoId: prazo.valor.id, chave: `${prazo.valor.id}:d5:teste`, camada: "d5", destino: "titular" } });
 }
 
+/** Liga o segundo fator no banco, com valores fictícios fáceis de procurar. */
+async function ligarSegundoFator(usuarioId: string) {
+  await getPrisma().user.update({ where: { id: usuarioId }, data: { twoFactorEnabled: true } });
+  await getPrisma().twoFactor.create({
+    data: { id: `2fa-${usuarioId}`, userId: usuarioId, secret: "SEGREDO-FICTICIO-DO-2FA", backupCodes: "CODIGOS-FICTICIOS-DO-2FA" },
+  });
+}
+
 async function sessaoDe(contaId: string) {
   const conta = await getPrisma().conta.findUniqueOrThrow({ where: { id: contaId }, select: { usuarioId: true } });
   return { contaId, usuarioId: conta.usuarioId };
@@ -114,6 +122,7 @@ describe("conta (integração)", () => {
     const agenda = await ativarAgenda(contaA, new Date("2026-11-12T14:00:00Z"));
     if (!agenda.ok) throw new Error(agenda.erro);
 
+    await ligarSegundoFator((await sessaoDe(contaA)).usuarioId);
     const exportacao = await exportarDadosDaConta(contaA, new Date("2026-11-12T15:00:00Z"));
 
     expect(exportacao).toMatchObject({ formato: "tempestivo-exportacao-v1", geradoEm: "2026-11-12T15:00:00.000Z" });
@@ -131,6 +140,8 @@ describe("conta (integração)", () => {
     expect(texto).not.toContain("contaId");
     expect(texto).not.toContain("password");
     expect(texto).not.toContain("tokenHash");
+    expect(texto).not.toContain("SEGREDO-FICTICIO-DO-2FA");
+    expect(texto).not.toContain("CODIGOS-FICTICIOS-DO-2FA");
     await Promise.all([apagarContaDeTeste(contaA), apagarContaDeTeste(contaB)]);
   });
 
@@ -145,7 +156,9 @@ describe("conta (integração)", () => {
     expect((await excluirConta({ contaId: contaA, usuarioId: sessaoB.usuarioId })).ok).toBe(false);
     expect(await listarClientes(contaA)).toHaveLength(1);
 
+    await ligarSegundoFator(sessaoA.usuarioId);
     expect((await excluirConta(sessaoA)).ok).toBe(true);
+    expect(await getPrisma().twoFactor.count({ where: { userId: sessaoA.usuarioId } })).toBe(0);
 
     const prisma = getPrisma();
     expect(await obterConta(contaA)).toBeNull();

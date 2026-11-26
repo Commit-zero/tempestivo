@@ -24,8 +24,12 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 ## Práticas do projeto
 
 - **Isolamento por conta:** todo repositório de dados recebe `contaId` e filtra por ele; cada módulo tem um teste de que uma conta não enxerga nem altera dados de outra.
-- **Senhas** em Argon2id; sessão em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS. Redefinir a senha encerra as outras sessões.
-- **Tentativas de login, cadastro, redefinição e confirmação de senha** são limitadas, e as mensagens não revelam se um e-mail tem cadastro.
+- **Senhas** em Argon2id; sessão em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS. Redefinir ou trocar a senha encerra as outras sessões.
+- **Senha nova** (cadastro, redefinição e troca) é digitada duas vezes e conferida no servidor: de 10 a 128 caracteres, sem o nome do e-mail, sem ser um trecho curto repetido e fora de uma lista de senhas comuns (`src/lib/regras-de-senha.ts`). Trocar com a sessão aberta exige a senha atual, tem limite por usuário (inclusive das trocas que dão certo) e, como a redefinição, invalida os links de redefinição e os passos pendentes do segundo fator. O nome do cadastro não aceita quebra de linha, porque vai para os e-mails.
+- **Avisos por e-mail** quando a senha é trocada ou redefinida, sem senha nem link com token.
+- **Tentativas de login, cadastro, pedido de redefinição, troca e confirmação de senha** são limitadas, e as mensagens não revelam se um e-mail tem cadastro.
+- **O link de confirmação de e-mail não abre sessão:** ele só confirma o endereço.
+- **Verificação em duas etapas** (opcional, aplicativo autenticador): depois da senha certa não existe sessão até o código. O passo pendente vale 10 minutos e 5 tentativas; 10 erros seguidos bloqueiam o segundo fator da conta por 15 minutos (contagem no banco). Código do aplicativo não é aceito duas vezes; cada código de recuperação vale uma vez. Segredo e códigos ficam cifrados no banco, o QR code é gerado no servidor, e a exportação não os inclui. Ligar exige e-mail confirmado e a senha; gerar códigos e desativar exigem a senha; ligar, desligar, gerar códigos e usar um código de recuperação geram aviso por e-mail.
 - **A API HTTP de autenticação fica fechada:** só passam os links dos e-mails (redefinição de senha e confirmação de e-mail). Entrar e cadastrar acontecem pelo servidor, com o limitador e o aceite dos termos.
 - **Ids vindos do navegador** são validados antes de chegar ao banco: um objeto nunca vira filtro.
 - **Excluir a conta** exige a senha atual.
@@ -49,6 +53,10 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - O limitador de tentativas fica em memória (vale por instância) e identifica o cliente pelo `X-Forwarded-For`: o proxy da hospedagem precisa sobrescrever esse cabeçalho.
 - A CSP permite `'unsafe-inline'` em scripts e estilos, exigência da hidratação do Next.js sem *nonce*.
 - O teto diário de e-mails por conta usa o banco; o limite de trocas de substituto fica em memória.
+- Quem já tem a senha pode tentar adivinhar o código no limite do bloqueio (10 erros a cada 15 minutos, em ciclos) sem que o titular seja avisado. A chance por tentativa é de cerca de 3 em 1 milhão, mas se acumula com o tempo; trocar a senha encerra o ataque. Evolução: avisar sobre erros repetidos e limitar por dia.
+- O bloqueio de 10 erros é da biblioteca e é conferido antes de a falha ser contada: muitos envios simultâneos, em passos pendentes diferentes e de vários endereços, podem passar do teto antes de o bloqueio ser gravado.
+- Excluir a conta e exportar os dados não pedem o código do segundo fator (a exclusão pede a senha).
+- Perda do celular e dos códigos depende de atendimento manual, com identidade conferida principalmente pelo e-mail ([docs/operacao.md](docs/operacao.md#perda-do-celular-e-dos-códigos)).
 - `/api/health` é público e diz só se o app e o banco respondem, sem a versão do app.
 - Supressões do Trivy ficam em `.trivyignore`, com motivo e data de expiração.
 - O TruffleHog ignora só os arquivos listados, por caminho exato, em `.trufflehog-ignorar`: hoje, os dois testes de TLS cujo histórico tem strings de conexão fictícias (o motivo está no `seguranca.yml`). Um segredo real colocado nesses arquivos não seria detectado; por isso a lista não deve crescer.

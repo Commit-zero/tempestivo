@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { BotaoEnviar, Campo, CampoDeMarcar, MensagemDoFormulario } from "@/components/formulario";
+import { CamposDeSenhaNova } from "@/components/senha-nova";
 import type { EstadoDoFormulario } from "@/lib/formulario";
-import { acaoCadastrar, acaoEntrar, acaoPedirRedefinicao, acaoRedefinirSenha } from "./acoes";
+import {
+  acaoCadastrar, acaoConfirmarCodigo, acaoConfirmarRecuperacao, acaoEntrar, acaoPedirRedefinicao, acaoRedefinirSenha,
+} from "./acoes";
 
 const inicial: EstadoDoFormulario = {};
 
@@ -20,26 +23,60 @@ export function FormularioDeEntrada() {
   );
 }
 
-export function FormularioDeCadastro({ tamanhoMinimoDaSenha }: { tamanhoMinimoDaSenha: number }) {
+export function FormularioDoCodigo() {
+  const [estado, acao] = useActionState(acaoConfirmarCodigo, inicial);
+  return (
+    <form action={acao} className="grid gap-4">
+      <MensagemDoFormulario estado={estado} />
+      <Campo
+        rotulo="Código de 6 números"
+        name="codigo"
+        autoComplete="one-time-code"
+        inputMode="numeric"
+        required
+        maxLength={8}
+        autoFocus
+        dica="Se o código não for aceito, confira se a hora do celular está no automático."
+      />
+      <BotaoEnviar enviando="Conferindo…">Confirmar</BotaoEnviar>
+    </form>
+  );
+}
+
+export function FormularioDaRecuperacao() {
+  const [estado, acao] = useActionState(acaoConfirmarRecuperacao, inicial);
+  return (
+    <form action={acao} className="grid gap-4">
+      <MensagemDoFormulario estado={estado} />
+      <Campo rotulo="Código de recuperação" name="codigo" autoComplete="off" autoCapitalize="none" spellCheck={false} required maxLength={32} autoFocus />
+      <BotaoEnviar enviando="Conferindo…">Entrar com o código</BotaoEnviar>
+    </form>
+  );
+}
+
+export function FormularioDeCadastro() {
   const [estado, acao] = useActionState(acaoCadastrar, inicial);
+  // Só para a regra "sem o nome do seu e-mail"; o campo continua livre.
+  const [email, setEmail] = useState("");
   return (
     <form action={acao} className="grid gap-4">
       <MensagemDoFormulario estado={estado} />
       <Campo rotulo="Nome" name="nome" autoComplete="name" required minLength={2} maxLength={120} defaultValue={estado.valores?.nome} />
-      <Campo rotulo="E-mail" name="email" type="email" autoComplete="email" inputMode="email" required defaultValue={estado.valores?.email} />
       <Campo
-        rotulo="Senha"
-        name="senha"
-        type="password"
-        autoComplete="new-password"
+        rotulo="E-mail"
+        name="email"
+        type="email"
+        autoComplete="email"
+        inputMode="email"
         required
-        minLength={tamanhoMinimoDaSenha}
-        maxLength={128}
-        dica={`Pelo menos ${tamanhoMinimoDaSenha} caracteres. Uma frase longa é melhor que símbolos difíceis.`}
+        defaultValue={estado.valores?.email}
+        onChange={(evento) => setEmail(evento.target.value)}
       />
+      <CamposDeSenhaNova email={email || estado.valores?.email || ""} />
       <CampoDeMarcar
         name="aceite"
         required
+        defaultChecked={estado.valores?.aceite === "on"}
         rotulo="Li e entendi"
         dica={
           <>
@@ -71,22 +108,13 @@ export function FormularioDePedidoDeRedefinicao() {
   );
 }
 
-export function FormularioDeNovaSenha({ token, tamanhoMinimoDaSenha }: { token: string; tamanhoMinimoDaSenha: number }) {
+export function FormularioDeNovaSenha({ token }: { token: string }) {
   const [estado, acao] = useActionState(acaoRedefinirSenha, inicial);
   return (
     <form action={acao} className="grid gap-4">
       <MensagemDoFormulario estado={estado} />
       <input type="hidden" name="token" value={token} />
-      <Campo
-        rotulo="Nova senha"
-        name="senha"
-        type="password"
-        autoComplete="new-password"
-        required
-        minLength={tamanhoMinimoDaSenha}
-        maxLength={128}
-        dica={`Pelo menos ${tamanhoMinimoDaSenha} caracteres.`}
-      />
+      <CamposDeSenhaNova rotulo="Nova senha" rotuloDaConfirmacao="Confirme a nova senha" />
       <BotaoEnviar enviando="Salvando…">Salvar nova senha</BotaoEnviar>
     </form>
   );

@@ -2,12 +2,15 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins";
+import { TAMANHO_MAXIMO_DA_SENHA, TAMANHO_MINIMO_DA_SENHA } from "@/lib/regras-de-senha";
 import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
 import { getLogger, getMailer } from "@/platform/runtime";
+import { enviarAvisoDeSeguranca } from "./avisos";
+import { invalidarPendenciasDaSenha } from "./pendencias-da-senha";
 import { conferirSenha, gerarHashDaSenha } from "./senha";
 
-export const TAMANHO_MINIMO_DA_SENHA = 10;
 const UMA_HORA = 60 * 60;
 const UM_DIA = 24 * UMA_HORA;
 
@@ -22,10 +25,17 @@ function criarAuth() {
       enabled: true,
       autoSignIn: true,
       minPasswordLength: TAMANHO_MINIMO_DA_SENHA,
-      maxPasswordLength: 128,
+      maxPasswordLength: TAMANHO_MAXIMO_DA_SENHA,
       password: { hash: gerarHashDaSenha, verify: conferirSenha },
       resetPasswordTokenExpiresIn: UMA_HORA,
       revokeSessionsOnPasswordReset: true,
+      // Com `await`: aqui não há o que revelar, e o envio termina antes da resposta.
+      onPasswordReset: async ({ user }) => {
+        await invalidarPendenciasDaSenha(user.id, getLogger());
+        await enviarAvisoDeSeguranca("senha-redefinida", { nome: user.name, email: user.email }, {
+          mailer: getMailer(), logger: getLogger(), appUrl: config.APP_URL,
+        });
+      },
       // Sem `await`, como recomenda a documentação: o tempo de resposta não revela
       // se o e-mail existe. A falha de envio vai para o log, sem o endereço.
       sendResetPassword: async ({ user, url }) => {
@@ -48,7 +58,9 @@ function criarAuth() {
     // confirmou: assim ninguém usa o Tempestivo para mandar e-mails ao endereço de outra pessoa.
     emailVerification: {
       sendOnSignUp: true,
-      autoSignInAfterVerification: true,
+      // O link só confirma o endereço. Abrir sessão com ele deixaria entrar sem senha (e sem
+      // o segundo fator) quem achasse o e-mail, mesmo depois de uma troca de senha.
+      autoSignInAfterVerification: false,
       expiresIn: UM_DIA,
       sendVerificationEmail: async ({ user, url }) => {
         void getMailer()
@@ -70,7 +82,9 @@ function criarAuth() {
     rateLimit: { enabled: true, window: 60, max: 60 },
     advanced: { cookiePrefix: "tempestivo" },
     // Precisa ser o último plugin: grava os cookies de sessão nas server actions.
-    plugins: [nextCookies()],
+    // `twoFactor`: só o aplicativo autenticador (sem código por e-mail ou SMS). O segredo
+    // e os códigos de recuperação são gravados cifrados com o AUTH_SECRET.
+    plugins: [twoFactor({ issuer: "Tempestivo" }), nextCookies()],
   });
 }
 

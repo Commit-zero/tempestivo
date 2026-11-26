@@ -4,10 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
-import { confirmarSenhaAtual, exigirSessao } from "@/platform/auth";
+import {
+  confirmarAtivacao, confirmarSenhaAtual, desativarSegundoFator, exigirSessao, gerarNovosCodigos, iniciarAtivacao, trocarSenha,
+} from "@/platform/auth";
 import { getConfig } from "@/platform/config";
 import { getMailer } from "@/platform/runtime";
 import type { EstadoDaAgenda } from "./agenda";
+import type { EstadoDaConfirmacao, EstadoDoInicio } from "./segundo-fator";
 
 export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const { contaId } = await exigirSessao();
@@ -21,6 +24,42 @@ export async function acaoSalvarConta(_anterior: EstadoDoFormulario, formulario:
       : "Dados salvos.",
     valores,
   };
+}
+
+export async function acaoTrocarSenha(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  const sessao = await exigirSessao();
+  const resultado = await trocarSenha(sessao, {
+    senhaAtual: formulario.get("senhaAtual"),
+    senha: formulario.get("senha"),
+    confirmacao: formulario.get("confirmacao"),
+  });
+  if (!resultado.ok) return { erro: resultado.erro };
+  return { aviso: "Senha trocada. As sessões em outros aparelhos foram encerradas." };
+}
+
+export async function acaoIniciarSegundoFator(_anterior: EstadoDoInicio, formulario: FormData): Promise<EstadoDoInicio> {
+  const resultado = await iniciarAtivacao(await exigirSessao(), formulario.get("senha"));
+  if (!resultado.ok) return { erro: resultado.erro };
+  return { qrCode: resultado.qrCode, chave: resultado.chave, endereco: resultado.endereco };
+}
+
+export async function acaoConfirmarSegundoFator(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {
+  const resultado = await confirmarAtivacao(await exigirSessao(), formulario.get("codigo"));
+  // Mesmo com erro a proteção pode ter ligado: a tela sempre mostra o estado atual.
+  revalidatePath("/conta");
+  return resultado.ok ? { codigos: resultado.codigos, atencao: resultado.atencao } : { erro: resultado.erro };
+}
+
+export async function acaoGerarCodigos(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {
+  const resultado = await gerarNovosCodigos(await exigirSessao(), formulario.get("senha"));
+  return resultado.ok ? { codigos: resultado.codigos } : { erro: resultado.erro };
+}
+
+export async function acaoDesativarSegundoFator(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  const resultado = await desativarSegundoFator(await exigirSessao(), formulario.get("senha"));
+  if (!resultado.ok) return { erro: resultado.erro };
+  revalidatePath("/conta");
+  return { aviso: "Verificação em duas etapas desligada. O login volta a pedir só a senha." };
 }
 
 // Pede a senha atual: uma sessão esquecida aberta não basta para apagar tudo.

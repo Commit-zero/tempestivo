@@ -26,10 +26,9 @@ model User {
   sessions      Session[]
   accounts      Account[]
   conta         Conta?
-  // Verificação em duas etapas. `@ignore` até o código entrar: o banco ganha a coluna
-  // e a tabela pela migração, e o cliente do Prisma ainda não as consulta.
-  twoFactorEnabled Boolean?    @default(false) @ignore
-  twoFactors       TwoFactor[] @ignore
+  // Verificação em duas etapas (plugin `twoFactor` do Better Auth).
+  twoFactorEnabled Boolean?    @default(false)
+  twoFactors       TwoFactor[]
 
   @@map("user")
 }
@@ -96,7 +95,6 @@ model TwoFactor {
   @@index([secret])
   @@index([userId])
   @@map("twoFactor")
-  @@ignore
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,7 @@
+import { createServer, type Socket } from "node:net";
 import { describe, expect, it } from "vitest";
 import { criarMailer } from "./index";
+import { criarSmtpMailer } from "./smtp-mailer";
 
 // Integração com um servidor SMTP de verdade: o Mailpit do docker-compose (e o
 // `service` do CI). A API do Mailpit mostra o que chegou.
@@ -33,6 +35,21 @@ describe("mailer SMTP (integração com o Mailpit)", () => {
     expect(corpo.Text).toContain("Olá, texto.");
     expect(corpo.HTML).toContain("<strong>HTML</strong>");
   });
+
+  it("desiste de um servidor que aceita a conexão e não responde", async () => {
+    const abertas: Socket[] = [];
+    const mudo = createServer((conexao) => abertas.push(conexao));
+    await new Promise<void>((pronto) => mudo.listen(0, "127.0.0.1", pronto));
+    const { port } = mudo.address() as { port: number };
+    const mailer = criarSmtpMailer({ host: "127.0.0.1", porta: port, remetente: "x@tempestivo.test", tempoMaximoMs: 300 });
+
+    try {
+      await expect(mailer.enviar({ para: "a@exemplo.test", assunto: "Nada", texto: "Nada" })).rejects.toThrow();
+    } finally {
+      abertas.forEach((conexao) => conexao.destroy());
+      mudo.close();
+    }
+  }, 5_000);
 
   it("propaga a falha quando o servidor não aceita a conexão", async () => {
     const mailer = criarMailer({ MAILER_DRIVER: "smtp", SMTP_HOST: "127.0.0.1", SMTP_PORT: 1, EMAIL_REMETENTE: "x@tempestivo.test" });

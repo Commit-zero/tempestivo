@@ -39,7 +39,7 @@ test("telas de detalhe: cliente, processo e prazo", async ({ page }) => {
 test.describe("telas públicas", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  for (const rota of ["/", "/entrar", "/cadastro", "/recuperar-senha", "/termos", "/privacidade", "/conferir/token-invalido-0123456789abcdef", "/rota-que-nao-existe"]) {
+  for (const rota of ["/", "/entrar", "/email-confirmado", "/cadastro", "/recuperar-senha", "/termos", "/privacidade", "/conferir/token-invalido-0123456789abcdef", "/rota-que-nao-existe"]) {
     test(`${rota}: estrutura, nomes acessíveis e sem rolagem horizontal`, async ({ page }) => {
       await page.goto(rota);
       await verificarAcessibilidade(page);
