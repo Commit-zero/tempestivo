@@ -5,6 +5,7 @@ import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { criarTarefa, excluirTarefa, moverTarefa, type Coluna } from "@/modules/tarefas";
 import { exigirId } from "@/lib/ids";
 import { avisar } from "../avisar";
+import { foiConfirmado } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 function atualizarTelas(): void {
@@ -29,9 +30,10 @@ export async function acaoMoverTarefa(id: string, coluna: Coluna): Promise<void>
   atualizarTelas();
 }
 
-export async function acaoExcluirTarefa(id: string): Promise<void> {
+export async function acaoExcluirTarefa(id: string, formulario: FormData): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return;
   const feito = await excluirTarefa(contaId, id);
   atualizarTelas();
   if (feito.ok) await avisar("tarefa-excluida");

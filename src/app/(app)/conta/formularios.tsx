@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
+import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
 
 type Acao = (anterior: EstadoDoFormulario, formulario: FormData) => Promise<EstadoDoFormulario>;
@@ -36,9 +38,23 @@ export function FormularioDeExclusaoDaConta({ acao }: { acao: Acao }) {
     <form action={enviar} className="grid gap-4">
       <MensagemDoFormulario estado={estado} />
       <Campo rotulo="Para confirmar, digite a sua senha" name="senha" type="password" required autoComplete="current-password" />
-      <BotaoEnviar variant="destructive" enviando="Excluindo…" className="sm:justify-self-start sm:px-5">
-        Excluir a conta e todos os dados
-      </BotaoEnviar>
+      <ConfirmacaoDoEnvio
+        titulo="Excluir a conta?"
+        descricao="A conta, o login, os clientes, os processos, os prazos e todos os outros dados serão apagados para sempre."
+        confirmar="Excluir a conta"
+      >
+        {/* Sem a senha preenchida, o diálogo nem abre: o navegador pede o campo. */}
+        <Button
+          type="button"
+          variant="destructive"
+          className="sm:justify-self-start sm:px-5"
+          onClick={(evento) => {
+            if (!evento.currentTarget.form?.reportValidity()) evento.preventDefault();
+          }}
+        >
+          Excluir a conta e todos os dados
+        </Button>
+      </ConfirmacaoDoEnvio>
     </form>
   );
 }

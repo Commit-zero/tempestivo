@@ -84,6 +84,7 @@ test("tarefas: adiciona, move entre as colunas e exclui", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Feito", exact: true }).getByText(titulo)).toBeVisible();
 
   await page.getByRole("button", { name: `Excluir "${titulo}"` }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Excluir tarefa" }).click();
   await expect(page.getByText(titulo)).toHaveCount(0);
 });
 

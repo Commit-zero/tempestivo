@@ -34,11 +34,18 @@ test("meta interna e agenda assinável: ajusta a margem, cria, troca e desliga o
   // Trocar o link desliga o anterior.
   await page.reload();
   await page.getByRole("button", { name: "Trocar o link" }).click();
+  // Trocar desliga o link anterior: cancelar mantém o que existe.
+  await expect(page.getByRole("alertdialog")).toContainText("O link atual deixa de funcionar");
+  await page.getByRole("alertdialog").getByRole("button", { name: "Cancelar" }).click();
+  expect((await baixarFeed()).status()).toBe(200);
+  await page.getByRole("button", { name: "Trocar o link" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Trocar o link" }).click();
   await expect(page.getByLabel("Link da agenda")).toBeVisible();
   expect((await baixarFeed()).status()).toBe(404);
 
   await page.reload();
   await page.getByRole("button", { name: "Desligar a agenda" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Desligar a agenda" }).click();
   await expect(page.getByRole("main").getByRole("status").filter({ hasText: "Agenda desligada" })).toBeVisible();
 });
 

@@ -121,9 +121,10 @@ export async function acaoCriarTipo(_anterior: EstadoDoFormulario, formulario: F
   return { aviso: "Tipo de prazo criado." };
 }
 
-export async function acaoRemoverTipo(registroId: string, aviso: "tipo-restaurado" | "tipo-excluido"): Promise<void> {
+export async function acaoRemoverTipo(registroId: string, aviso: "tipo-restaurado" | "tipo-excluido", formulario: FormData): Promise<void> {
   exigirId(registroId);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return;
   const feito = await removerTipoDaConta(contaId, registroId);
   revalidatePath("/prazos/catalogo");
   if (feito.ok) await avisar(aviso === "tipo-restaurado" ? "tipo-restaurado" : "tipo-excluido");
@@ -139,9 +140,10 @@ export async function acaoCadastrarDiaSemExpediente(_anterior: EstadoDoFormulari
   return { aviso: "Dia cadastrado. Ele vale para os próximos cálculos; prazos já salvos não mudam sozinhos." };
 }
 
-export async function acaoExcluirDiaSemExpediente(id: string): Promise<void> {
+export async function acaoExcluirDiaSemExpediente(id: string, formulario: FormData): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return;
   const feito = await excluirDiaSemExpediente(contaId, id);
   revalidatePath("/prazos/catalogo");
   if (feito.ok) await avisar("dia-excluido");

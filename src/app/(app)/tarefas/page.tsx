@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { Cartao, CabecalhoDaPagina } from "@/components/app/pagina";
 import { Button } from "@/components/ui/button";
 import { dataCivilEmSaoPaulo, formatarData } from "@/lib/datas";
@@ -55,9 +56,11 @@ export default async function PaginaDeTarefas() {
             </form>
           ) : null}
           <form action={acaoExcluirTarefa.bind(null, tarefa.id)} className="ml-auto">
-            <Button type="submit" variant="ghost" className="w-11 md:w-9" aria-label={`Excluir "${tarefa.titulo}"`}>
-              <Trash2 aria-hidden="true" />
-            </Button>
+            <ConfirmacaoDoEnvio titulo="Excluir tarefa?" descricao={`A tarefa "${tarefa.titulo}" será apagada. Não há como desfazer.`} confirmar="Excluir tarefa">
+              <Button type="button" variant="ghost" className="w-11 md:w-9" aria-label={`Excluir "${tarefa.titulo}"`}>
+                <Trash2 aria-hidden="true" />
+              </Button>
+            </ConfirmacaoDoEnvio>
           </form>
         </div>
       </li>

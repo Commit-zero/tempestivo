@@ -99,5 +99,6 @@ test("honorários, audiências, prazos e catálogo avisam cada ação", async ({
   await secao.getByRole("button", { name: /Cadastrar|Adicionar/ }).click();
   await expect(page.getByText(motivo)).toBeVisible();
   await page.getByRole("listitem").filter({ hasText: motivo }).getByRole("button", { name: /Excluir o dia/ }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Excluir dia" }).click();
   await esperarAviso(page, "Dia sem expediente excluído.");
 });

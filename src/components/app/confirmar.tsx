@@ -10,8 +10,11 @@ import type { EstadoDoFormulario } from "@/lib/formulario";
 
 /**
  * Pede confirmação antes de enviar o formulário em que está. O botão da tela (`children`)
- * só abre o diálogo; quem envia é um botão escondido que leva a confirmação, e o
- * servidor recusa o envio sem ela. O foco começa em "Cancelar" e volta ao botão da tela.
+ * só abre o diálogo; confirmar preenche um campo escondido, envia e o esvazia. O servidor
+ * recusa o envio sem o campo preenchido. O foco começa em "Cancelar" e volta ao botão.
+ *
+ * O campo não pode ser um botão de envio escondido: o Enter num campo do formulário
+ * "aperta" o primeiro botão de envio, e apagaria sem abrir o diálogo.
  */
 export function ConfirmacaoDoEnvio({
   titulo, descricao, confirmar, children,
@@ -22,11 +25,19 @@ export function ConfirmacaoDoEnvio({
   confirmar: string;
   children: ReactElement;
 }) {
-  const envio = useRef<HTMLButtonElement>(null);
+  const campo = useRef<HTMLInputElement>(null);
+
+  function enviarConfirmado() {
+    const confirmacao = campo.current;
+    if (!confirmacao?.form) return;
+    confirmacao.value = VALOR_CONFIRMADO;
+    confirmacao.form.requestSubmit(); // os dados do formulário são lidos aqui, na hora
+    confirmacao.value = "";
+  }
   const { pending } = useFormStatus();
   return (
     <>
-      <button ref={envio} type="submit" name={CAMPO_DE_CONFIRMACAO} value={VALOR_CONFIRMADO} hidden tabIndex={-1} />
+      <input ref={campo} type="hidden" name={CAMPO_DE_CONFIRMACAO} defaultValue="" />
       <AlertDialog.Root>
         <AlertDialog.Trigger asChild disabled={pending}>
           {children}
@@ -43,12 +54,11 @@ export function ConfirmacaoDoEnvio({
                 </Button>
               </AlertDialog.Cancel>
               <AlertDialog.Action asChild>
-                {/* Envia pelo botão que fica no formulário, e o diálogo se fecha. */}
                 <Button
                   type="button"
                   variant="destructive"
                   className="h-11 md:h-9"
-                  onClick={() => envio.current?.form?.requestSubmit(envio.current)}
+                  onClick={enviarConfirmado}
                 >
                   {confirmar}
                 </Button>

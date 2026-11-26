@@ -3,6 +3,7 @@
 import { Aviso } from "@/components/app/aviso";
 import { Check, Copy } from "lucide-react";
 import { useActionState, useState } from "react";
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
@@ -98,6 +99,7 @@ export function PainelDaAgenda({
   return (
     <div className="grid gap-4">
       <MensagemDoFormulario estado={estadoDesativacao} />
+      {estadoAtivacao.erro ? <MensagemDoFormulario estado={estadoAtivacao} /> : null}
       {estadoAtivacao.link ? <LinkDaAgenda link={estadoAtivacao.link} /> : null}
       {ativa && !estadoAtivacao.link ? (
         <p role="status" className="text-sm text-positivo">
@@ -106,15 +108,31 @@ export function PainelDaAgenda({
       ) : null}
       <div className="flex flex-wrap gap-2">
         <form action={ativar}>
-          <BotaoEnviar variant={ativa ? "outline" : "default"} enviando="Criando…">
-            {ativa ? "Trocar o link" : "Criar o link da agenda"}
-          </BotaoEnviar>
+          {ativa ? (
+            <ConfirmacaoDoEnvio
+              titulo="Trocar o link?"
+              descricao="O link atual deixa de funcionar. Quem o assinou precisa do link novo."
+              confirmar="Trocar o link"
+            >
+              <Button type="button" variant="outline">
+                Trocar o link
+              </Button>
+            </ConfirmacaoDoEnvio>
+          ) : (
+            <BotaoEnviar enviando="Criando…">Criar o link da agenda</BotaoEnviar>
+          )}
         </form>
         {ativa ? (
           <form action={desativar}>
-            <BotaoEnviar variant="ghost" enviando="Desligando…">
-              Desligar a agenda
-            </BotaoEnviar>
+            <ConfirmacaoDoEnvio
+              titulo="Desligar a agenda?"
+              descricao="O link deixa de funcionar e o calendário para de atualizar."
+              confirmar="Desligar a agenda"
+            >
+              <Button type="button" variant="ghost">
+                Desligar a agenda
+              </Button>
+            </ConfirmacaoDoEnvio>
           </form>
         ) : null}
       </div>

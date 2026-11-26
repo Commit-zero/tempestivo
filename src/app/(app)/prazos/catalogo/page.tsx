@@ -1,3 +1,4 @@
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import { Cartao, CabecalhoDaPagina, Secao } from "@/components/app/pagina";
@@ -38,9 +39,15 @@ export default async function PaginaDoCatalogo() {
                 <FormularioDeAjuste acao={acaoAjustarTipo.bind(null, tipo.id)} nome={tipo.nome} dias={tipo.dias} contagem={tipo.contagem} key={`${tipo.dias}-${tipo.contagem}`} />
                 {tipo.registroId ? (
                   <form action={acaoRemoverTipo.bind(null, tipo.registroId, "tipo-restaurado")}>
-                    <Button type="submit" variant="ghost">
-                      Voltar ao padrão
-                    </Button>
+                    <ConfirmacaoDoEnvio
+                      titulo="Voltar ao padrão?"
+                      descricao={`O seu ajuste em "${tipo.nome}" será apagado, e valem de novo os dias do catálogo.`}
+                      confirmar="Voltar ao padrão"
+                    >
+                      <Button type="button" variant="ghost">
+                        Voltar ao padrão
+                      </Button>
+                    </ConfirmacaoDoEnvio>
                   </form>
                 ) : null}
               </div>
@@ -61,9 +68,11 @@ export default async function PaginaDoCatalogo() {
                   </span>
                 </span>
                 <form action={acaoRemoverTipo.bind(null, tipo.registroId ?? "", "tipo-excluido")}>
-                  <Button type="submit" variant="ghost" aria-label={`Excluir o tipo ${tipo.nome}`}>
-                    Excluir
-                  </Button>
+                  <ConfirmacaoDoEnvio titulo="Excluir tipo?" descricao={`O tipo "${tipo.nome}" será apagado. Os prazos já salvos não mudam.`} confirmar="Excluir tipo">
+                    <Button type="button" variant="ghost" aria-label={`Excluir o tipo ${tipo.nome}`}>
+                      Excluir
+                    </Button>
+                  </ConfirmacaoDoEnvio>
                 </form>
               </li>
             ))}
@@ -89,9 +98,15 @@ export default async function PaginaDoCatalogo() {
                   </span>
                 </span>
                 <form action={acaoExcluirDiaSemExpediente.bind(null, dia.id)}>
-                  <Button type="submit" variant="ghost" aria-label={`Excluir o dia ${formatarData(dia.data)}`}>
-                    Excluir
-                  </Button>
+                  <ConfirmacaoDoEnvio
+                    titulo="Excluir dia?"
+                    descricao={`${formatarData(dia.data)} volta a ser contado nos próximos cálculos. Os prazos já salvos não mudam.`}
+                    confirmar="Excluir dia"
+                  >
+                    <Button type="button" variant="ghost" aria-label={`Excluir o dia ${formatarData(dia.data)}`}>
+                      Excluir
+                    </Button>
+                  </ConfirmacaoDoEnvio>
                 </form>
               </li>
             ))}
