@@ -27,6 +27,7 @@ As especificações registram o objetivo, as decisões e os critérios de aceite
 | [especificacoes/modernizacao-etapa-2.md](especificacoes/modernizacao-etapa-2.md) | Etapa 2: identidade visual, página inicial e avisos |
 | [especificacoes/modernizacao-etapa-2-plano.md](especificacoes/modernizacao-etapa-2-plano.md) | Plano de tarefas da Etapa 2 |
 | [especificacoes/modernizacao-etapa-3.md](especificacoes/modernizacao-etapa-3.md) | Etapa 3: planilhas Excel |
+| [especificacoes/modernizacao-etapa-3-plano.md](especificacoes/modernizacao-etapa-3-plano.md) | Plano de tarefas da Etapa 3 |
 
 As regras de contagem de prazo, com a referência legal de cada uma e o estado da validação, ficam junto do código, em [`src/modules/prazos/regras.md`](../src/modules/prazos/regras.md).
 

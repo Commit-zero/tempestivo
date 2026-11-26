@@ -1,6 +1,6 @@
 # Etapa 3: planilhas Excel (`exportacoes`)
 
-**Situação:** proposta em 26/11/2026, aguardando aprovação. Nenhum código desta etapa foi escrito.
+**Situação:** aprovada em 26/11/2026 (Vitor), com as recomendações das três perguntas. Tarefas no [plano da Etapa 3](modernizacao-etapa-3-plano.md).
 
 Faz parte do [mapa da modernização](modernizacao.md) (pedido 7). A branch `modernizacao/etapa-3-exportacoes` parte da branch da [Etapa 2](modernizacao-etapa-2.md). Nada vai para a `main` antes do fim da final de 27/11/2026.
 
@@ -23,6 +23,8 @@ Um botão **Baixar planilha** em cada lista. Ele leva junto o filtro e a busca q
 
 Fica **de fora**: o link de sala virtual das audiências (costuma levar a senha), identificadores internos, tokens, dados de acesso e do segundo fator.
 
+Na tela **Conta**, a **planilha completa** traz todas as listas, sem filtro, uma aba para cada, mais a aba **Resumo** com as quantidades e os totais de honorários (a receber, em atraso e recebido no mês).
+
 A planilha de prazos tem também uma aba **Leia-me** com "cálculo auxiliar, confira" e o aviso de que as regras ainda não foram validadas por um advogado. O aviso vai no cabeçalho da coluna para continuar junto quando alguém copiar só a tabela.
 
 ## Formato
@@ -36,7 +38,7 @@ A planilha de prazos tem também uma aba **Leia-me** com "cálculo auxiliar, con
 
 ## Segurança e privacidade
 
-- Rota `GET /exportar/[lista]`, com a lista e os filtros conferidos contra valores fixos. Lista desconhecida responde 404; sem sessão, 401.
+- Rota `GET /exportar/[lista]` (inclusive `completa`), com a lista e os filtros conferidos contra valores fixos. Lista desconhecida responde 404; sem sessão, 401.
 - A conta vem **só da sessão**. Nenhum parâmetro escolhe a conta.
 - A planilha é montada na memória e enviada na hora. Nada é gravado no servidor nem enviado a terceiros. Resposta com `Cache-Control: private, no-store`.
 - Limite de 10 planilhas por conta a cada minuto.
@@ -105,7 +107,7 @@ PDF e CSV; importação de planilha; relatório por período ou com gráficos; e
 
 ## Critérios de aceite
 
-1. As seis listas têm o botão, e o arquivo respeita o filtro e a busca da tela.
+1. As seis listas têm o botão, e o arquivo respeita o filtro e a busca da tela; a Conta tem a planilha completa com o Resumo.
 2. Uma conta nunca recebe dado de outra.
 3. Datas ordenam como datas e aparecem em dd/mm/aaaa no horário de São Paulo; valores somam.
 4. Nenhuma célula vinda de texto digitado é fórmula.
@@ -114,9 +116,9 @@ PDF e CSV; importação de planilha; relatório por período ou com gráficos; e
 7. Sem sessão, 401; lista desconhecida, 404; o limite funciona; nada é armazenado.
 8. Lint, tipos, testes com cobertura, build e testes de tela passam; documentação atualizada. Informar o que não foi verificado, como a abertura em cada programa de planilha.
 
-## Perguntas em aberto
+## Perguntas decididas
 
-A recomendação vale se a especificação for aprovada sem ressalvas.
+As três recomendações foram aprovadas em 26/11/2026.
 
 1. **O mapa fala em "planilhas por lista e relatório". O que é o relatório?** Recomendo uma **planilha completa**, baixada na tela Conta: todas as listas acima, sem filtro, uma aba para cada, mais uma aba Resumo com as quantidades e os totais de honorários (a receber, em atraso e recebido no mês). Relatórios por período ficam para depois.
 2. **CPF ou CNPJ completo na planilha de clientes?** Recomendo sim: são dados que o próprio advogado cadastrou, e a planilha serve para o trabalho dele. O aviso junto do botão lembra que o arquivo é sensível.
