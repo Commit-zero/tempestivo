@@ -125,6 +125,8 @@ test("carrossel: botões e teclado trocam de tela, sem rodar sozinho", async ({ 
   // Insistir na ponta não pode travar a posição: depois, a rolagem por outro meio vale.
   await proxima.click();
   await expect(posicao).toHaveText(`4 de 4: ${TELAS[3]}`);
+  // Só depois de a rolagem suave chegar: senão ela terminaria por cima da próxima.
+  await expect.poll(() => trilho.evaluate((e) => Math.round(e.scrollWidth - e.clientWidth - e.scrollLeft))).toBeLessThanOrEqual(1);
   await proxima.click({ force: true });
   await trilho.evaluate((elemento) => elemento.scrollTo({ left: 0, behavior: "instant" }));
   await expect(posicao).toHaveText(`1 de 4: ${TELAS[0]}`);
@@ -151,7 +153,13 @@ test.describe("sem JavaScript", () => {
     await trilho.scrollIntoViewIfNeeded();
     await trilho.hover();
     await page.mouse.wheel(10_000, 0);
-    await expect(carrossel.getByRole("heading", { level: 3, name: TELAS[3] })).toBeInViewport();
+    await expect.poll(() => trilho.evaluate((e) => Math.round(e.scrollWidth - e.clientWidth - e.scrollLeft))).toBeLessThanOrEqual(1);
+    // Confere só na horizontal: no celular a faixa é mais alta que a janela, e o título
+    // pode ficar acima dela conforme a fonte do sistema.
+    const faixa = (await trilho.boundingBox())!;
+    const titulo = (await carrossel.getByRole("heading", { level: 3, name: TELAS[3] }).boundingBox())!;
+    expect(titulo.x).toBeGreaterThanOrEqual(faixa.x);
+    expect(titulo.x + titulo.width).toBeLessThanOrEqual(faixa.x + faixa.width + 1);
     await expect(carrossel.getByRole("button")).toHaveCount(0);
     await semRolagemHorizontal(page);
   });
