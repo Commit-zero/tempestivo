@@ -69,7 +69,7 @@ export function LeitorDeIntimacao() {
 
       <div aria-live="polite">
         {rascunho ? (
-          <section aria-label="Rascunho lido" className="grid gap-4 rounded-xl border bg-card p-4 sm:p-5">
+          <section aria-label="Rascunho lido" className="grid gap-4 rounded-md border bg-card p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold tracking-tight">Rascunho</h2>
               <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium ${CONFIANCA[rascunho.confianca].classe}`}>

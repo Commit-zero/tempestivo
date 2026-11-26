@@ -28,7 +28,7 @@ export default async function PaginaDeEntrada({ searchParams }: PageProps<"/entr
       ) : null}
       <FormularioDeEntrada />
       <div className="grid gap-2 text-sm">
-        <Link href="/recuperar-senha" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/recuperar-senha" className="inline-flex min-h-11 items-center justify-self-start text-primary underline underline-offset-4 md:min-h-0">
           Esqueci a senha
         </Link>
         <p className="text-muted-foreground">

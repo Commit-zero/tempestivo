@@ -75,7 +75,7 @@ export default async function PaginaDeTarefas() {
       </Cartao>
       <QuadroComFoco assinatura={COLUNAS.map((coluna) => quadro[coluna.id].map((tarefa) => tarefa.id).join(",")).join("|")}>
         {COLUNAS.map((coluna, indice) => (
-          <section key={coluna.id} aria-label={coluna.titulo} className="grid content-start gap-3 rounded-xl bg-muted p-3">
+          <section key={coluna.id} aria-label={coluna.titulo} className="grid content-start gap-3 rounded-md bg-muted p-3">
             <h2 className="flex items-center justify-between px-1 text-sm font-semibold">
               {coluna.titulo}
               <span className="text-muted-foreground tabular-nums">

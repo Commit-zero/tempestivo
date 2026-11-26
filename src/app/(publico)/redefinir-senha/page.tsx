@@ -18,7 +18,7 @@ export default async function PaginaDeNovaSenha({ searchParams }: PageProps<"/re
           <Aviso tipo="erro">
             O link de redefinição é inválido ou expirou.
           </Aviso>
-          <Link href="/recuperar-senha" className="text-sm text-primary underline-offset-4 hover:underline">
+          <Link href="/recuperar-senha" className="inline-flex min-h-11 items-center justify-self-start text-sm text-primary underline underline-offset-4 md:min-h-0">
             Pedir um novo link
           </Link>
         </div>

@@ -12,7 +12,7 @@ export default function PaginaDeRecuperacao() {
         <p className="text-sm text-muted-foreground">Informe o e-mail da conta. Enviaremos um link para criar uma nova senha.</p>
       </div>
       <FormularioDePedidoDeRedefinicao />
-      <Link href="/entrar" className="text-sm text-primary underline-offset-4 hover:underline">
+      <Link href="/entrar" className="inline-flex min-h-11 items-center justify-self-start text-sm text-primary underline underline-offset-4 md:min-h-0">
         Voltar para a entrada
       </Link>
     </div>

@@ -27,7 +27,7 @@ export default async function PaginaDoCatalogo() {
       </Aviso>
 
       <Secao titulo="Tipos do catálogo">
-        <ul className="divide-y rounded-xl border bg-card">
+        <ul className="divide-y rounded-md border bg-card">
           {doCatalogo.map((tipo) => (
             <li key={tipo.id} className="grid gap-2 px-4 py-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -58,7 +58,7 @@ export default async function PaginaDoCatalogo() {
 
       <Secao titulo="Seus tipos">
         {proprios.length > 0 ? (
-          <ul className="divide-y rounded-xl border bg-card">
+          <ul className="divide-y rounded-md border bg-card">
             {proprios.map((tipo) => (
               <li key={tipo.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <span>
@@ -88,7 +88,7 @@ export default async function PaginaDoCatalogo() {
           Carnaval, Corpus Christi, feriados municipais e suspensões por portaria dependem de cada tribunal. A calculadora não presume: cadastre aqui os dias em que não houve expediente e eles deixam de ser contados nos próximos cálculos.
         </p>
         {dias.length > 0 ? (
-          <ul className="divide-y rounded-xl border bg-card">
+          <ul className="divide-y rounded-md border bg-card">
             {dias.map((dia) => (
               <li key={dia.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <span>

@@ -19,7 +19,7 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
         Pular para o conteúdo
       </a>
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r bg-card p-4 md:flex">
-        <Link href="/painel" className="rounded-lg px-1">
+        <Link href="/painel" className="inline-flex min-h-11 items-center rounded-lg px-1">
           <Marca />
         </Link>
         <NavegacaoLateral />
@@ -35,8 +35,8 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
         </div>
       </aside>
       <div className="flex min-w-0 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 md:hidden">
-          <Link href="/painel" className="rounded-lg">
+        <header className="flex items-center justify-between border-b bg-card px-4 py-1.5 md:hidden">
+          <Link href="/painel" className="inline-flex min-h-11 items-center rounded-lg">
             <Marca />
           </Link>
         </header>

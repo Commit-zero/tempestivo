@@ -9,7 +9,7 @@ export default function Carregando() {
       <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
       <div className="grid gap-3">
         {[0, 1, 2].map((linha) => (
-          <div key={linha} className="h-20 animate-pulse rounded-xl bg-muted" />
+          <div key={linha} className="h-20 animate-pulse rounded-md bg-muted" />
         ))}
       </div>
     </div>

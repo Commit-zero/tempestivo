@@ -19,7 +19,7 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4 py-10">
       <Marca />
-      <main className="grid w-full max-w-sm gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+      <main className="grid w-full max-w-sm gap-5 rounded-md border bg-card p-6 shadow-sm sm:p-8">
         {prazo?.jaConferidoPorEsteLink ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Conferência registrada</h1>

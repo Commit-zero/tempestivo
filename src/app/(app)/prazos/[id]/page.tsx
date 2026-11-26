@@ -124,7 +124,7 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
         {prazo.conferencias.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma conferência registrada.</p>
         ) : (
-          <ul className="divide-y rounded-xl border bg-card text-sm">
+          <ul className="divide-y rounded-md border bg-card text-sm">
             {prazo.conferencias.map((item) => (
               <li key={item.id} className="flex flex-wrap justify-between gap-2 px-4 py-3">
                 <span>{formatarDataHora(item.em)}</span>
@@ -137,7 +137,7 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
 
       {prazo.historico.length > 0 ? (
         <Secao titulo="Histórico de alterações">
-          <ul className="divide-y rounded-xl border bg-card text-sm">
+          <ul className="divide-y rounded-md border bg-card text-sm">
             {prazo.historico.map((item) => (
               <li key={item.id} className="grid gap-0.5 px-4 py-3">
                 <span>

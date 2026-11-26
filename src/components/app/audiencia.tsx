@@ -7,7 +7,7 @@ const classeDoLink = "inline-flex min-h-11 items-center text-sm font-medium text
 // Cartão de audiência com os atalhos do dia: rota, sala virtual e agenda.
 export function ListaDeAudiencias({ audiencias }: { audiencias: Audiencia[] }) {
   return (
-    <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+    <ul className="divide-y overflow-hidden rounded-md border bg-card">
       {audiencias.map((audiencia) => (
         <li key={audiencia.id} className="grid gap-1.5 px-4 py-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3">

@@ -11,7 +11,7 @@ export function MemoriaDoCalculo({
   regrasAplicadas: string[];
 }) {
   return (
-    <div className="grid gap-4 rounded-xl border bg-card p-4">
+    <div className="grid gap-4 rounded-md border bg-card p-4">
       <div className="grid gap-0.5">
         <p className="text-sm text-muted-foreground">Data final calculada</p>
         <p className="text-xl font-semibold tracking-tight">{formatarDataComSemana(dataFinal)}</p>
