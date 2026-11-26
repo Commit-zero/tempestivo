@@ -26,6 +26,10 @@ model User {
   sessions      Session[]
   accounts      Account[]
   conta         Conta?
+  // Verificação em duas etapas. `@ignore` até o código entrar: o banco ganha a coluna
+  // e a tabela pela migração, e o cliente do Prisma ainda não as consulta.
+  twoFactorEnabled Boolean?    @default(false) @ignore
+  twoFactors       TwoFactor[] @ignore
 
   @@map("user")
 }
@@ -75,6 +79,24 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// O segredo do aplicativo autenticador e os códigos de recuperação são gravados
+// cifrados com o AUTH_SECRET.
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([secret])
+  @@index([userId])
+  @@map("twoFactor")
+  @@ignore
 }
 
 // ---------------------------------------------------------------------------
