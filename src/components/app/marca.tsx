@@ -1,18 +1,20 @@
 import { cn } from "cn";
 
 /**
- * Símbolo do Tempestivo: um cronômetro cujos ponteiros formam o sinal de conferido.
- * "Tempestivo" é o que chega no tempo certo; o produto promete o prazo conferido a tempo.
- * As cores são as da marca (iguais em `src/app/icon.svg`), não os tokens do tema:
- * o símbolo não muda no tema escuro.
+ * Símbolo do Tempestivo: quatro dias de uma contagem. Dois contados, um sem expediente
+ * (vazado) e o último, maior, conferido. Não usa letra nem o nome, que é provisório.
+ * As cores são as da marca (iguais em `src/app/icon.svg`), não os tokens do tema: o
+ * símbolo não muda no tema escuro. `src/test/marca.test.ts` confere as formas.
  */
 export function Simbolo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" aria-hidden="true" className={cn("size-7 shrink-0 rounded-[23%] dark:ring-1 dark:ring-white/20", className)}>
-      <rect width="64" height="64" rx="15" fill="#123260" />
-      <rect x="27" y="7" width="10" height="6" rx="2" fill="#fbfaf7" />
-      <circle cx="32" cy="36" r="19" fill="none" stroke="#fbfaf7" strokeWidth="4.5" />
-      <path d="M23.5 36.5l6 6 11.5-13" fill="none" stroke="#eba941" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 64 64" aria-hidden="true" className={cn("size-7 shrink-0 rounded-[22%] dark:ring-1 dark:ring-white/20", className)}>
+      <rect width="64" height="64" rx="14" fill="#4136A8" />
+      <rect x="11" y="11" width="19" height="19" rx="4" fill="#B3AEFF" />
+      <rect x="34" y="11" width="19" height="19" rx="4" fill="#B3AEFF" />
+      <rect x="12.5" y="35.5" width="16" height="16" rx="3" fill="none" stroke="#B3AEFF" strokeWidth="3" />
+      <rect x="34" y="34" width="22" height="22" rx="5" fill="#FFFFFF" />
+      <path d="M39 45.5l4.5 4.5 8-9.5" fill="none" stroke="#4136A8" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
