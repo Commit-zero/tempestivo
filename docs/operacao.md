@@ -51,6 +51,8 @@ Uma linha JSON por evento, na saída padrão:
 | `alertas acima do teto diário por conta` | warn | Uma conta passou de 30 e-mails no dia; o resto fica para amanhã | Investigar a conta: cadastro em massa ou abuso |
 | `alertas adiados para a próxima execução` | warn | A execução atingiu o tempo máximo; o restante vai na próxima | Se for frequente, aumentar a frequência do cron |
 | `falha ao enviar a confirmação de e-mail`, `falha ao enviar a redefinição de senha` | error | SMTP indisponível no cadastro ou na recuperação | Ver "E-mails não chegam" |
+| `falha ao enviar o aviso de segurança` | error | SMTP indisponível depois de trocar ou redefinir a senha; a ação não é desfeita | Ver "E-mails não chegam" |
+| `falha ao invalidar links de redefinição` | error | O banco falhou logo depois de trocar ou redefinir a senha; os links antigos vencem sozinhos em até 1 hora | Conferir o banco |
 | `falha de autenticação` | warn | Login, cadastro ou redefinição recusados (sem e-mail no log) | Muitos seguidos do mesmo IP: força bruta, contida pelo limitador |
 
 ### Lacunas conhecidas

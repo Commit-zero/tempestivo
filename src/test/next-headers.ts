@@ -30,7 +30,8 @@ export async function headers(): Promise<Headers> {
 export async function cookies() {
   const navegador = atual;
   return {
-    toString: () => [...navegador.cookies].map(([nome, valor]) => `${nome}=${encodeURIComponent(valor)}`).join("; "),
+    // Sem `toString()` de propósito: no Next, em server action, ele sai no formato de `Set-Cookie`.
+    getAll: () => [...navegador.cookies].map(([name, value]) => ({ name, value })),
     set(nome: string, valor: string, opcoes?: { maxAge?: number; expires?: Date }) {
       const expirado = opcoes?.maxAge === 0 || (opcoes?.expires !== undefined && opcoes.expires.getTime() <= Date.now());
       if (expirado || !valor) navegador.cookies.delete(nome);

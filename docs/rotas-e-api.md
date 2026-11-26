@@ -92,7 +92,7 @@ Regras:
 | `(app)/honorarios/acoes.ts` | `acaoCriarHonorario`, `acaoDefinirPagamento`, `acaoExcluirHonorario` |
 | `(app)/audiencias/acoes.ts` | `acaoSalvarAudiencia`, `acaoExcluirAudiencia` |
 | `(app)/tarefas/acoes.ts` | `acaoCriarTarefa`, `acaoMoverTarefa`, `acaoExcluirTarefa` |
-| `(app)/conta/acoes.ts` | `acaoSalvarConta`, `acaoExcluirConta` (pede a senha), `acaoDefinirMargem`, `acaoAtivarAgenda`, `acaoDesativarAgenda` |
+| `(app)/conta/acoes.ts` | `acaoSalvarConta`, `acaoExcluirConta` (pede a senha), `acaoDefinirMargem`, `acaoAtivarAgenda`, `acaoDesativarAgenda`, `acaoTrocarSenha` (pede a senha atual) |
 | `conferir/[token]/acoes.ts` | `acaoConfirmarPeloLink` |
 | `substituto/[token]/acoes.ts` | `acaoAceitarConvite` |
 

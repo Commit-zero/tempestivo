@@ -42,6 +42,7 @@ Cobertura é piso, não meta: um teste que só passa pelo código sem verificar 
 - **Integração:** `criarContaDeTeste()` e `apagarContaDeTeste()` (`src/test/banco.ts`) criam uma conta descartável por teste ou por `describe`. Testes podem rodar em paralelo porque cada um usa a própria conta.
 - **Relógio fixo:** funções que dependem da data recebem `agora`; os testes usam um instante fixo, como `new Date("2026-11-12T15:00:00Z")` (meio-dia em São Paulo).
 - **Ambiente:** `src/test/preparo.ts` carrega o `.env` se existir e completa com valores falsos; força `MAILER_DRIVER=fake`.
+- **Autenticação:** `vi.mock("next/headers", () => import("@/test/next-headers"))` simula um navegador com cookies, e o Vitest processa o `better-auth` (`server.deps.inline`) para a simulação valer dentro dele. A simulação não imita um detalhe do Next: depois que uma server action grava um cookie, `cookies()` muda e `headers()` não. Por isso, fluxo que troca a sessão também precisa de teste de tela.
 - **Telas:** `e2e/preparo.ts` cria uma conta fictícia uma vez e guarda a sessão em `e2e/.sessao/`; cada largura envia um `X-Forwarded-For` próprio, para não dividir o limite de cadastros por IP.
 
 ## Testes que todo módulo deve ter

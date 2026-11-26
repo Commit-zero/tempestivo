@@ -7,6 +7,7 @@ import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
 import { getLogger, getMailer } from "@/platform/runtime";
 import { enviarAvisoDeSeguranca } from "./avisos";
+import { invalidarLinksDeRedefinicao } from "./links-de-redefinicao";
 import { conferirSenha, gerarHashDaSenha } from "./senha";
 
 const UMA_HORA = 60 * 60;
@@ -29,6 +30,7 @@ function criarAuth() {
       revokeSessionsOnPasswordReset: true,
       // Com `await`: aqui não há o que revelar, e o envio termina antes da resposta.
       onPasswordReset: async ({ user }) => {
+        await invalidarLinksDeRedefinicao(user.id, getLogger());
         await enviarAvisoDeSeguranca("senha-redefinida", { nome: user.name, email: user.email }, {
           mailer: getMailer(), logger: getLogger(), appUrl: config.APP_URL,
         });

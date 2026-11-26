@@ -1,3 +1,4 @@
+import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getPrisma } from "@/platform/database";
@@ -8,6 +9,7 @@ import { criarLimitador } from "@/lib/limitador";
 import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { enviarAvisoDeSeguranca } from "./avisos";
+import { invalidarLinksDeRedefinicao } from "./links-de-redefinicao";
 import { conferirSenha } from "./senha";
 
 // Casos de uso de autenticação chamados pelas server actions das telas.
@@ -30,7 +32,9 @@ const senhaDigitada = z.string("Informe a senha.").max(1024, "A senha pode ter n
 const confirmacaoDigitada = z.string("Confirme a senha.").max(1024, "As senhas não conferem.");
 
 const schemaCadastro = z.object({
-  nome: z.string().trim().min(2, "Informe o seu nome.").max(120),
+  // O nome vai para o corpo dos e-mails: sem quebra de linha, ninguém monta ali um texto falso.
+  nome: z.string().trim().min(2, "Informe o seu nome.").max(120)
+    .regex(/^[^\p{Cc}\p{Zl}\p{Zp}]*$/u, "O nome não pode ter quebras de linha."),
   email,
   senha: senhaDigitada,
   confirmacao: confirmacaoDigitada,
@@ -174,7 +178,10 @@ export async function confirmarSenhaAtual(usuarioId: string, senha: unknown): Pr
   return { ok: true };
 }
 
+// Os dois contam também as trocas que dão certo e nunca são zerados: cada troca manda
+// um e-mail, e o endereço pode não ser confirmado.
 const trocasDeSenha = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
+const trocasDeSenhaNoDia = criarLimitador({ maximo: 10, janelaMs: 24 * 60 * 60 * 1000 });
 const schemaTroca = z.object({
   senhaAtual: z.string("Informe a senha atual.").min(1, "Informe a senha atual.").max(128, "Senha atual incorreta."),
   senha: senhaDigitada,
@@ -191,7 +198,9 @@ export async function trocarSenha(
   const erroDeSenha = erroDaSenhaNova(validado.data.senha, validado.data.confirmacao, titular.email);
   if (erroDeSenha) return { ok: false, erro: erroDeSenha };
   if (validado.data.senha === validado.data.senhaAtual) return { ok: false, erro: "A nova senha precisa ser diferente da atual." };
-  if (!trocasDeSenha.permitir(titular.usuarioId)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  if (!trocasDeSenha.permitir(titular.usuarioId) || !trocasDeSenhaNoDia.permitir(titular.usuarioId)) {
+    return { ok: false, erro: MUITAS_TENTATIVAS };
+  }
   try {
     await getAuth().api.changePassword({
       headers: await headers(),
@@ -199,9 +208,14 @@ export async function trocarSenha(
     });
   } catch (erro) {
     registrarFalha("troca de senha", erro);
-    return { ok: false, erro: "Senha atual incorreta." };
+    if (erro instanceof APIError && erro.body?.code === "INVALID_PASSWORD") return { ok: false, erro: "Senha atual incorreta." };
+    // A biblioteca não troca em uma transação só: não dá para garantir o que ficou valendo.
+    return {
+      ok: false,
+      erro: "Não foi possível confirmar a troca. Saia e entre de novo; se a senha atual não funcionar, tente a nova.",
+    };
   }
-  trocasDeSenha.liberar(titular.usuarioId);
+  await invalidarLinksDeRedefinicao(titular.usuarioId, getLogger());
   await enviarAvisoDeSeguranca("senha-alterada", titular, { mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL });
   return { ok: true };
 }

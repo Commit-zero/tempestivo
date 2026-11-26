@@ -38,7 +38,11 @@ async function contaDoUsuario(usuarioId: string, nome: string): Promise<string> 
  */
 async function cabecalhosComCookiesAtuais(): Promise<Headers> {
   const cabecalhos = new Headers(await headers());
-  const atuais = (await cookies()).toString();
+  // Montado à mão: em server action, `cookies().toString()` sai no formato de `Set-Cookie`.
+  const atuais = (await cookies())
+    .getAll()
+    .map(({ name, value }) => `${name}=${encodeURIComponent(value)}`)
+    .join("; ");
   if (atuais) cabecalhos.set("cookie", atuais);
   else cabecalhos.delete("cookie");
   return cabecalhos;

@@ -5,6 +5,7 @@ import type { FakeMailer } from "@/platform/mailer";
 import { getMailer } from "@/platform/runtime";
 import { novoNavegador, usarNavegador } from "@/test/next-headers";
 import { cadastrar, entrar, pedirRedefinicaoDeSenha, redefinirSenha, trocarSenha } from "./acoes";
+import { getAuth } from "./auth";
 import { obterSessao } from "./sessao";
 
 vi.mock("next/headers", () => import("@/test/next-headers"));
@@ -55,6 +56,18 @@ describe("cadastro (integração)", () => {
     expect(await getPrisma().user.count({ where: { email } })).toBe(0);
   });
 
+  it.each(["Maria\nClique em http://golpe.test", "Maria\r\nCliente", "Maria\u2028Cliente", "Maria\tCliente"])(
+    "recusa nome com quebra de linha ou caractere de controle: %j",
+    async (nome) => {
+      const email = novoEmail();
+
+      expect(await cadastrar({ nome, email, senha: SENHA, confirmacao: SENHA })).toEqual({
+        ok: false, erro: "O nome não pode ter quebras de linha.",
+      });
+      expect(await getPrisma().user.count({ where: { email } })).toBe(0);
+    },
+  );
+
   it("recusa a senha com o nome do e-mail", async () => {
     const email = novoEmail(`mariana.${randomUUID().slice(0, 8)}`);
     const senha = `${email.split("@")[0]}-segredo`;
@@ -96,6 +109,32 @@ describe("redefinição de senha (integração)", () => {
     novoNavegador("203.0.113.200");
     expect(await entrar({ email, senha: SENHA })).toMatchObject({ ok: false });
     expect(await entrar({ email, senha: nova })).toEqual({ ok: true });
+  });
+
+  it("redefinir invalida os outros links pedidos antes", async () => {
+    const email = novoEmail();
+    await cadastro(email);
+    const antigo = await pedirLink(email);
+    const usado = await pedirLink(email);
+    const nova = "outra-frase-bem-comprida";
+
+    expect(await redefinirSenha({ token: usado, senha: nova, confirmacao: nova })).toEqual({ ok: true });
+    expect(await redefinirSenha({ token: antigo, senha: SENHA, confirmacao: SENHA })).toMatchObject({ ok: false });
+  });
+
+  it("trocar a senha invalida os links de redefinição pendentes", async () => {
+    const email = novoEmail();
+    await cadastro(email);
+    const sessao = await obterSessao();
+    const pendente = await pedirLink(email);
+    const nova = "outra-frase-bem-comprida";
+
+    expect(
+      await trocarSenha({ usuarioId: sessao!.usuarioId, nome: sessao!.nome, email }, { senhaAtual: SENHA, senha: nova, confirmacao: nova }),
+    ).toEqual({ ok: true });
+    expect(await redefinirSenha({ token: pendente, senha: SENHA, confirmacao: SENHA })).toEqual({
+      ok: false, erro: "O link de redefinição é inválido ou expirou. Peça um novo.",
+    });
   });
 
   it("link inexistente é recusado", async () => {
@@ -149,6 +188,32 @@ describe("troca de senha com a sessão aberta (integração)", () => {
     expect(await trocarSenha(titular, dados)).toEqual({ ok: false, erro });
     novoNavegador(`203.0.113.${ip++}`);
     expect(await entrar({ email, senha: SENHA })).toEqual({ ok: true });
+  });
+
+  it("limita também as trocas que dão certo, para não virar disparo de e-mails", async () => {
+    const { email, titular } = await titularLogado();
+    const OUTRA = "mais-uma-frase-bem-comprida";
+    let atual = SENHA;
+    const resultados = [];
+    for (let vez = 0; vez < 6; vez += 1) {
+      const proxima = atual === NOVA ? OUTRA : NOVA;
+      resultados.push(await trocarSenha(titular, troca(atual, proxima)));
+      atual = proxima;
+    }
+
+    expect(resultados.map((resultado) => resultado.ok)).toEqual([true, true, true, true, true, false]);
+    expect(enviados().filter((e) => e.para === email && e.assunto.includes("foi trocada"))).toHaveLength(5);
+  });
+
+  it("falha que não é senha errada não é anunciada como senha errada", async () => {
+    const { titular } = await titularLogado();
+    const falha = vi.spyOn(getAuth().api, "changePassword").mockRejectedValueOnce(new Error("banco fora do ar"));
+
+    expect(await trocarSenha(titular, troca(SENHA))).toEqual({
+      ok: false,
+      erro: "Não foi possível confirmar a troca. Saia e entre de novo; se a senha atual não funcionar, tente a nova.",
+    });
+    falha.mockRestore();
   });
 
   it("bloqueia depois de 5 tentativas com a senha atual errada", async () => {
