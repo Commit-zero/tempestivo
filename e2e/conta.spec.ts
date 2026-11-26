@@ -22,14 +22,37 @@ test("cadastra, sai e entra de novo; senha errada não entra", async ({ page }) 
   await expect(page).toHaveURL(/\/entrar$/);
 
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill("senha-errada-de-teste");
+  await page.getByLabel("Senha", { exact: true }).fill("senha-errada-de-teste");
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("E-mail ou senha incorretos.", { timeout: 20_000 });
   await expect(page.getByLabel("E-mail")).toHaveValue(email);
 
-  await page.getByLabel("Senha").fill(SENHA_FICTICIA);
+  await page.getByLabel("Senha", { exact: true }).fill(SENHA_FICTICIA);
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/\/painel$/);
+});
+
+test("o cadastro marca as regras e recusa no servidor a confirmação diferente", async ({ page }) => {
+  await page.goto("/cadastro");
+  await page.getByLabel("Nome").fill("Advogada Fictícia");
+  await page.getByLabel("E-mail").fill("regras@exemplo.test");
+  const regras = page.getByRole("list", { name: "Regras da senha" });
+
+  await page.getByLabel("Senha", { exact: true }).fill("regras-do-forum-2026");
+  await expect(regras.getByRole("listitem").filter({ hasText: "Sem o nome do seu e-mail" })).toContainText("pendente");
+
+  await page.getByLabel("Senha", { exact: true }).fill(SENHA_FICTICIA);
+  await expect(regras.getByRole("listitem").filter({ hasText: ": atendida" })).toHaveCount(4);
+
+  await page.getByLabel("Confirme a senha").fill("outra-senha-ficticia");
+  await expect(page.getByText("As senhas ainda não conferem.")).toBeVisible();
+  await semRolagemHorizontal(page);
+  await page.getByLabel("Li e entendi").check();
+  await page.getByRole("button", { name: "Criar conta" }).click();
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("As senhas não conferem.");
+  // O envio limpa as senhas, e a marcação volta ao começo.
+  await expect(regras.getByRole("listitem").filter({ hasText: ": atendida" })).toHaveCount(0);
+  await expect(page.getByLabel("E-mail")).toHaveValue("regras@exemplo.test");
 });
 
 test("o cadastro recusa senha curta e a recuperação não revela se o e-mail existe", async ({ page }) => {
@@ -37,7 +60,8 @@ test("o cadastro recusa senha curta e a recuperação não revela se o e-mail ex
   await semRolagemHorizontal(page);
   await page.getByLabel("Nome").fill("Advogada Fictícia");
   await page.getByLabel("E-mail").fill("curta@exemplo.test");
-  await page.getByLabel("Senha").fill("curta");
+  await page.getByLabel("Senha", { exact: true }).fill("curta");
+  await page.getByLabel("Confirme a senha").fill("curta");
   await page.getByLabel("Li e entendi").check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/cadastro$/);

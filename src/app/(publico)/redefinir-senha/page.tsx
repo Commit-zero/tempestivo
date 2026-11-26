@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TAMANHO_MINIMO_DA_SENHA } from "@/platform/auth";
 import { FormularioDeNovaSenha } from "../formularios";
 
 export const metadata: Metadata = { title: "Nova senha" };
@@ -12,7 +11,7 @@ export default async function PaginaDeNovaSenha({ searchParams }: PageProps<"/re
     <div className="grid gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Nova senha</h1>
       {tokenValido ? (
-        <FormularioDeNovaSenha token={token} tamanhoMinimoDaSenha={TAMANHO_MINIMO_DA_SENHA} />
+        <FormularioDeNovaSenha token={token} />
       ) : (
         <div className="grid gap-4">
           <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">

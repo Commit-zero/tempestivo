@@ -23,7 +23,8 @@ export async function cadastrarContaFicticia(page: Page, email = emailFicticio()
   await page.goto("/cadastro");
   await page.getByLabel("Nome").fill("Advogada Fictícia");
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(SENHA_FICTICIA);
+  await page.getByLabel("Senha", { exact: true }).fill(SENHA_FICTICIA);
+  await page.getByLabel("Confirme a senha").fill(SENHA_FICTICIA);
   await page.getByLabel("Li e entendi").check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await page.waitForURL("**/painel");

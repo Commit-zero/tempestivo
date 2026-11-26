@@ -9,6 +9,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // O plugin de cookies do Better Auth importa `next/headers`: ele precisa passar pelo
+    // Vite para os testes de autenticação conseguirem simular o navegador.
+    server: { deps: { inline: ["better-auth"] } },
     include: ["src/**/*.test.ts"],
     setupFiles: ["src/test/preparo.ts"],
     // Folga para os testes que sobem o ESLint ou falam com o Postgres enquanto o Argon2 ocupa a CPU.

@@ -23,6 +23,7 @@ export async function acaoCadastrar(_anterior: EstadoDoFormulario, formulario: F
     nome: formulario.get("nome"),
     email: formulario.get("email"),
     senha: formulario.get("senha"),
+    confirmacao: formulario.get("confirmacao"),
   });
   if (!resultado.ok) return { erro: resultado.erro, valores: valoresDe(formulario, ["nome", "email"]) };
   redirect(ROTA_INICIAL);
@@ -35,7 +36,11 @@ export async function acaoPedirRedefinicao(_anterior: EstadoDoFormulario, formul
 }
 
 export async function acaoRedefinirSenha(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
-  const resultado = await redefinirSenha({ token: formulario.get("token"), senha: formulario.get("senha") });
+  const resultado = await redefinirSenha({
+    token: formulario.get("token"),
+    senha: formulario.get("senha"),
+    confirmacao: formulario.get("confirmacao"),
+  });
   if (!resultado.ok) return { erro: resultado.erro };
   redirect("/entrar?senha=redefinida");
 }

@@ -2,12 +2,12 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { TAMANHO_MAXIMO_DA_SENHA, TAMANHO_MINIMO_DA_SENHA } from "@/lib/regras-de-senha";
 import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
 import { getLogger, getMailer } from "@/platform/runtime";
 import { conferirSenha, gerarHashDaSenha } from "./senha";
 
-export const TAMANHO_MINIMO_DA_SENHA = 10;
 const UMA_HORA = 60 * 60;
 const UM_DIA = 24 * UMA_HORA;
 
@@ -22,7 +22,7 @@ function criarAuth() {
       enabled: true,
       autoSignIn: true,
       minPasswordLength: TAMANHO_MINIMO_DA_SENHA,
-      maxPasswordLength: 128,
+      maxPasswordLength: TAMANHO_MAXIMO_DA_SENHA,
       password: { hash: gerarHashDaSenha, verify: conferirSenha },
       resetPasswordTokenExpiresIn: UMA_HORA,
       revokeSessionsOnPasswordReset: true,

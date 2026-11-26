@@ -2,8 +2,9 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { getPrisma } from "@/platform/database";
 import { getLogger } from "@/platform/runtime";
-import { getAuth, TAMANHO_MINIMO_DA_SENHA } from "./auth";
+import { getAuth } from "./auth";
 import { criarLimitador } from "@/lib/limitador";
+import { erroDaSenha } from "@/lib/regras-de-senha";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
 import { conferirSenha } from "./senha";
 
@@ -22,18 +23,28 @@ const ROTA_APOS_CONFIRMAR = "/painel?email=confirmado";
 const reenviosDeConfirmacao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
 const email = z.email("Informe um e-mail válido.").trim().toLowerCase().max(254);
-const senhaNova = z
-  .string()
-  .min(TAMANHO_MINIMO_DA_SENHA, `A senha precisa ter pelo menos ${TAMANHO_MINIMO_DA_SENHA} caracteres.`)
-  .max(128, "A senha pode ter no máximo 128 caracteres.");
+// Aqui só o formato; as regras da senha nova ficam em `erroDaSenhaNova`.
+const senhaDigitada = z.string("Informe a senha.").max(1024, "A senha pode ter no máximo 128 caracteres.");
+const confirmacaoDigitada = z.string("Confirme a senha.").max(1024, "As senhas não conferem.");
 
 const schemaCadastro = z.object({
   nome: z.string().trim().min(2, "Informe o seu nome.").max(120),
   email,
-  senha: senhaNova,
+  senha: senhaDigitada,
+  confirmacao: confirmacaoDigitada,
 });
 const schemaEntrada = z.object({ email, senha: z.string().min(1, "Informe a senha.").max(128) });
-const schemaRedefinicao = z.object({ token: z.string().min(1).max(512), senha: senhaNova });
+const schemaRedefinicao = z.object({
+  token: z.string().min(1).max(512),
+  senha: senhaDigitada,
+  confirmacao: confirmacaoDigitada,
+});
+const LINK_INVALIDO = "O link de redefinição é inválido ou expirou. Peça um novo.";
+
+/** Toda senha criada passa por aqui: no cadastro, na redefinição e na troca. */
+function erroDaSenhaNova(senha: string, confirmacao: string, emailDoTitular: string): string | null {
+  return erroDaSenha(senha, emailDoTitular) ?? (senha === confirmacao ? null : "As senhas não conferem.");
+}
 
 function primeiroErro(erro: z.ZodError): ResultadoAuth {
   return { ok: false, erro: erro.issues[0]?.message ?? "Dados inválidos." };
@@ -51,9 +62,11 @@ function registrarFalha(operacao: string, erro: unknown): void {
   });
 }
 
-export async function cadastrar(dados: { nome: unknown; email: unknown; senha: unknown }): Promise<ResultadoAuth> {
+export async function cadastrar(dados: { nome: unknown; email: unknown; senha: unknown; confirmacao: unknown }): Promise<ResultadoAuth> {
   const validado = schemaCadastro.safeParse(dados);
   if (!validado.success) return primeiroErro(validado.error);
+  const erroDeSenha = erroDaSenhaNova(validado.data.senha, validado.data.confirmacao, validado.data.email);
+  if (erroDeSenha) return { ok: false, erro: erroDeSenha };
   if (!tentativasDeCadastro.permitir(await ipDoCliente())) return { ok: false, erro: MUITAS_TENTATIVAS };
   try {
     const { user } = await getAuth().api.signUpEmail({
@@ -111,15 +124,31 @@ export async function pedirRedefinicaoDeSenha(dados: { email: unknown }): Promis
   return { ok: true };
 }
 
-export async function redefinirSenha(dados: { token: unknown; senha: unknown }): Promise<ResultadoAuth> {
+/**
+ * E-mail de quem pediu o link, sem gastá-lo: a regra "sem o nome do e-mail" precisa
+ * dele. O registro é o mesmo que o Better Auth consulta ao redefinir.
+ */
+async function emailDoLinkDeRedefinicao(token: string): Promise<string | null> {
+  const { internalAdapter } = await getAuth().$context;
+  const pedido = await internalAdapter.findVerificationValue(`reset-password:${token}`);
+  if (!pedido || pedido.expiresAt < new Date()) return null;
+  const usuario = await getPrisma().user.findUnique({ where: { id: pedido.value }, select: { email: true } });
+  return usuario?.email ?? null;
+}
+
+export async function redefinirSenha(dados: { token: unknown; senha: unknown; confirmacao: unknown }): Promise<ResultadoAuth> {
   const validado = schemaRedefinicao.safeParse(dados);
   if (!validado.success) return primeiroErro(validado.error);
   try {
+    const emailDoTitular = await emailDoLinkDeRedefinicao(validado.data.token);
+    if (!emailDoTitular) return { ok: false, erro: LINK_INVALIDO };
+    const erroDeSenha = erroDaSenhaNova(validado.data.senha, validado.data.confirmacao, emailDoTitular);
+    if (erroDeSenha) return { ok: false, erro: erroDeSenha };
     await getAuth().api.resetPassword({ body: { token: validado.data.token, newPassword: validado.data.senha } });
     return { ok: true };
   } catch (erro) {
     registrarFalha("redefinição", erro);
-    return { ok: false, erro: "O link de redefinição é inválido ou expirou. Peça um novo." };
+    return { ok: false, erro: LINK_INVALIDO };
   }
 }
 
