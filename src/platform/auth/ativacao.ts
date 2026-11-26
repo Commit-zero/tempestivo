@@ -16,7 +16,7 @@ import { cabecalhosComCookiesAtuais } from "./sessao";
 // chave; um código válido do aplicativo liga e entrega os códigos de recuperação.
 
 export type Titular = { usuarioId: string; nome: string; email: string };
-export type InicioDaAtivacao = { ok: true; qrCode: string; chave: string } | { ok: false; erro: string };
+export type InicioDaAtivacao = { ok: true; qrCode: string; chave: string; endereco: string } | { ok: false; erro: string };
 export type FimDaAtivacao = { ok: true; codigos: string[]; atencao?: string } | { ok: false; erro: string };
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
@@ -60,7 +60,7 @@ export async function iniciarAtivacao(titular: Titular, senha: unknown): Promise
     // O QR code é desenhado aqui: a chave nunca vai para um serviço de terceiros.
     // Os códigos de recuperação da resposta só são mostrados depois da confirmação.
     const qrCode = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(renderSVG(resposta.totpURI, { border: 4 }))}`;
-    return { ok: true, qrCode, chave };
+    return { ok: true, qrCode, chave, endereco: resposta.totpURI };
   } catch (falha) {
     registrarFalha("início do segundo fator", falha);
     if (falha instanceof APIError && falha.body?.code === "INVALID_PASSWORD") return { ok: false, erro: "Senha incorreta." };

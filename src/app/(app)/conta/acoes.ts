@@ -40,7 +40,7 @@ export async function acaoTrocarSenha(_anterior: EstadoDoFormulario, formulario:
 export async function acaoIniciarSegundoFator(_anterior: EstadoDoInicio, formulario: FormData): Promise<EstadoDoInicio> {
   const resultado = await iniciarAtivacao(await exigirSessao(), formulario.get("senha"));
   if (!resultado.ok) return { erro: resultado.erro };
-  return { qrCode: resultado.qrCode, chave: resultado.chave };
+  return { qrCode: resultado.qrCode, chave: resultado.chave, endereco: resultado.endereco };
 }
 
 export async function acaoConfirmarSegundoFator(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {

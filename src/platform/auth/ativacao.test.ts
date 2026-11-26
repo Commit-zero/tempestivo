@@ -73,7 +73,8 @@ describe("ativação do segundo fator (integração)", () => {
     expect(inicio.qrCode).toMatch(/^data:image\/svg\+xml;/);
     expect(inicio.chave).toMatch(/^[A-Z2-7]{32,}$/);
     // Não devolve códigos de recuperação antes de provar que o aplicativo funciona.
-    expect(Object.keys(inicio).sort()).toEqual(["chave", "ok", "qrCode"]);
+    expect(Object.keys(inicio).sort()).toEqual(["chave", "endereco", "ok", "qrCode"]);
+    expect(inicio.endereco).toMatch(/^otpauth:\/\/totp\//);
     expect(await segundoFatorLigado(titular.usuarioId)).toBe(false);
     outroNavegador();
     expect(await entrar({ email, senha: SENHA })).toEqual({ ok: true });

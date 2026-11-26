@@ -48,7 +48,7 @@ export function FormularioDaRecuperacao() {
   return (
     <form action={acao} className="grid gap-4">
       <MensagemDoFormulario estado={estado} />
-      <Campo rotulo="Código de recuperação" name="codigo" autoComplete="off" autoCapitalize="none" spellCheck={false} required maxLength={32} />
+      <Campo rotulo="Código de recuperação" name="codigo" autoComplete="off" autoCapitalize="none" spellCheck={false} required maxLength={32} autoFocus />
       <BotaoEnviar enviando="Conferindo…">Entrar com o código</BotaoEnviar>
     </form>
   );
@@ -76,6 +76,7 @@ export function FormularioDeCadastro() {
       <CampoDeMarcar
         name="aceite"
         required
+        defaultChecked={estado.valores?.aceite === "on"}
         rotulo="Li e entendi"
         dica={
           <>

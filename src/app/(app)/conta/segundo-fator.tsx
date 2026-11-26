@@ -1,17 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Fragment, useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { cn } from "cn";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
 
-export type EstadoDoInicio = { erro?: string; qrCode?: string; chave?: string };
+export type EstadoDoInicio = { erro?: string; qrCode?: string; chave?: string; endereco?: string };
 export type EstadoDaConfirmacao = { erro?: string; codigos?: string[]; atencao?: string };
 
 type Acao<Estado> = (anterior: Estado, formulario: FormData) => Promise<Estado>;
 
 type Props = {
   ligado: boolean;
+  /** A página acabou de ser recarregada depois de guardar os códigos. */
+  focarAoAbrir: boolean;
   emailConfirmado: boolean;
   acaoIniciar: Acao<EstadoDoInicio>;
   acaoConfirmar: Acao<EstadoDaConfirmacao>;
@@ -21,9 +24,27 @@ type Props = {
 
 const botao = "sm:justify-self-start sm:px-5";
 
+/**
+ * Cada fase troca o conteúdo no lugar do botão usado: o foco e a tela vão até o começo
+ * dela, para o teclado não se perder e o aviso não ficar escondido no celular.
+ */
+function Fase({ children, focar = true }: { children: ReactNode; focar?: boolean }) {
+  const bloco = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focar) return;
+    bloco.current?.focus({ preventScroll: true });
+    bloco.current?.scrollIntoView({ block: "start" });
+  }, [focar]);
+  return (
+    <div ref={bloco} tabIndex={-1} data-testid="fase-do-segundo-fator" className="grid scroll-mt-20 gap-4 outline-none">
+      {children}
+    </div>
+  );
+}
+
 // Um componente só para todas as fases: ao ligar, a página muda `ligado` e os códigos
 // de recuperação, que só existem no estado daqui, continuam na tela.
-export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirmar, acaoGerarCodigos, acaoDesativar }: Props) {
+export function SegundoFator({ ligado, focarAoAbrir, emailConfirmado, acaoIniciar, acaoConfirmar, acaoGerarCodigos, acaoDesativar }: Props) {
   const [inicio, iniciar] = useActionState(acaoIniciar, {});
   const [confirmacao, confirmar] = useActionState(acaoConfirmar, {});
   const [novos, gerar] = useActionState(acaoGerarCodigos, {});
@@ -34,7 +55,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
 
   if (ligado) {
     return (
-      <div className="grid gap-6">
+      <Fase focar={focarAoAbrir}>
         <p className="text-sm text-positivo">
           <strong>Ligada.</strong> O login pede o código do aplicativo.
         </p>
@@ -61,7 +82,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
             Desativar a verificação em duas etapas
           </BotaoEnviar>
         </form>
-      </div>
+      </Fase>
     );
   }
 
@@ -71,7 +92,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
 
   if (inicio.qrCode && inicio.chave) {
     return (
-      <div className="grid gap-4">
+      <Fase>
         <ol className="grid list-decimal gap-1 pl-5 text-sm">
           <li>No aplicativo autenticador (Google Authenticator, Microsoft Authenticator ou outro), adicione uma conta.</li>
           <li>Leia o QR code ou digite a chave.</li>
@@ -81,10 +102,23 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
         <img src={inicio.qrCode} alt="QR code para o aplicativo autenticador" width={208} height={208} className="justify-self-center rounded-lg bg-white" />
         <p className="text-sm">
           Chave para digitar à mão:{" "}
-          <code data-testid="chave-do-autenticador" className="font-mono break-all">
-            {inicio.chave.match(/.{1,4}/g)?.join(" ")}
+          <code data-testid="chave-do-autenticador" className="font-mono">
+            {/* Quebra só entre os grupos, para ninguém se perder ao digitar. */}
+            {inicio.chave.match(/.{1,4}/g)?.map((grupo, posicao) => (
+              <Fragment key={posicao}>
+                <span className="whitespace-nowrap">{grupo}</span>{" "}
+              </Fragment>
+            ))}
           </code>
         </p>
+        <div className="grid gap-2 sm:flex sm:items-center sm:gap-4">
+          <BotaoDeCopiar texto={inicio.chave} rotulo="Copiar a chave" copiado="Chave copiada." />
+          {inicio.endereco ? (
+            <a href={inicio.endereco} className="flex min-h-11 items-center text-sm text-primary underline underline-offset-4">
+              Abrir no aplicativo autenticador
+            </a>
+          ) : null}
+        </div>
         <form action={confirmar} className="grid gap-4">
           <MensagemDoFormulario estado={confirmacao} />
           <Campo rotulo="Código de 6 números" name="codigo" autoComplete="one-time-code" inputMode="numeric" required maxLength={8} />
@@ -92,13 +126,19 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
             Confirmar e ligar
           </BotaoEnviar>
         </form>
-      </div>
+      </Fase>
     );
   }
 
   return (
     <form action={iniciar} className="grid gap-4">
-      <MensagemDoFormulario estado={desligamento.aviso ? desligamento : inicio} />
+      {inicio.erro || !desligamento.aviso ? (
+        <MensagemDoFormulario estado={inicio} />
+      ) : (
+        <Fase>
+          <MensagemDoFormulario estado={desligamento} />
+        </Fase>
+      )}
       <Campo rotulo="Sua senha, para ligar" name="senha" type="password" autoComplete="current-password" required maxLength={128} />
       <BotaoEnviar enviando="Preparando…" className={botao}>
         Ligar a verificação em duas etapas
@@ -107,26 +147,43 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
   );
 }
 
-function CodigosDeRecuperacao({ codigos, atencao }: { codigos: string[]; atencao?: string }) {
-  const [copiados, setCopiados] = useState<boolean | null>(null);
+function BotaoDeCopiar({ texto, rotulo, copiado }: { texto: string; rotulo: string; copiado: string }) {
+  const [resultado, setResultado] = useState<boolean | null>(null);
 
   async function copiar() {
     try {
-      await navigator.clipboard.writeText(codigos.join("\n"));
-      setCopiados(true);
+      await navigator.clipboard.writeText(texto);
+      setResultado(true);
     } catch {
-      setCopiados(false);
+      setResultado(false);
     }
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-1">
+      <Button type="button" variant="outline" onClick={copiar} className={cn("h-11 md:h-9", botao)}>
+        {rotulo}
+      </Button>
+      <p aria-live="polite" className="text-sm text-muted-foreground">
+        {resultado === null ? "" : resultado ? copiado : "Não foi possível copiar. Anote à mão."}
+      </p>
+    </div>
+  );
+}
+
+function CodigosDeRecuperacao({ codigos, atencao }: { codigos: string[]; atencao?: string }) {
+  return (
+    <Fase>
       <p role="status" className="rounded-lg border border-atencao/30 px-3 py-2 text-sm">
         <strong>Guarde os códigos de recuperação agora: eles não aparecem de novo.</strong> Cada um entra uma única vez, caso você
         fique sem o celular. Guarde num lugar seguro, separado do aparelho. Sem o celular e sem eles, o acesso depende de atendimento
         manual.
       </p>
-      {atencao ? <MensagemDoFormulario estado={{ erro: atencao }} /> : null}
+      {atencao ? (
+        <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+          {atencao}
+        </p>
+      ) : null}
       <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-2 font-mono text-sm">
         {codigos.map((codigo) => (
           <li key={codigo} className="rounded-md border px-2 py-1 text-center">
@@ -134,16 +191,14 @@ function CodigosDeRecuperacao({ codigos, atencao }: { codigos: string[]; atencao
           </li>
         ))}
       </ul>
-      <Button type="button" variant="outline" onClick={copiar} className={botao}>
-        Copiar os códigos
-      </Button>
-      <p aria-live="polite" className="text-sm text-muted-foreground">
-        {copiados === null ? "" : copiados ? "Códigos copiados." : "Não foi possível copiar. Anote os códigos."}
-      </p>
-      {/* Recarregar tira os códigos da memória da página. */}
-      <Button type="button" onClick={() => window.location.reload()} className={botao}>
+      <BotaoDeCopiar texto={codigos.join("\n")} rotulo="Copiar os códigos" copiado="Códigos copiados." />
+      {/* Recarregar (e não navegar no cliente) tira os códigos da memória da página. */}
+      <Button
+        type="button"
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a recarga é o objetivo
+        onClick={() => window.location.assign("/conta?codigos=guardados")} className={cn("h-11 md:h-9", botao)}>
         Já guardei os códigos
       </Button>
-    </div>
+    </Fase>
   );
 }

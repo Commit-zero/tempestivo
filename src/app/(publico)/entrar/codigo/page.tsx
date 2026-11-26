@@ -6,7 +6,8 @@ import { FormularioDaRecuperacao, FormularioDoCodigo } from "../../formularios";
 
 export const metadata: Metadata = { title: "Código de verificação", robots: { index: false, follow: false } };
 
-const classeDoLink = "text-primary underline-offset-4 hover:underline";
+// Sublinhado sempre e com 44 px de altura: no celular, são alvos de toque.
+const classeDoLink = "flex min-h-11 items-center text-primary underline underline-offset-4";
 
 // Segundo passo da entrada: a senha já foi aceita, e a sessão só nasce com o código.
 export default async function PaginaDoCodigo({ searchParams }: PageProps<"/entrar/codigo">) {
@@ -23,7 +24,7 @@ export default async function PaginaDoCodigo({ searchParams }: PageProps<"/entra
         </p>
       </div>
       {recuperacao ? <FormularioDaRecuperacao key="recuperacao" /> : <FormularioDoCodigo key="aplicativo" />}
-      <div className="grid gap-2 text-sm">
+      <div className="grid text-sm">
         {recuperacao ? (
           <Link href="/entrar/codigo" className={classeDoLink}>
             Usar o aplicativo autenticador

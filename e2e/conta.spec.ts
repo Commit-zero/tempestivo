@@ -53,6 +53,7 @@ test("o cadastro marca as regras e recusa no servidor a confirmação diferente"
   // O envio limpa as senhas, e a marcação volta ao começo.
   await expect(regras.getByRole("listitem").filter({ hasText: ": atendida" })).toHaveCount(0);
   await expect(page.getByLabel("E-mail")).toHaveValue("regras@exemplo.test");
+  await expect(page.getByLabel("Li e entendi")).toBeChecked();
 });
 
 test("o cadastro recusa senha curta e a recuperação não revela se o e-mail existe", async ({ page }) => {

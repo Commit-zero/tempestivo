@@ -28,6 +28,7 @@ async function passarPelaSenha(page: Page, email: string) {
 async function usarRecuperacao(page: Page, codigo: string) {
   await page.getByRole("link", { name: /código de recuperação/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Código de recuperação" })).toBeVisible();
+  await expect(page.getByLabel("Código de recuperação")).toBeFocused();
   await page.getByLabel("Código de recuperação").fill(codigo);
   await page.getByRole("button", { name: "Entrar com o código" }).click();
 }
@@ -48,15 +49,22 @@ test("liga, entra com código e com código de recuperação, gera novos e desli
   await expect(page.getByRole("img", { name: "QR code para o aplicativo autenticador" })).toBeVisible();
   const chave = (await page.getByTestId("chave-do-autenticador").innerText()).replace(/\s/g, "");
   await conferirTela(page);
+  // A nova fase recebe o foco, e dá para copiar a chave ou abrir o aplicativo no próprio celular.
+  await expect(page.getByTestId("fase-do-segundo-fator")).toBeFocused();
+  await expect(page.getByRole("button", { name: "Copiar a chave" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Abrir no aplicativo autenticador" })).toHaveAttribute("href", /^otpauth:\/\/totp\//);
 
   await page.getByLabel("Código de 6 números").fill(codigoTotp(chave));
   await page.getByRole("button", { name: "Confirmar e ligar" }).click();
   const lista = page.getByRole("list", { name: "Códigos de recuperação" });
   await expect(lista.getByRole("listitem")).toHaveCount(10);
   const codigos = (await lista.getByRole("listitem").allInnerTexts()).map((codigo) => codigo.trim());
+  // No celular, o aviso de que eles não voltam precisa estar à vista.
+  await expect(page.getByText("eles não aparecem de novo")).toBeInViewport();
+  await expect(page.getByTestId("fase-do-segundo-fator")).toBeFocused();
   await conferirTela(page);
   await page.getByRole("button", { name: "Já guardei os códigos" }).click();
-  await expect(page.getByText("O login pede o código do aplicativo.")).toBeVisible();
+  await expect(page.getByText("O login pede o código do aplicativo.")).toBeInViewport();
   await expect(lista).toHaveCount(0);
   await conferirTela(page);
 
@@ -99,7 +107,11 @@ test("liga, entra com código e com código de recuperação, gera novos e desli
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("Senha incorreta.");
   await page.getByLabel("Sua senha, para desativar").fill(SENHA_FICTICIA);
   await page.getByRole("button", { name: "Desativar a verificação em duas etapas" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Verificação em duas etapas desligada." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Verificação em duas etapas desligada." })).toBeInViewport();
+  // Sem recarregar: o erro de uma nova tentativa não fica escondido pelo aviso anterior.
+  await page.getByLabel("Sua senha, para ligar").fill("senha-errada-de-teste");
+  await page.getByRole("button", { name: "Ligar a verificação em duas etapas" }).click();
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("Senha incorreta.");
   // A sessão continua, e o próximo login pede só a senha.
   await page.reload();
   await expect(page.getByLabel("Sua senha, para ligar")).toBeVisible();

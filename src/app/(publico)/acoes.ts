@@ -43,7 +43,7 @@ export async function acaoCadastrar(_anterior: EstadoDoFormulario, formulario: F
     senha: formulario.get("senha"),
     confirmacao: formulario.get("confirmacao"),
   });
-  if (!resultado.ok) return { erro: resultado.erro, valores: valoresDe(formulario, ["nome", "email"]) };
+  if (!resultado.ok) return { erro: resultado.erro, valores: valoresDe(formulario, ["nome", "email", "aceite"]) };
   redirect(ROTA_INICIAL);
 }
 

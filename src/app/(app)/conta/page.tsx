@@ -16,11 +16,12 @@ import { FormularioDeTrocaDeSenha } from "./seguranca";
 
 export const metadata: Metadata = { title: "Conta" };
 
-export default async function PaginaDaConta() {
+export default async function PaginaDaConta({ searchParams }: PageProps<"/conta">) {
   const sessao = await exigirSessao();
   const conta = await obterConta(sessao.contaId);
   if (!conta) notFound();
   const comSegundoFator = await segundoFatorLigado(sessao.usuarioId);
+  const guardouOsCodigos = (await searchParams).codigos === "guardados";
   return (
     <div className="grid max-w-2xl gap-8">
       <CabecalhoDaPagina titulo="Conta" descricao={sessao.email} />
@@ -79,6 +80,7 @@ export default async function PaginaDaConta() {
         <Cartao>
           <SegundoFator
             ligado={comSegundoFator}
+            focarAoAbrir={guardouOsCodigos}
             emailConfirmado={sessao.emailConfirmado}
             acaoIniciar={acaoIniciarSegundoFator}
             acaoConfirmar={acaoConfirmarSegundoFator}
