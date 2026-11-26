@@ -55,7 +55,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 | Camada | Escolha |
 |---|---|
 | Aplicação | Next.js 16 (App Router), React 19, TypeScript estrito |
-| Interface | Tailwind CSS 4, shadcn/ui (Radix), ícones lucide, Geist e Source Serif 4 (next/font), tema claro e escuro |
+| Interface | Tailwind CSS 4, shadcn/ui (Radix), ícones lucide, fonte Archivo (next/font), tema claro e escuro |
 | Banco | PostgreSQL 17, Prisma 7 |
 | Login | Better Auth, senhas em Argon2id, sessão em cookie `HttpOnly`, segundo fator opcional (TOTP) |
 | E-mail | SMTP via nodemailer (Gmail ou Brevo; Mailpit em desenvolvimento) |

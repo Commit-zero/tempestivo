@@ -33,6 +33,8 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - **A API HTTP de autenticação fica fechada:** só passam os links dos e-mails (redefinição de senha e confirmação de e-mail). Entrar e cadastrar acontecem pelo servidor, com o limitador e o aceite dos termos.
 - **Ids vindos do navegador** são validados antes de chegar ao banco: um objeto nunca vira filtro.
 - **Excluir a conta** exige a senha atual.
+- **Ações que apagam** só são feitas com a confirmação do diálogo, conferida no servidor.
+- **Aviso de resultado:** o cookie `tempestivo.aviso` dura 20 segundos e leva só uma chave de lista fixa, sem dado pessoal; a tela o apaga ao mostrar.
 - **E-mails a terceiros:** os alertas só vão para o e-mail confirmado da conta; o substituto só recebe avisos depois de aceitar o convite, e só com a data; há teto diário de e-mails por conta e limite de trocas de substituto.
 - **Segredos** só em variáveis de ambiente, validadas na subida; a mensagem de erro lista nomes, nunca valores. O `.env` é ignorado pelo Git.
 - **Logs** estruturados com redação de segredos e de dados pessoais por nome de campo. E-mail, texto de intimação e conteúdo de prazo não vão para o log; erros de job registram só o tipo e o código.
