@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { ARQUIVO_DA_SESSAO } from "./e2e/sessao";
+import { ARQUIVO_DA_SESSAO, SEGREDO_FALSO_DO_E2E } from "./e2e/sessao";
 
 const PORTA = 3100;
 const noCI = Boolean(process.env.CI);
@@ -53,7 +53,7 @@ export default defineConfig({
     env: {
       APP_URL: `http://localhost:${PORTA}`,
       JOBS_SECRET: "segredo.falso.so.para.o.e2e.0123456789.abcdef",
-      AUTH_SECRET: "segredo.falso.de.sessao.so.para.o.e2e.0123456789",
+      AUTH_SECRET: SEGREDO_FALSO_DO_E2E,
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:54329/tempestivo",
       MAILER_DRIVER: "fake",
       LOG_LEVEL: "warn",

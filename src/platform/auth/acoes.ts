@@ -23,7 +23,7 @@ const tentativasDeCadastro = criarLimitador({ maximo: 10, janelaMs: QUINZE_MINUT
 const pedidosDeRedefinicao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
 const MUITAS_TENTATIVAS = "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
-const ROTA_APOS_CONFIRMAR = "/painel?email=confirmado";
+const ROTA_APOS_CONFIRMAR = "/email-confirmado";
 const reenviosDeConfirmacao = criarLimitador({ maximo: 3, janelaMs: QUINZE_MINUTOS });
 
 const email = z.email("Informe um e-mail válido.").trim().toLowerCase().max(254);

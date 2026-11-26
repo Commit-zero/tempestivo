@@ -1,4 +1,6 @@
+import { createHmac } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
+import { SEGREDO_FALSO_DO_E2E } from "./sessao";
 
 export const SENHA_FICTICIA = "senha-ficticia-dos-testes";
 
@@ -29,6 +31,18 @@ export async function cadastrarContaFicticia(page: Page, email = emailFicticio()
   await page.getByRole("button", { name: "Criar conta" }).click();
   await page.waitForURL("**/painel");
   return email;
+}
+
+/**
+ * O mesmo link que o app mandaria por e-mail (o e-mail dos testes de tela é falso):
+ * um JWT HS256 assinado com o segredo falso. Abri-lo passa pela rota de verdade.
+ */
+export function linkDeConfirmacao(email: string): string {
+  const parte = (dados: object) => Buffer.from(JSON.stringify(dados)).toString("base64url");
+  const agora = Math.floor(Date.now() / 1000);
+  const corpo = `${parte({ alg: "HS256" })}.${parte({ email, iat: agora, exp: agora + 3600 })}`;
+  const assinatura = createHmac("sha256", SEGREDO_FALSO_DO_E2E).update(corpo).digest("base64url");
+  return `/api/auth/verify-email?token=${corpo}.${assinatura}&callbackURL=%2Femail-confirmado`;
 }
 
 export async function cadastrarCliente(page: Page, nome: string): Promise<void> {

@@ -28,6 +28,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - **Senha nova** (cadastro, redefinição e troca) é digitada duas vezes e conferida no servidor: de 10 a 128 caracteres, sem o nome do e-mail, sem ser um trecho curto repetido e fora de uma lista de senhas comuns (`src/lib/regras-de-senha.ts`). Trocar com a sessão aberta exige a senha atual, tem limite por usuário (inclusive das trocas que dão certo) e, como a redefinição, invalida os links de redefinição pendentes. O nome do cadastro não aceita quebra de linha, porque vai para os e-mails.
 - **Avisos por e-mail** quando a senha é trocada ou redefinida, sem senha nem link com token.
 - **Tentativas de login, cadastro, pedido de redefinição, troca e confirmação de senha** são limitadas, e as mensagens não revelam se um e-mail tem cadastro.
+- **O link de confirmação de e-mail não abre sessão:** ele só confirma o endereço.
 - **A API HTTP de autenticação fica fechada:** só passam os links dos e-mails (redefinição de senha e confirmação de e-mail). Entrar e cadastrar acontecem pelo servidor, com o limitador e o aceite dos termos.
 - **Ids vindos do navegador** são validados antes de chegar ao banco: um objeto nunca vira filtro.
 - **Excluir a conta** exige a senha atual.

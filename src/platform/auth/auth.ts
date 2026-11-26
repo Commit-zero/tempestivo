@@ -57,7 +57,9 @@ function criarAuth() {
     // confirmou: assim ninguém usa o Tempestivo para mandar e-mails ao endereço de outra pessoa.
     emailVerification: {
       sendOnSignUp: true,
-      autoSignInAfterVerification: true,
+      // O link só confirma o endereço. Abrir sessão com ele deixaria entrar sem senha (e sem
+      // o segundo fator) quem achasse o e-mail, mesmo depois de uma troca de senha.
+      autoSignInAfterVerification: false,
       expiresIn: UM_DIA,
       sendVerificationEmail: async ({ user, url }) => {
         void getMailer()

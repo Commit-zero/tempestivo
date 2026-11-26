@@ -17,6 +17,7 @@ O Tempestivo não tem API JSON pública. A interface com o navegador são as **p
 | Área logada | `/clientes`, `/clientes/novo`, `/clientes/[id]` | sessão | |
 | Área logada | `/honorarios`, `/honorarios/novo`, `/honorarios/[id]` | sessão | |
 | Área logada | `/audiencias`, `/audiencias/nova`, `/audiencias/[id]` | sessão | |
+| Confirmação de e-mail | `/email-confirmado` | — | Destino do link de confirmação, que não abre sessão |
 | Área logada | `/tarefas`, `/conta`, `/mais` | sessão | `/mais` é o menu do celular |
 
 A área logada fica no grupo `src/app/(app)`, cujo `layout.tsx` chama `exigirSessao()`: sem sessão, redireciona para `/entrar`. Cada página e cada action chamam `exigirSessao()` de novo para obter o `contaId`, e o `contaId` nunca vem do formulário nem da URL.

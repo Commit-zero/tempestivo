@@ -110,7 +110,7 @@ Os 12 critérios de aceite da especificação conferidos um a um; lint, tipos, t
 - Na redefinição, deu para identificar o dono do link sem gastá-lo.
 - O teste de tela da T4 achou um erro que a simulação não pega: depois da troca, o Next atualiza `cookies()` mas não `headers()`, e a pessoa parecia deslogada. `sessao.ts` passou a ler os cookies atuais. A T8 depende disso.
 - A revisão de segurança apontou sete itens. Foram corrigidos seis: limite de avisos por trocas repetidas, links de redefinição pendentes, mensagem de falha, tempo máximo do SMTP, montagem do cabeçalho de cookies e quebra de linha no nome. As correções não passaram por uma segunda revisão.
-- **Aberto, depende de decisão:** com o e-mail ainda não confirmado, o link de confirmação (24 horas) cria sessão sem senha, mesmo depois de uma troca de senha. Comportamento anterior à etapa. A saída é `autoSignInAfterVerification: false`, que faz quem confirmar o e-mail em outro aparelho ter de entrar com a senha.
+- **Sétimo item, decidido pelo Vitor em 25/11/2026:** o link de confirmação deixou de abrir sessão (`autoSignInAfterVerification: false`) e passou a levar a `/email-confirmado`. Links enviados antes ainda apontam para `/painel`: confirmam o e-mail e, sem sessão, caem no login sem o aviso. A exigência de e-mail confirmado para ativar a verificação continua, como segunda proteção.
 - **Também aberto:** o Better Auth não troca a senha em uma transação só (`transaction: true` precisa de teste próprio); falta teste de login simultâneo à troca; o limite continua por instância (D11).
 - Antes do PR do bloco A: rodar `qa-responsivo`.
 

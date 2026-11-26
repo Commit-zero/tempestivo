@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cadastrarContaFicticia, semRolagemHorizontal, SENHA_FICTICIA } from "./apoio";
+import { cadastrarContaFicticia, linkDeConfirmacao, semRolagemHorizontal, SENHA_FICTICIA } from "./apoio";
 import { VERSAO_DOS_TERMOS } from "../src/lib/termos";
 
 // Estes testes começam sem sessão.
@@ -70,6 +70,32 @@ test("o cadastro recusa senha curta e a recuperação não revela se o e-mail ex
   await page.getByLabel("E-mail").fill("ninguem@exemplo.test");
   await page.getByRole("button", { name: "Enviar link" }).click();
   await expect(page.getByRole("status")).toContainText("Se houver uma conta com este e-mail");
+});
+
+test("o link de confirmação confirma o e-mail sem abrir sessão", async ({ page, context }) => {
+  const email = await cadastrarContaFicticia(page);
+  await context.clearCookies();
+
+  await page.goto(linkDeConfirmacao(email));
+  await expect(page).toHaveURL(/\/email-confirmado$/);
+  await expect(page.getByRole("heading", { name: "E-mail confirmado" })).toBeVisible();
+  await semRolagemHorizontal(page);
+  await page.goto("/painel");
+  await expect(page).toHaveURL(/\/entrar$/);
+
+  await page.goto("/email-confirmado?error=TOKEN_EXPIRED");
+  await expect(page.getByRole("heading", { name: "Link inválido ou vencido" })).toBeVisible();
+
+  await page.goto("/entrar");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByLabel("Senha", { exact: true }).fill(SENHA_FICTICIA);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(/\/painel$/);
+  await expect(page.getByRole("region", { name: "Confirmação de e-mail" })).toHaveCount(0);
+
+  // Já conectado, o endereço do link leva direto ao painel, com o aviso.
+  await page.goto("/email-confirmado");
+  await expect(page).toHaveURL(/\/painel\?email=confirmado$/);
 });
 
 test("troca a senha na tela Conta e continua com a sessão aberta", async ({ page }) => {
