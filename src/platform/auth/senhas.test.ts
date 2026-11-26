@@ -88,7 +88,10 @@ describe("redefinição de senha (integração)", () => {
     expect(await redefinirSenha({ token, senha: comNome, confirmacao: comNome })).toEqual({
       ok: false, erro: "A senha não pode conter o nome do seu e-mail.",
     });
+    const redefinidas = () => enviados().filter((e) => e.para === email && e.assunto.includes("foi redefinida"));
+    expect(redefinidas()).toHaveLength(0);
     expect(await redefinirSenha({ token, senha: nova, confirmacao: nova })).toEqual({ ok: true });
+    expect(redefinidas()).toHaveLength(1);
 
     novoNavegador("203.0.113.200");
     expect(await entrar({ email, senha: SENHA })).toMatchObject({ ok: false });

@@ -6,6 +6,7 @@ import { TAMANHO_MAXIMO_DA_SENHA, TAMANHO_MINIMO_DA_SENHA } from "@/lib/regras-d
 import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
 import { getLogger, getMailer } from "@/platform/runtime";
+import { enviarAvisoDeSeguranca } from "./avisos";
 import { conferirSenha, gerarHashDaSenha } from "./senha";
 
 const UMA_HORA = 60 * 60;
@@ -26,6 +27,12 @@ function criarAuth() {
       password: { hash: gerarHashDaSenha, verify: conferirSenha },
       resetPasswordTokenExpiresIn: UMA_HORA,
       revokeSessionsOnPasswordReset: true,
+      // Com `await`: aqui não há o que revelar, e o envio termina antes da resposta.
+      onPasswordReset: async ({ user }) => {
+        await enviarAvisoDeSeguranca("senha-redefinida", { nome: user.name, email: user.email }, {
+          mailer: getMailer(), logger: getLogger(), appUrl: config.APP_URL,
+        });
+      },
       // Sem `await`, como recomenda a documentação: o tempo de resposta não revela
       // se o e-mail existe. A falha de envio vai para o log, sem o endereço.
       sendResetPassword: async ({ user, url }) => {
