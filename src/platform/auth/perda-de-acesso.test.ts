@@ -23,7 +23,7 @@ afterAll(async () => {
 
 function comandosDoProcedimento(): string[] {
   const documento = readFileSync("docs/operacao/runbooks/perda-do-segundo-fator.md", "utf8").replace(/\r\n/g, "\n");
-  const bloco = /### Perda do celular e dos códigos[\s\S]*?```sql\n([\s\S]*?)```/.exec(documento)?.[1];
+  const bloco = /## Perda do celular e dos códigos[\s\S]*?```sql\n([\s\S]*?)```/.exec(documento)?.[1];
   if (!bloco) throw new Error("docs/operacao/runbooks/perda-do-segundo-fator.md não traz o SQL do procedimento.");
   return bloco
     .replace(/^\s*--.*$/gm, "")
