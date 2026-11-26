@@ -10,6 +10,7 @@ import {
 } from "@/modules/prazos";
 import { exigirId } from "@/lib/ids";
 import { avisar } from "../avisar";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 // A conta e o usuário vêm sempre da sessão, nunca do formulário.
@@ -88,9 +89,10 @@ export async function acaoDesfazerCumprido(id: string): Promise<void> {
   if (feito.ok) await avisar("prazo-reaberto");
 }
 
-export async function acaoExcluirPrazo(id: string): Promise<EstadoDoFormulario> {
+export async function acaoExcluirPrazo(id: string, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const excluido = await excluirPrazo(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   atualizarTelas();

@@ -128,6 +128,11 @@
   }
 }
 
+/* Com um aviso na tela, o elemento em foco para acima dele. */
+html:has([data-aviso-da-pagina]:not(:empty)) {
+  scroll-padding-bottom: calc(9rem + env(safe-area-inset-bottom));
+}
+
 /* Item de lista que ocupa a largura toda: o contorno vai para dentro, senão a lista
    (com cantos arredondados e overflow escondido) o cortaria. */
 .foco-interno:focus-visible {

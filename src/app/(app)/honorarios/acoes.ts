@@ -6,6 +6,7 @@ import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { criarHonorario, definirPagamentoDaParcela, excluirHonorario } from "@/modules/honorarios";
 import { exigirId } from "@/lib/ids";
 import { avisar } from "../avisar";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["clienteId", "processoId", "descricao", "valorTotal", "parcelas", "primeiroVencimento"] as const;
@@ -35,9 +36,10 @@ export async function acaoDefinirPagamento(parcelaId: string, paga: boolean): Pr
   await avisar(paga ? "parcela-paga" : "parcela-reaberta");
 }
 
-export async function acaoExcluirHonorario(id: string): Promise<EstadoDoFormulario> {
+export async function acaoExcluirHonorario(id: string, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const excluido = await excluirHonorario(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   atualizarTelas();

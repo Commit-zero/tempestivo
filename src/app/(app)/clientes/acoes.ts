@@ -6,6 +6,7 @@ import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarCliente, criarCliente, excluirCliente } from "@/modules/clientes";
 import { exigirId } from "@/lib/ids";
 import { avisar } from "../avisar";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["nome", "documento", "email", "telefone", "observacoes"] as const;
@@ -32,9 +33,10 @@ export async function acaoSalvarCliente(id: string | null, _anterior: EstadoDoFo
   return { aviso: "Cliente salvo.", valores };
 }
 
-export async function acaoExcluirCliente(id: string): Promise<EstadoDoFormulario> {
+export async function acaoExcluirCliente(id: string, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const excluido = await excluirCliente(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   revalidatePath("/clientes");

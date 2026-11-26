@@ -34,17 +34,17 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
           </form>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="flex items-center justify-between border-b bg-card px-4 py-3 md:hidden">
           <Link href="/painel" className="rounded-lg">
             <Marca />
           </Link>
         </header>
-        <main id="conteudo" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-24 sm:px-6 md:pb-10">
+        <main id="conteudo" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-7 sm:px-6 md:pb-10">
           {children}
         </main>
+        <AvisoDaPagina mensagem={aviso} />
       </div>
-      <AvisoDaPagina mensagem={aviso} />
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
         <NavegacaoInferior />
       </div>

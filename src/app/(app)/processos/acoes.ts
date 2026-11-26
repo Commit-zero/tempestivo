@@ -6,6 +6,7 @@ import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarProcesso, criarProcesso, excluirProcesso, mudarStatusDoProcesso, type StatusProcesso } from "@/modules/processos";
 import { exigirId } from "@/lib/ids";
 import { avisar } from "../avisar";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["clienteId", "numero", "tribunal", "vara", "assunto", "parteContraria"] as const;
@@ -38,9 +39,10 @@ export async function acaoMudarStatusDoProcesso(id: string, status: StatusProces
   if (mudou.ok) await avisar(status === "arquivado" ? "processo-arquivado" : "processo-reativado");
 }
 
-export async function acaoExcluirProcesso(id: string): Promise<EstadoDoFormulario> {
+export async function acaoExcluirProcesso(id: string, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const excluido = await excluirProcesso(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   revalidatePath("/processos");
