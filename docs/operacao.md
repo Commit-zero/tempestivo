@@ -168,7 +168,7 @@ Gere valores novos com `node -e "console.log(require('crypto').randomBytes(32).t
 
 | Pedido | Como atender |
 |---|---|
-| Acesso e portabilidade | O próprio usuário baixa tudo em Conta → **Exportar os dados** (JSON) |
+| Acesso e portabilidade | O próprio usuário baixa tudo em Conta → **Exportar os dados** (JSON). A planilha completa é uma conveniência de trabalho e não substitui o JSON, que traz também histórico, conferências e registros |
 | Correção | Pelas telas de cadastro |
 | Exclusão | O próprio usuário exclui em Conta, com a senha; a exclusão é definitiva e em cascata, inclusive do segundo fator |
 | Pedido de um cliente do advogado | O advogado é o controlador desses dados; o Tempestivo, como operador, apoia pelas mesmas ferramentas |

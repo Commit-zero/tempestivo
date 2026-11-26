@@ -2,7 +2,7 @@
 
 | Documento | Para quem | O que responde |
 |---|---|---|
-| [arquitetura.md](arquitetura.md) | quem vai mexer no código | Como o sistema é organizado, as camadas, o fluxo de uma requisição e o registro de decisões (D1 a D13) |
+| [arquitetura.md](arquitetura.md) | quem vai mexer no código | Como o sistema é organizado, as camadas, o fluxo de uma requisição e o registro de decisões (D1 a D14) |
 | [mapa-de-modulos.md](mapa-de-modulos.md) | quem vai mexer num módulo | Responsabilidade e dependências de cada módulo e de cada porta |
 | [modelo-de-dados.md](modelo-de-dados.md) | quem vai mudar o banco | Entidades, convenções, migrações e retenção |
 | [rotas-e-api.md](rotas-e-api.md) | quem vai criar tela, rota ou integração | Páginas, rotas HTTP, contrato do agendador e da agenda, padrão das Server Actions |

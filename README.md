@@ -37,6 +37,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web). Custo zero de infraestru
 | **Audiências** | Agenda com rota, sala virtual e arquivo `.ics` para qualquer calendário. |
 | **Tarefas** | Quadro de três colunas. |
 | **Painel** | O que pede atenção hoje, a semana, as audiências e o dinheiro, em uma tela feita para o celular. |
+| **Planilhas** | Excel (`.xlsx`) de clientes, processos, prazos, honorários e parcelas, audiências e tarefas, com o filtro da tela, e uma planilha completa com resumo. Prazos saem com "cálculo auxiliar, confira". |
 | **Conta e LGPD** | Termos de uso e Política de privacidade com aceite registrado. Confirmação do e-mail da conta, troca de senha e verificação em duas etapas por aplicativo autenticador, com códigos de recuperação. Exportação de todos os dados em JSON e exclusão definitiva, confirmada com a senha. |
 
 ## O que o diferencia

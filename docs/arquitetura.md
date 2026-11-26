@@ -182,6 +182,12 @@ Cada decisão segue o formato: contexto, decisão, consequências. Decisões nov
 - **Decisão:** a contagem dia a dia é a peça central (faixa na capa e na imagem de compartilhamento, conferida por teste contra a calculadora). Cores só por token, em `globals.css`: tinta de carimbo na ação; âmbar só pede atenção, verde diz conferido ou concluído, vermelho é atraso, erro ou exclusão. Uma fonte (Archivo) e um componente `Aviso`. Resultado de ação por um cookie de 20 segundos, `tempestivo.aviso`, com uma chave de lista fixa (`src/lib/avisos.ts`). O que apaga passa por um diálogo, e o servidor recusa o envio sem a confirmação (`src/lib/confirmacao.ts`). O carrossel da capa não roda sozinho.
 - **Consequências:** ação nova que apaga usa `ConfirmacaoDoEnvio` e confere `foiConfirmado` no servidor; ação nova que muda algo chama `avisar`. A confirmação é um campo escondido, nunca um botão de envio, que o Enter acionaria. Sem JavaScript, nada é apagado. O símbolo, o `icon.svg`, o roteiro das imagens e o exemplo da capa são conferidos entre si por `src/test/marca.test.ts`.
 
+### D14. Planilhas geradas na hora, com uma só porta para a biblioteca
+
+- **Contexto:** o advogado quer somar e filtrar no Excel. A documentação da biblioteca não dizia como tratava fuso, texto iniciado por `=` e caracteres inválidos.
+- **Decisão:** `write-excel-file` (MIT, uma dependência: `fflate`), usada só por `src/lib/planilha.ts`. O módulo `exportacoes` monta cada aba com as mesmas funções de serviço das telas, coluna a coluna. Nada é gravado no servidor. Os testes abrem o arquivo e leem o XML.
+- **Consequências:** texto digitado é sempre célula de texto; datas são o relógio de São Paulo, qualquer que seja o fuso do servidor; link de sala virtual e identificadores nunca saem. A biblioteca indexa textos num objeto comum, e "constructor" ou "__proto__" corrompiam o arquivo: o app acrescenta um caractere invisível (U+2060) a essas palavras. Toda atualização da biblioteca passa pelas provas de `planilha.test.ts`.
+
 ## Atributos de qualidade
 
 | Atributo | Como é garantido | Onde se verifica |
