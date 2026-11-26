@@ -139,12 +139,27 @@ html:has([data-aviso-da-pagina]:not(:empty)) {
   outline-offset: -3px;
 }
 
+/* Faixa de contagem: o único movimento automático do app. Os dias aparecem uma vez,
+   na ordem em que são contados. */
+@keyframes contar-o-dia {
+  from {
+    opacity: 0.15;
+  }
+}
+.dia-da-faixa {
+  animation: contar-o-dia 0.35s ease-out both;
+}
+.faixa-sem-expediente {
+  background-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--border) 4px 5px);
+}
+
 /* Quem pede menos movimento não vê transições nem animações. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
