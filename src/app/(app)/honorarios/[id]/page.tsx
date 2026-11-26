@@ -59,7 +59,7 @@ export default async function PaginaDoHonorario({ params }: PageProps<"/honorari
             .
           </p>
         )}
-        <ul className="divide-y rounded-xl border bg-card">
+        <ul className="divide-y rounded-md border bg-card">
           {honorario.parcelas.map((parcela) => {
             const cobranca = linkDeCobranca({
               nomeDoCliente: honorario.cliente.nome,

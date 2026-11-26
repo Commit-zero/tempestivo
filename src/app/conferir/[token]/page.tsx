@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Marca } from "@/components/app/marca";
@@ -18,7 +19,7 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4 py-10">
       <Marca />
-      <main className="grid w-full max-w-sm gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+      <main className="grid w-full max-w-sm gap-5 rounded-md border bg-card p-6 shadow-sm sm:p-8">
         {prazo?.jaConferidoPorEsteLink ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Conferência registrada</h1>
@@ -35,16 +36,16 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
             <dl className="grid gap-3">
               <div>
                 <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Prazo</dt>
-                <dd className="font-medium break-words">{prazo.descricao}</dd>
+                <dd className="font-medium wrap-anywhere">{prazo.descricao}</dd>
               </div>
               <div>
                 <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Data final</dt>
                 <dd className="text-xl font-semibold tracking-tight">{formatarDataComSemana(prazo.dataFinal)}</dd>
               </div>
             </dl>
-            <p className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+            <Aviso tipo="atencao">
               Cálculo auxiliar, confira. Só registre depois de conferir a data nos autos.
-            </p>
+            </Aviso>
             <FormularioDeConferencia acao={acaoConfirmarPeloLink.bind(null, token)} cumprido={prazo.cumprido} />
           </>
         ) : (

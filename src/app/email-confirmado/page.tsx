@@ -16,7 +16,7 @@ export default async function PaginaDeEmailConfirmado({ searchParams }: PageProp
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4 py-10">
       <Marca />
-      <main className="grid w-full max-w-sm gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+      <main className="grid w-full max-w-sm gap-5 rounded-md border bg-card p-6 shadow-sm sm:p-8">
         {error ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Link inválido ou vencido</h1>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Opção 2, Degraus</title>
+  <!-- A contagem avança dia a dia; o dia sem expediente fica vazado e o vencimento é o mais alto. -->
+  <rect width="64" height="64" rx="14" fill="#122240"/>
+  <rect x="11" y="37" width="11" height="16" rx="3" fill="#B3AEFF"/>
+  <rect x="27.5" y="32.5" width="9" height="19" rx="2" fill="none" stroke="#B3AEFF" stroke-width="3"/>
+  <rect x="42" y="13" width="11" height="40" rx="3" fill="#FFFFFF"/>
+  <circle cx="47.5" cy="21" r="3.2" fill="#122240"/>
+</svg>

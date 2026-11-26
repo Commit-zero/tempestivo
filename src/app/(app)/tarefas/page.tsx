@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { Cartao, CabecalhoDaPagina } from "@/components/app/pagina";
 import { Button } from "@/components/ui/button";
 import { dataCivilEmSaoPaulo, formatarData } from "@/lib/datas";
@@ -26,10 +27,10 @@ export default async function PaginaDeTarefas() {
     const proxima = COLUNAS[indiceDaColuna + 1];
     const atrasada = tarefa.limite !== null && tarefa.limite < hoje && tarefa.coluna !== "feito";
     return (
-      <li data-tarefa={tarefa.id} data-coluna={coluna.titulo} tabIndex={-1} className="grid gap-2 rounded-lg border bg-card p-3">
-        <p className="font-medium break-words">{tarefa.titulo}</p>
+      <li data-tarefa={tarefa.id} data-coluna={coluna.titulo} tabIndex={-1} className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-lg border bg-card p-3">
+        <p className="font-medium wrap-anywhere">{tarefa.titulo}</p>
         {tarefa.processo ? (
-          <Link href={`/processos/${tarefa.processo.id}`} className="justify-self-start text-sm break-words text-muted-foreground hover:text-foreground">
+          <Link href={`/processos/${tarefa.processo.id}`} className="justify-self-start text-sm wrap-anywhere text-muted-foreground hover:text-foreground">
             {tarefa.processo.assunto}
           </Link>
         ) : null}
@@ -55,9 +56,11 @@ export default async function PaginaDeTarefas() {
             </form>
           ) : null}
           <form action={acaoExcluirTarefa.bind(null, tarefa.id)} className="ml-auto">
-            <Button type="submit" variant="ghost" className="w-11 md:w-9" aria-label={`Excluir "${tarefa.titulo}"`}>
-              <Trash2 aria-hidden="true" />
-            </Button>
+            <ConfirmacaoDoEnvio titulo="Excluir tarefa?" descricao={`A tarefa "${tarefa.titulo}" será apagada. Não há como desfazer.`} confirmar="Excluir tarefa">
+              <Button type="button" variant="ghost" className="w-11 md:w-9" aria-label={`Excluir "${tarefa.titulo}"`}>
+                <Trash2 aria-hidden="true" />
+              </Button>
+            </ConfirmacaoDoEnvio>
           </form>
         </div>
       </li>
@@ -72,7 +75,7 @@ export default async function PaginaDeTarefas() {
       </Cartao>
       <QuadroComFoco assinatura={COLUNAS.map((coluna) => quadro[coluna.id].map((tarefa) => tarefa.id).join(",")).join("|")}>
         {COLUNAS.map((coluna, indice) => (
-          <section key={coluna.id} aria-label={coluna.titulo} className="grid content-start gap-3 rounded-xl bg-muted p-3">
+          <section key={coluna.id} aria-label={coluna.titulo} className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 rounded-md bg-muted p-3">
             <h2 className="flex items-center justify-between px-1 text-sm font-semibold">
               {coluna.titulo}
               <span className="text-muted-foreground tabular-nums">
@@ -84,7 +87,7 @@ export default async function PaginaDeTarefas() {
             {quadro[coluna.id].length === 0 ? (
               <p className="px-1 pb-2 text-sm text-muted-foreground">Nada aqui.</p>
             ) : (
-              <ul className="grid gap-2">
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
                 {quadro[coluna.id].map((tarefa) => (
                   <CartaoDaTarefa key={tarefa.id} tarefa={tarefa} indiceDaColuna={indice} />
                 ))}

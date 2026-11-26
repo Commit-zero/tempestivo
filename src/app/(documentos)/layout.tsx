@@ -6,7 +6,7 @@ export default function LayoutDosDocumentos({ children }: { children: React.Reac
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
       <header>
-        <Link href="/" aria-label="Tempestivo, página inicial" className="rounded-lg">
+        <Link href="/" aria-label="Tempestivo, página inicial" className="inline-flex min-h-11 items-center self-start rounded-lg">
           <Marca />
         </Link>
       </header>
@@ -16,10 +16,10 @@ export default function LayoutDosDocumentos({ children }: { children: React.Reac
         {children}
       </main>
       <footer className="mt-auto flex flex-wrap gap-x-4 border-t pt-6 text-sm text-muted-foreground">
-        <Link href="/termos" className="underline-offset-4 hover:underline">
+        <Link href="/termos" className="inline-flex min-h-11 items-center underline underline-offset-4 md:min-h-0">
           Termos de uso
         </Link>
-        <Link href="/privacidade" className="underline-offset-4 hover:underline">
+        <Link href="/privacidade" className="inline-flex min-h-11 items-center underline underline-offset-4 md:min-h-0">
           Política de privacidade
         </Link>
       </footer>

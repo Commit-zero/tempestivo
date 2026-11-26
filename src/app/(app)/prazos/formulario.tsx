@@ -1,11 +1,12 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { useActionState, useState, useTransition } from "react";
 import { BotaoEnviar, Campo, CampoDeEscolha, CampoDeMarcar, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
 import type { ResultadoCalculo } from "@/modules/prazos";
-import { MemoriaDoCalculo } from "./memoria";
+import { MemoriaDoCalculo } from "@/components/app/memoria";
 import type { DadosDaPrevia } from "./acoes";
 
 type Acao = (anterior: EstadoDoFormulario, formulario: FormData) => Promise<EstadoDoFormulario>;
@@ -128,9 +129,9 @@ export function FormularioDePrazo({
       ) : (
         <>
           {processo && !processo.atendido ? (
-            <p role="status" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+            <Aviso tipo="atencao" role="status">
               A calculadora não atende o tribunal {processo.tribunal}. Use a data final manual.
-            </p>
+            </Aviso>
           ) : null}
           <CampoDeEscolha rotulo="Evento que inicia o prazo" name="tipoEvento" value={valores.tipoEvento} onChange={(evento) => mudar({ tipoEvento: evento.target.value })}>
             {EVENTOS.map((evento) => (
@@ -160,9 +161,9 @@ export function FormularioDePrazo({
           <div aria-live="polite" className="grid gap-3">
             {previa?.ok ? <MemoriaDoCalculo dataFinal={previa.dataFinal} passos={previa.passos} avisos={previa.avisos} regrasAplicadas={previa.regrasAplicadas} /> : null}
             {previa && !previa.ok ? (
-              <p role="alert" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+              <Aviso tipo="atencao" role="alert">
                 {previa.motivo}
-              </p>
+              </Aviso>
             ) : null}
           </div>
         </>

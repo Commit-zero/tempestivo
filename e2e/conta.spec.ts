@@ -145,12 +145,24 @@ test("exporta os dados da conta e exclui a conta só com o e-mail certo", async 
   });
   expect((await exportacao.json()).conta.termosAceitosEm).toEqual(expect.any(String));
 
+  // Enter no campo da senha não pode apagar nada: só o diálogo confirma.
+  await page.getByLabel("Para confirmar, digite a sua senha").fill(SENHA_FICTICIA);
+  await page.getByLabel("Para confirmar, digite a sua senha").press("Enter");
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("Confirme na janela antes de apagar.");
+  expect((await page.request.get("/conta/exportar")).status()).toBe(200);
+
+  // Sem a senha, o diálogo nem abre.
+  await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+
   await page.getByLabel("Para confirmar, digite a sua senha").fill("senha-errada-de-teste");
   await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Excluir a conta" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toHaveText("Senha incorreta.");
 
   await page.getByLabel("Para confirmar, digite a sua senha").fill(SENHA_FICTICIA);
   await page.getByRole("button", { name: "Excluir a conta e todos os dados" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Excluir a conta" }).click();
   await expect(page.getByRole("status")).toHaveText("A conta e todos os dados foram excluídos.");
 
   // A sessão morreu junto com a conta, e o login não existe mais.

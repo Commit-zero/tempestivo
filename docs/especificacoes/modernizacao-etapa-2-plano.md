@@ -1,0 +1,147 @@
+# Etapa 2: plano de tarefas
+
+Plano da [especificação da Etapa 2](modernizacao-etapa-2.md), aprovada em 26/11/2026. **Situação:** plano aprovado em 26/11/2026; T1 a T13 prontas na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-2-identidade`, sem push antes do fim da final.
+
+## Decisões do plano
+
+| Assunto | Decisão | Motivo |
+|---|---|---|
+| Fonte | Archivo pelo `next/font/google`, com o eixo `wdth` | O catálogo do Next instalado lista a Archivo com largura de 62 a 125. Falta ver os acentos na tela (T2) |
+| Excluir sem JavaScript | O botão visível só abre o diálogo. O botão de confirmar, dentro dele, envia `confirmado`, e a **server action recusa o pedido sem esse campo**. Sem JavaScript, nada é apagado, e um texto diz que é preciso ativá-lo | Hoje, sem JavaScript, exclui sem perguntar. A conferência no servidor é testável |
+| Diálogo | `AlertDialog` do pacote `radix-ui`, já instalado | Foco, `Esc` e leitor de tela prontos, sem dependência nova |
+| Aviso depois da ação (**mudado na implementação**) | A ação grava um cookie de 20 segundos, `tempestivo.aviso`, só com uma chave de lista fixa; a tela mostra a mensagem no pé e apaga o cookie. Mover tarefa continua sem aviso próprio (o cartão muda de coluna e isso é anunciado) | A ideia anterior, pôr a chave no endereço, obrigava botões como "marcar como paga" a redirecionar para a própria tela, jogando a rolagem para o topo. A especificação permite endereço ou cookie |
+| Ações que pedem senha | Excluir a conta também passa pelo diálogo. Desativar o segundo fator continua confirmado só pela senha | A exclusão não tem volta; desativar pode ser refeito |
+| Carrossel | Não roda sozinho (decidido). Rolagem com `scroll-snap`; os botões entram com JavaScript | Sem temporizador nem botão de pausa |
+| Faixa de contagem | Dados do exemplo em um arquivo puro. Um teste junto do módulo `prazos` compara cada dia, o vencimento e a meta com a calculadora | A capa continua sem banco e sem depender de código interno do módulo |
+
+## Ordem e dependências
+
+```text
+T1 símbolos (sua escolha) ───────────────────────────────────────────┐
+T2 cores e fonte ─ T3 componentes ─┬─ T4 avisos ─ T5 avisos ─┐        │
+                                   └─ T6 diálogo ─ T7 diálogo ┤       │
+                    T8 faixa ─ T9 capa ─ T10 carrossel ───────┴─ T11 telas ─ T12 símbolo ─ T13 final
+```
+
+A escolha do símbolo não trava as tarefas T2 a T11. Cada tarefa é um commit e deixa o app funcionando.
+
+## Bloco A: base e retorno das ações
+
+### T1. Três opções de símbolo
+- Aceite: três SVG sem letra, derivados da contagem, mostrados em 16, 32, 180 e 512 px nos dois temas. Nenhum é aplicado.
+- Verificação: captura em tela conferida, em especial o tamanho de 16 px.
+- Arquivos: `docs/especificacoes/simbolos/` (três SVG e uma página de comparação).
+- Depende de: nada (usa as cores da tabela da especificação). Tamanho: P.
+
+### T2. Cores e fonte
+- Aceite: tokens da direção A nos dois temas, inclusive bordas, fundos de aviso e foco; Archivo no lugar de Geist e Source Serif 4; âmbar, verde e vermelho só nos significados definidos.
+- Verificação: `contraste.test.ts` com todos os pares (escrito antes); captura de telas com acentos.
+- Arquivos: `src/app/globals.css`, `src/app/layout.tsx`, `src/test/contraste.test.ts`.
+- Depende de: nada. Tamanho: P.
+
+### T3. Componentes de base e aviso único
+- Aceite: um componente `Aviso` com os quatro tipos substitui as classes repetidas; botões, campos, cartões e selos seguem a nova hierarquia de cantos e superfícies.
+- Verificação: busca sem classes de aviso repetidas; testes de tela atuais.
+- Arquivos: `src/components/app/aviso.tsx`, `src/components/formulario.tsx`, `src/components/ui/`, `src/components/app/pagina.tsx` e as telas que repetiam o aviso.
+- Depende de: T2. Tamanho: M.
+
+### T4. Aviso depois da ação: base, clientes e processos
+- Aceite: lista fixa de chaves; chave desconhecida não mostra nada; o endereço é limpo depois; o aviso é anunciado e fica visível no celular.
+- Verificação: teste da lista; teste de tela de criar, salvar, arquivar e excluir.
+- Arquivos: `src/lib/avisos.ts` e teste, `src/components/app/aviso-da-pagina.tsx`, `src/app/(app)/layout.tsx`, as ações de clientes e processos.
+- Depende de: T3. Tamanho: M.
+
+### T5. Aviso depois da ação: demais telas
+- Aceite: prazos (inclusive conferir e cumprir), audiências, honorários, parcelas, tarefas e catálogo respondem a cada ação.
+- Verificação: teste de tela por tipo de ação; o foco do quadro de tarefas continua como hoje.
+- Arquivos: as ações e telas desses módulos.
+- Depende de: T4. Tamanho: M.
+
+### T6. Diálogo de confirmação nas exclusões atuais
+- Aceite: nenhum `window.confirm`; foco inicial em "Cancelar"; `Esc` cancela e o foco volta; o botão diz o que apaga; o servidor recusa sem `confirmado`.
+- Verificação: teste de tela do diálogo; teste da recusa no servidor.
+- Arquivos: `src/components/app/confirmar.tsx`, um primitivo em `src/components/ui/`, as cinco ações de exclusão e os testes que usavam o `confirm`.
+- Depende de: T3 e T4. Tamanho: M.
+
+### T7. Diálogo nas outras ações que apagam
+- Aceite: excluir tarefa, remover tipo de prazo, excluir dia sem expediente e excluir a conta passam pelo diálogo; antes, conferir se há outra ação que apaga e incluí-la.
+- Verificação: testes de tela.
+- Arquivos: telas e ações de tarefas, catálogo e conta.
+- Depende de: T6. Tamanho: M.
+
+### Ponto de controle A
+Lint, tipos, testes com cobertura, build, testes de tela, e revisão de código.
+
+## Bloco B: capa e acabamento
+
+### T8. Faixa de contagem
+- Aceite: mostra o exemplo da especificação; cada dia tem texto para leitor de tela; nada informado só por cor; avança uma vez, e aparece completa com "reduzir movimento"; legível em 320 px.
+- Verificação: o teste contra a calculadora é escrito antes.
+- Arquivos: `src/lib/exemplo-de-contagem.ts`, `src/modules/prazos/__tests__/exemplo-da-capa.test.ts`, `src/components/capa/faixa-de-contagem.tsx`.
+- Depende de: T2. Tamanho: M.
+
+### T9. Página inicial
+- Aceite: abertura, problemas, soluções, diferenciais, limites e chamada final, com o título e os botões atuais; só o que o sistema faz.
+- Verificação: `e2e/home.spec.ts` ampliado, em quatro larguras, com acessibilidade; cada frase conferida com a funcionalidade.
+- Arquivos: `src/app/page.tsx`, `src/components/capa/`, `e2e/home.spec.ts`.
+- Depende de: T8. Tamanho: M.
+
+### T10. Carrossel
+- Aceite: quatro telas com dados fictícios; anterior, próximo e posição; teclado; sem JavaScript, rola e mostra todas.
+- Verificação: testes de tela, um deles com JavaScript desligado.
+- Arquivos: `src/components/capa/carrossel.tsx`, os slides em `src/components/capa/`, `e2e/home.spec.ts`.
+- Depende de: T9. Tamanho: M.
+
+### T11. Demais telas e celular
+- Aceite: menus, cabeçalhos, entrada, documentos, 404, carregamento e estados vazios com a identidade; links com 44 px no celular; sem rolagem horizontal em 320 px.
+- Verificação: capturas nos dois temas; medição dos alvos de toque nos testes de tela.
+- Arquivos: `src/components/app/`, `src/app/(publico)/`, `src/app/(documentos)/`, `src/app/not-found.tsx`, `e2e/acessibilidade.spec.ts`.
+- Depende de: T5, T7, T10. Tamanho: M.
+
+### T12. Aplicar o símbolo escolhido
+- Aceite: marca, `icon.svg`, `favicon`, ícone da Apple, ícones do manifesto (com o mascarável), cor do tema e imagem de compartilhamento com a faixa.
+- Verificação: rodar `pnpm imagens` e conferir cada arquivo na tela.
+- Arquivos: `src/components/app/marca.tsx`, `src/app/icon.svg`, `scripts/gerar-imagens.mjs`, `src/app/manifest.ts`, `src/app/layout.tsx` e as imagens geradas.
+- Depende de: sua escolha na T1 e da T11. Tamanho: M.
+
+### T13. Documentos e verificação final
+- Aceite: README, arquitetura (decisão D13, a identidade) e testes atualizados; os 8 critérios de aceite conferidos.
+- Verificação: todos os comandos, `qa-responsivo` e revisão de código.
+- Arquivos: `docs/`, `README.md`.
+- Depende de: T12. Tamanho: P.
+
+## Andamento
+
+**Bloco A (T1 a T7), pronto em 26/11/2026.** Passaram: lint, tipos, 514 testes com cobertura acima das metas, build e 157 testes de tela (Edge, 360, 768 e 1280 px). Não rodaram: build da imagem Docker, Trivy e os workflows no GitHub (branch sem push). O `qa-responsivo` fica para a T13.
+
+- **T1:** três símbolos em [simbolos/](simbolos/); **a escolha está pendente** e nada foi aplicado. O símbolo antigo continua na marca, nos ícones e na imagem de compartilhamento, que ainda têm as cores antigas (T12).
+- **T2:** o verde vale para "conferido" e também para ação concluída (aviso de sucesso, regra de senha atendida).
+- **T3:** o componente `Aviso` substituiu 23 blocos repetidos.
+- **T4 e T5:** o aviso usa cookie, e não o endereço (ver "Decisões do plano"). A política de privacidade não lista cookies e não foi alterada.
+- **T6:** o teste achou o aviso cobrindo o botão "Excluir cliente" no celular; ele passou a ocupar o próprio espaço no fim da página.
+- **T7:** um botão de envio escondido, no primeiro desenho do diálogo, seria "apertado" pelo Enter e apagaria a conta sem confirmação. Virou um campo escondido, com teste. Trocar e desligar o link da agenda também pedem confirmação.
+- **Revisão de segurança e código:** nada crítico nem alto. Corrigidos: sucesso antigo depois de uma ação que não avisa, link morto no painel da agenda, repetição não anunciada, faixa lateral, anúncio do link novo, tela desatualizada da agenda e foco ao fechar o aviso. Essas correções não passaram por nova revisão. Quando uma ação sem formulário falha em silêncio, o aviso antigo some, mas não aparece erro.
+- **Em aberto, anterior à etapa:** em `prazos`, `audiencias` e `honorarios`, alguns serviços ignoram o retorno da gravação. Se o registro for apagado em outra aba no instante de salvar, o aviso diz que deu certo. Mexer em `prazos` pede o `revisor-de-prazos`.
+
+**Bloco B (T8 a T13), pronto em 26/11/2026.** O Vitor escolheu o símbolo **1, Quadra**, já aplicado. Resultado final: lint, tipos, 523 testes em 48 arquivos com cobertura acima das metas, build e 187 testes de tela no Edge (6 pulados de propósito: os alvos de toque só são medidos no celular). **Não rodaram:** build da imagem Docker, Trivy e os workflows no GitHub.
+
+- **Diferenças do plano:** a capa junta problemas e soluções em pares numa só seção; "Diferenciais" ganhou o título "No que o Tempestivo insiste"; o componente dos passos do cálculo passou para `src/components/app/memoria.tsx`.
+- **Revisão de código:** o achado mais sério era a capa prometer mais que o sistema. O exemplo omitia o aviso de **regras não validadas por advogado** (agora na faixa, no slide e nos limites), os passos eram escritos à mão (agora são a saída da calculadora, conferida por teste) e havia frases absolutas sobre feriados, calendário e e-mails. Corrigidos também defeitos do carrossel e testes que passariam com o recurso quebrado.
+- **QA responsivo:** texto sem espaços quebrava o diálogo e várias telas; o link da agenda alargava a conta em 320 px. Corrigidos, com testes.
+- As correções da revisão e do QA passaram pelos testes, mas não por nova revisão.
+- **Ficaram como estão:** o aviso pode cobrir botões no meio da página até ser fechado ou a pessoa rolar (no fim da página não cobre); as caixas de marcar têm 20 px (o rótulo também marca); ao adicionar tarefa pelo Enter, o foco vai para o início da página; os rótulos da barra inferior têm 11 px.
+- **Não verificado:** leitor de tela, celular físico, Safari e Firefox, texto a 200% e desempenho medido.
+
+## Publicação, depois da final e com confirmação
+
+Depois da Etapa 1 na `main`. Não há migração: um PR com o código. Depois do merge, conferir a capa, o login e `/api/health`; se falhar, Instant Rollback, observando o aviso da Etapa 1 sobre voltar versão.
+
+## Riscos
+
+| Risco | Mitigação |
+|---|---|
+| A troca de cores quebrar contraste em algum par não listado | Levantar os pares usados antes de trocar; capturas nos dois temas |
+| Faixa de 23 dias ficar ilegível no celular | Quebra em linhas, como na amostra, testada em 320 px |
+| Aviso pelo endereço reaparecer ao recarregar sem JavaScript | Aceito: a chave é fixa e não leva dado pessoal |
+| Testes atuais dependerem de textos e do `confirm` | Atualizar junto da tarefa que muda o comportamento, sem remover verificação |
+| O símbolo ficar ligado a um nome que vai mudar | Sem letra nem nome |

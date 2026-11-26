@@ -32,7 +32,7 @@ export default async function PaginaDeClientes({ searchParams }: PageProps<"/cli
         <ListaDeLinks>
           {clientes.map((cliente) => (
             <ItemDeLink key={cliente.id} href={`/clientes/${cliente.id}`}>
-              <span className="min-w-0 flex-1 font-medium break-words">{cliente.nome}</span>
+              <span className="min-w-0 flex-1 font-medium wrap-anywhere">{cliente.nome}</span>
               <span className="shrink-0 text-sm text-muted-foreground">
                 {cliente.processos === 1 ? "1 processo" : `${cliente.processos} processos`}
               </span>

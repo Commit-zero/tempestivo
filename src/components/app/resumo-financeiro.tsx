@@ -16,7 +16,7 @@ export function ResumoFinanceiro({ resumo }: { resumo: Resumo }) {
   return (
     <dl className="grid gap-3 sm:grid-cols-3">
       {itens.map((item) => (
-        <div key={item.rotulo} className="rounded-xl border bg-card p-4">
+        <div key={item.rotulo} className="rounded-md border bg-card p-4">
           <dt className="text-sm text-muted-foreground">{item.rotulo}</dt>
           <dd className={cn("mt-1 text-xl font-semibold tracking-tight tabular-nums", item.destaque)}>{formatarReais(item.valor)}</dd>
         </div>

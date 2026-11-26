@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { VERSAO_DOS_TERMOS } from "@/lib/termos";
@@ -11,9 +12,9 @@ export default function PaginaDosTermos() {
     <>
       <h1>Termos de uso</h1>
       <p className="text-sm text-muted-foreground">Versão de {versao}.</p>
-      <p role="note" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+      <Aviso tipo="atencao" role="note">
         O Tempestivo está em fase de testes no Startup Challenge UMC 2026. Use apenas dados fictícios até o lançamento.
-      </p>
+      </Aviso>
 
       <h2>1. O que é o Tempestivo</h2>
       <p>

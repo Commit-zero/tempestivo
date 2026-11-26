@@ -9,6 +9,8 @@ import {
   removerTipoDaConta, type EntradaDePrazo, type ResultadoCalculo,
 } from "@/modules/prazos";
 import { exigirId } from "@/lib/ids";
+import { avisar } from "../avisar";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { exigirSessao } from "@/platform/auth";
 
 // A conta e o usuário vêm sempre da sessão, nunca do formulário.
@@ -53,41 +55,48 @@ export async function acaoSalvarPrazo(id: string | null, _anterior: EstadoDoForm
     const criado = await cadastrarPrazo(contaId, entrada);
     if (!criado.ok) return { erro: criado.erro };
     atualizarTelas();
+    await avisar("prazo-salvo");
     redirect(`/prazos/${criado.valor.id}`);
   }
   const editado = await editarPrazo(contaId, id, entrada);
   if (!editado.ok) return { erro: editado.erro };
   atualizarTelas(id);
+  await avisar("prazo-salvo");
   redirect(`/prazos/${id}${editado.valor.conferenciaZerada ? "?conferencia=zerada" : ""}`);
 }
 
 export async function acaoConfirmarConferencia(id: string): Promise<void> {
   exigirId(id);
   const { contaId, usuarioId } = await exigirSessao();
-  await confirmarConferencia(contaId, id, "app", usuarioId);
+  const feito = await confirmarConferencia(contaId, id, "app", usuarioId);
   atualizarTelas(id);
+  if (feito.ok) await avisar("prazo-conferido");
 }
 
 export async function acaoMarcarComoCumprido(id: string): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
-  await marcarComoCumprido(contaId, id);
+  const feito = await marcarComoCumprido(contaId, id);
   atualizarTelas(id);
+  if (feito.ok) await avisar("prazo-cumprido");
 }
 
 export async function acaoDesfazerCumprido(id: string): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
-  await desfazerCumprido(contaId, id);
+  const feito = await desfazerCumprido(contaId, id);
   atualizarTelas(id);
+  if (feito.ok) await avisar("prazo-reaberto");
 }
 
-export async function acaoExcluirPrazo(id: string): Promise<EstadoDoFormulario> {
+export async function acaoExcluirPrazo(id: string, _anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   exigirId(id);
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const excluido = await excluirPrazo(contaId, id);
   if (!excluido.ok) return { erro: excluido.erro };
   atualizarTelas();
+  await avisar("prazo-excluido");
   redirect("/prazos");
 }
 
@@ -112,11 +121,13 @@ export async function acaoCriarTipo(_anterior: EstadoDoFormulario, formulario: F
   return { aviso: "Tipo de prazo criado." };
 }
 
-export async function acaoRemoverTipo(registroId: string): Promise<void> {
+export async function acaoRemoverTipo(registroId: string, aviso: "tipo-restaurado" | "tipo-excluido", formulario: FormData): Promise<void> {
   exigirId(registroId);
   const { contaId } = await exigirSessao();
-  await removerTipoDaConta(contaId, registroId);
+  if (!foiConfirmado(formulario)) return;
+  const feito = await removerTipoDaConta(contaId, registroId);
   revalidatePath("/prazos/catalogo");
+  if (feito.ok) await avisar(aviso === "tipo-restaurado" ? "tipo-restaurado" : "tipo-excluido");
 }
 
 export async function acaoCadastrarDiaSemExpediente(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
@@ -129,9 +140,11 @@ export async function acaoCadastrarDiaSemExpediente(_anterior: EstadoDoFormulari
   return { aviso: "Dia cadastrado. Ele vale para os próximos cálculos; prazos já salvos não mudam sozinhos." };
 }
 
-export async function acaoExcluirDiaSemExpediente(id: string): Promise<void> {
+export async function acaoExcluirDiaSemExpediente(id: string, formulario: FormData): Promise<void> {
   exigirId(id);
   const { contaId } = await exigirSessao();
-  await excluirDiaSemExpediente(contaId, id);
+  if (!foiConfirmado(formulario)) return;
+  const feito = await excluirDiaSemExpediente(contaId, id);
   revalidatePath("/prazos/catalogo");
+  if (feito.ok) await avisar("dia-excluido");
 }

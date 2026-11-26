@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { Fragment, useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
@@ -174,15 +175,15 @@ function BotaoDeCopiar({ texto, rotulo, copiado }: { texto: string; rotulo: stri
 function CodigosDeRecuperacao({ codigos, atencao }: { codigos: string[]; atencao?: string }) {
   return (
     <Fase>
-      <p role="status" className="rounded-lg border border-atencao/30 px-3 py-2 text-sm">
+      <Aviso tipo="atencao" role="status">
         <strong>Guarde os códigos de recuperação agora: eles não aparecem de novo.</strong> Cada um entra uma única vez, caso você
         fique sem o celular. Guarde num lugar seguro, separado do aparelho. Sem o celular e sem eles, o acesso depende de atendimento
         manual.
-      </p>
+      </Aviso>
       {atencao ? (
-        <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+        <Aviso tipo="erro">
           {atencao}
-        </p>
+        </Aviso>
       ) : null}
       <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-2 font-mono text-sm">
         {codigos.map((codigo) => (

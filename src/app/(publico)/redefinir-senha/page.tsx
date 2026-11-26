@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FormularioDeNovaSenha } from "../formularios";
@@ -14,10 +15,10 @@ export default async function PaginaDeNovaSenha({ searchParams }: PageProps<"/re
         <FormularioDeNovaSenha token={token} />
       ) : (
         <div className="grid gap-4">
-          <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+          <Aviso tipo="erro">
             O link de redefinição é inválido ou expirou.
-          </p>
-          <Link href="/recuperar-senha" className="text-sm text-primary underline-offset-4 hover:underline">
+          </Aviso>
+          <Link href="/recuperar-senha" className="inline-flex min-h-11 items-center justify-self-start text-sm text-primary underline underline-offset-4 md:min-h-0">
             Pedir um novo link
           </Link>
         </div>

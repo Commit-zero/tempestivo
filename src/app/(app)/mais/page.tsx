@@ -17,7 +17,7 @@ export default async function PaginaMais() {
         <h1 className="text-2xl font-semibold tracking-tight">Mais</h1>
         <p className="truncate text-sm text-muted-foreground">{sessao.email}</p>
       </div>
-      <ul className="divide-y rounded-xl border bg-card">
+      <ul className="divide-y rounded-md border bg-card">
         {SECUNDARIOS.map(({ href, rotulo, icone: Icone }) => (
           <li key={href}>
             <Link href={href} className="flex min-h-14 items-center gap-3 px-4 font-medium">

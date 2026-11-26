@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { useActionState } from "react";
 import { BotaoEnviar, MensagemDoFormulario } from "@/components/formulario";
 import type { EstadoDoFormulario } from "@/lib/formulario";
@@ -9,7 +10,7 @@ import type { EstadoDoFormulario } from "@/lib/formulario";
 export function AvisoDeConfirmacaoDeEmail({ email, acao }: { email: string; acao: () => Promise<EstadoDoFormulario> }) {
   const [estado, enviar] = useActionState(acao, {});
   return (
-    <section aria-label="Confirmação de e-mail" className="grid gap-3 rounded-xl border border-atencao/30 bg-atencao-fundo p-4 text-sm text-atencao">
+    <Aviso tipo="atencao" como="section" aria-label="Confirmação de e-mail" className="grid gap-3">
       <p>
         <strong>Confirme o seu e-mail para receber os alertas de prazo.</strong> Enviamos um link para <span className="break-all">{email}</span>.
         Até a confirmação, nenhum alerta é enviado.
@@ -22,6 +23,6 @@ export function AvisoDeConfirmacaoDeEmail({ email, acao }: { email: string; acao
           </BotaoEnviar>
         )}
       </form>
-    </section>
+    </Aviso>
   );
 }

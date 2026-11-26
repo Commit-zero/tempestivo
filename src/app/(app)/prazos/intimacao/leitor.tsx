@@ -1,5 +1,6 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import Link from "next/link";
 import { useActionState } from "react";
 import { BotaoEnviar, CampoDeTexto } from "@/components/formulario";
@@ -35,7 +36,7 @@ function Linha({ rotulo, valor, evidencia }: { rotulo: string; valor: string | n
     <div className="grid gap-0.5">
       <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{rotulo}</dt>
       <dd className={valor ? "font-medium" : "text-muted-foreground"}>{valor ?? "não encontrado"}</dd>
-      {evidencia ? <dd className="text-sm text-muted-foreground italic break-words">“{evidencia}”</dd> : null}
+      {evidencia ? <dd className="text-sm text-muted-foreground italic wrap-anywhere">“{evidencia}”</dd> : null}
     </div>
   );
 }
@@ -47,9 +48,9 @@ export function LeitorDeIntimacao() {
     <div className="grid gap-6">
       <form action={enviar} className="grid gap-4">
         {estado.erro ? (
-          <p role="alert" className="rounded-lg border border-destructive/30 bg-perigo-fundo px-3 py-2 text-sm text-destructive">
+          <Aviso tipo="erro">
             {estado.erro}
-          </p>
+          </Aviso>
         ) : null}
         <CampoDeTexto
           rotulo="Texto da intimação"
@@ -68,16 +69,16 @@ export function LeitorDeIntimacao() {
 
       <div aria-live="polite">
         {rascunho ? (
-          <section aria-label="Rascunho lido" className="grid gap-4 rounded-xl border bg-card p-4 sm:p-5">
+          <section aria-label="Rascunho lido" className="grid gap-4 rounded-md border bg-card p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold tracking-tight">Rascunho</h2>
               <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium ${CONFIANCA[rascunho.confianca].classe}`}>
                 {CONFIANCA[rascunho.confianca].texto}
               </span>
             </div>
-            <p className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+            <Aviso tipo="atencao">
               Isto é só uma sugestão. O prazo só será criado depois que você conferir cada campo, calcular a data e salvar.
-            </p>
+            </Aviso>
             <dl className="grid gap-4 sm:grid-cols-2">
               <Linha rotulo="Processo" valor={rascunho.processo?.assunto ?? null} evidencia={rascunho.evidencias.numeroProcesso} />
               <Linha rotulo="Tipo de ato" valor={rascunho.descricao} evidencia={rascunho.evidencias.descricao} />

@@ -16,11 +16,11 @@ export default async function PaginaDoConvite({ params }: PageProps<"/substituto
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4 py-10">
       <Marca />
-      <main className="grid w-full max-w-sm gap-5 rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+      <main className="grid w-full max-w-sm gap-5 rounded-md border bg-card p-6 shadow-sm sm:p-8">
         {convite ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Ser advogado substituto</h1>
-            <p className="text-sm break-words">
+            <p className="text-sm wrap-anywhere">
               <strong>{convite.titular}</strong> indicou você como substituto no Tempestivo.
             </p>
             <ul className="grid list-disc gap-1.5 pl-5 text-sm text-muted-foreground">

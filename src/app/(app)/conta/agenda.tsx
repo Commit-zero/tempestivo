@@ -1,7 +1,9 @@
 "use client";
 
+import { Aviso } from "@/components/app/aviso";
 import { Check, Copy } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { ConfirmacaoDoEnvio } from "@/components/app/confirmar";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
 import type { EstadoDoFormulario } from "@/lib/formulario";
@@ -44,8 +46,13 @@ function LinkDaAgenda({ link }: { link: string }) {
       setCopiado(false);
     }
   }
+  // O link só aparece esta vez: o foco vai até ele, e o leitor de tela o anuncia.
+  const bloco = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    bloco.current?.focus();
+  }, []);
   return (
-    <div className="grid gap-3 rounded-xl border border-positivo/30 bg-positivo-fundo p-4 text-sm">
+    <Aviso tipo="sucesso" como="div" semAnuncio ref={bloco} tabIndex={-1} data-testid="link-novo-da-agenda" className="grid gap-3">
       <p className="font-medium text-positivo">Link criado. Copie agora: por segurança, ele não aparece de novo.</p>
       <p className="text-foreground">
         Não compartilhe este link: quem o tiver vê os seus vencimentos até você trocá-lo ou desligar a agenda.
@@ -57,6 +64,7 @@ function LinkDaAgenda({ link }: { link: string }) {
         <input
           id="link-da-agenda"
           readOnly
+          size={1}
           value={link}
           onFocus={(evento) => evento.currentTarget.select()}
           className="h-11 min-w-0 flex-1 rounded-lg border border-input bg-card px-2.5 font-mono text-sm md:h-9"
@@ -80,7 +88,7 @@ function LinkDaAgenda({ link }: { link: string }) {
           <strong>Google Agenda:</strong> no computador, em Outras agendas, escolha &quot;Do URL&quot; e cole o link.
         </li>
       </ul>
-    </div>
+    </Aviso>
   );
 }
 
@@ -93,27 +101,52 @@ export function PainelDaAgenda({
 }) {
   const [estadoAtivacao, ativar] = useActionState(acaoAtivar, {});
   const [estadoDesativacao, desativar] = useActionState(acaoDesativar, {});
-  const ativa = ativadaEm !== null || estadoAtivacao.link !== undefined;
+  // Vale só o resultado mais recente: depois de desligar, o link anterior não funciona
+  // mais, e depois de criar, o aviso de desligada deixa de ser verdade.
+  const [visto, setVisto] = useState<{ ativacao: EstadoDaAgenda; desativacao: EstadoDaAgenda; ultima: "ativacao" | "desativacao" | null }>({
+    ativacao: estadoAtivacao, desativacao: estadoDesativacao, ultima: null,
+  });
+  if (visto.ativacao !== estadoAtivacao) setVisto({ ...visto, ativacao: estadoAtivacao, ultima: "ativacao" });
+  else if (visto.desativacao !== estadoDesativacao) setVisto({ ...visto, desativacao: estadoDesativacao, ultima: "desativacao" });
+  const resultado = visto.ultima === "desativacao" ? estadoDesativacao : visto.ultima === "ativacao" ? estadoAtivacao : {};
+  const link = "link" in resultado ? resultado.link : undefined;
+  const ativa = ativadaEm !== null || link !== undefined;
   return (
     <div className="grid gap-4">
-      <MensagemDoFormulario estado={estadoDesativacao} />
-      {estadoAtivacao.link ? <LinkDaAgenda link={estadoAtivacao.link} /> : null}
-      {ativa && !estadoAtivacao.link ? (
+      <MensagemDoFormulario estado={resultado} />
+      {link ? <LinkDaAgenda key={link} link={link} /> : null}
+      {ativa && !link ? (
         <p role="status" className="text-sm text-positivo">
           Agenda ligada desde {ativadaEm}. Se não tiver mais o link, troque-o: o anterior deixa de funcionar.
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
         <form action={ativar}>
-          <BotaoEnviar variant={ativa ? "outline" : "default"} enviando="Criando…">
-            {ativa ? "Trocar o link" : "Criar o link da agenda"}
-          </BotaoEnviar>
+          {ativa ? (
+            <ConfirmacaoDoEnvio
+              titulo="Trocar o link?"
+              descricao="O link atual deixa de funcionar. Quem o assinou precisa do link novo."
+              confirmar="Trocar o link"
+            >
+              <Button type="button" variant="outline">
+                Trocar o link
+              </Button>
+            </ConfirmacaoDoEnvio>
+          ) : (
+            <BotaoEnviar enviando="Criando…">Criar o link da agenda</BotaoEnviar>
+          )}
         </form>
         {ativa ? (
           <form action={desativar}>
-            <BotaoEnviar variant="ghost" enviando="Desligando…">
-              Desligar a agenda
-            </BotaoEnviar>
+            <ConfirmacaoDoEnvio
+              titulo="Desligar a agenda?"
+              descricao="O link deixa de funcionar e o calendário para de atualizar."
+              confirmar="Desligar a agenda"
+            >
+              <Button type="button" variant="ghost">
+                Desligar a agenda
+              </Button>
+            </ConfirmacaoDoEnvio>
           </form>
         ) : null}
       </div>

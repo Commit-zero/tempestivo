@@ -1,3 +1,4 @@
+import { Aviso } from "@/components/app/aviso";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,7 +11,7 @@ import { obterPrazo } from "@/modules/prazos";
 import { formatarNumeroCnj } from "@/modules/processos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoConfirmarConferencia, acaoDesfazerCumprido, acaoExcluirPrazo, acaoMarcarComoCumprido } from "../acoes";
-import { MemoriaDoCalculo } from "../memoria";
+import { MemoriaDoCalculo } from "@/components/app/memoria";
 
 export const metadata: Metadata = { title: "Prazo" };
 
@@ -37,9 +38,9 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
       <CabecalhoDaPagina titulo={prazo.descricao} voltar={{ href: "/prazos", rotulo: "Prazos" }} />
 
       {conferencia === "zerada" ? (
-        <p role="status" className="rounded-lg border border-atencao/30 bg-atencao-fundo px-3 py-2 text-sm text-atencao">
+        <Aviso tipo="atencao" role="status">
           A data do prazo mudou e a conferência foi zerada. Confira de novo e registre.
-        </p>
+        </Aviso>
       ) : null}
 
       <Cartao className="grid gap-5">
@@ -123,7 +124,7 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
         {prazo.conferencias.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma conferência registrada.</p>
         ) : (
-          <ul className="divide-y rounded-xl border bg-card text-sm">
+          <ul className="divide-y rounded-md border bg-card text-sm">
             {prazo.conferencias.map((item) => (
               <li key={item.id} className="flex flex-wrap justify-between gap-2 px-4 py-3">
                 <span>{formatarDataHora(item.em)}</span>
@@ -136,7 +137,7 @@ export default async function PaginaDoPrazo({ params, searchParams }: PageProps<
 
       {prazo.historico.length > 0 ? (
         <Secao titulo="Histórico de alterações">
-          <ul className="divide-y rounded-xl border bg-card text-sm">
+          <ul className="divide-y rounded-md border bg-card text-sm">
             {prazo.historico.map((item) => (
               <li key={item.id} className="grid gap-0.5 px-4 py-3">
                 <span>

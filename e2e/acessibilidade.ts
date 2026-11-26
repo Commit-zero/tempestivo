@@ -54,7 +54,11 @@ export async function verificarAcessibilidade(page: Page): Promise<void> {
       if (!imagem.hasAttribute("alt")) encontrados.push(`imagem sem alt: ${imagem.getAttribute("src")}`);
     }
     // aria-hidden não pode esconder o que recebe foco.
+    // Com um diálogo modal aberto, o Radix esconde o resto da página (marca `data-aria-hidden`)
+    // e prende o foco no diálogo: isso é o comportamento correto, não um problema.
+    const comModal = document.querySelector("[role=alertdialog], [role=dialog]") !== null;
     for (const escondido of document.querySelectorAll("[aria-hidden=true]")) {
+      if (comModal && escondido.hasAttribute("data-aria-hidden")) continue;
       if (escondido.matches("a[href], button, input, select, textarea") || escondido.querySelector("a[href], button, input, select, textarea")) {
         encontrados.push(`elemento focável dentro de aria-hidden: ${descrever(escondido)}`);
       }

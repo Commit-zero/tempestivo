@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { foiConfirmado, SEM_CONFIRMACAO } from "@/lib/confirmacao";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
-import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
+import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta, obterConta } from "@/modules/conta";
 import {
   confirmarAtivacao, confirmarSenhaAtual, desativarSegundoFator, exigirSessao, gerarNovosCodigos, iniciarAtivacao, trocarSenha,
 } from "@/platform/auth";
@@ -66,6 +67,7 @@ export async function acaoDesativarSegundoFator(_anterior: EstadoDoFormulario, f
 // Apagar o usuário apaga também as sessões dele, então o cookie deixa de valer na hora.
 export async function acaoExcluirConta(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
   const sessao = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const senha = await confirmarSenhaAtual(sessao.usuarioId, formulario.get("senha"));
   if (!senha.ok) return { erro: senha.erro };
   const resultado = await excluirConta(sessao);
@@ -85,16 +87,23 @@ export async function acaoDefinirMargem(_anterior: EstadoDoFormulario, formulari
 }
 
 /** Cria ou troca o link da agenda; o link só é mostrado nesta resposta. */
-export async function acaoAtivarAgenda(): Promise<EstadoDaAgenda> {
+export async function acaoAtivarAgenda(_anterior: EstadoDaAgenda, formulario: FormData): Promise<EstadoDaAgenda> {
   const { contaId } = await exigirSessao();
+  // Criar não apaga nada; trocar derruba o link anterior e pede confirmação.
+  if ((await obterConta(contaId))?.agendaAtivadaEm && !foiConfirmado(formulario)) {
+    // A tela estava desatualizada (agenda ligada em outra aba): atualiza para mostrar o botão certo.
+    revalidatePath("/conta");
+    return { erro: "O link da agenda já existe. Para criar outro, use Trocar o link e confirme." };
+  }
   const resultado = await ativarAgenda(contaId);
   if (!resultado.ok) return { erro: resultado.erro };
   revalidatePath("/conta");
   return { link: `${getConfig().APP_URL.replace(/\/$/, "")}/agenda/${resultado.valor.token}/calendario.ics` };
 }
 
-export async function acaoDesativarAgenda(): Promise<EstadoDaAgenda> {
+export async function acaoDesativarAgenda(_anterior: EstadoDaAgenda, formulario: FormData): Promise<EstadoDaAgenda> {
   const { contaId } = await exigirSessao();
+  if (!foiConfirmado(formulario)) return { erro: SEM_CONFIRMACAO };
   const resultado = await desativarAgenda(contaId);
   if (!resultado.ok) return { erro: resultado.erro };
   revalidatePath("/conta");

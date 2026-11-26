@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { AvisoDaPagina } from "@/components/app/aviso-da-pagina";
 import { Marca } from "@/components/app/marca";
 import { NavegacaoInferior, NavegacaoLateral } from "@/components/app/navegacao";
 import { Button } from "@/components/ui/button";
+import { COOKIE_DO_AVISO, lerAviso } from "@/lib/avisos";
 import { exigirSessao } from "@/platform/auth";
 import { acaoSair } from "./acoes";
 
@@ -9,13 +12,14 @@ import { acaoSair } from "./acoes";
 // cada ação repete a validação antes de tocar em dados.
 export default async function LayoutDoApp({ children }: { children: React.ReactNode }) {
   const sessao = await exigirSessao();
+  const aviso = lerAviso((await cookies()).get(COOKIE_DO_AVISO)?.value);
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2">
         Pular para o conteúdo
       </a>
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r bg-card p-4 md:flex">
-        <Link href="/painel" className="rounded-lg px-1">
+        <Link href="/painel" className="inline-flex min-h-11 items-center rounded-lg px-1">
           <Marca />
         </Link>
         <NavegacaoLateral />
@@ -30,15 +34,16 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
           </form>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-col">
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 md:hidden">
-          <Link href="/painel" className="rounded-lg">
+      <div className="flex min-w-0 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
+        <header className="flex items-center justify-between border-b bg-card px-4 py-1.5 md:hidden">
+          <Link href="/painel" className="inline-flex min-h-11 items-center rounded-lg">
             <Marca />
           </Link>
         </header>
-        <main id="conteudo" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-24 sm:px-6 md:pb-10">
+        <main id="conteudo" tabIndex={-1} className="outline-none mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-7 sm:px-6 md:pb-10">
           {children}
         </main>
+        <AvisoDaPagina mensagem={aviso} />
       </div>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
         <NavegacaoInferior />

@@ -31,8 +31,8 @@ export default async function PaginaDeHonorarios() {
               return (
                 <ItemDeLink key={honorario.id} href={`/honorarios/${honorario.id}`}>
                   <span className="grid min-w-0 flex-1 gap-0.5">
-                    <span className="font-medium break-words">{honorario.descricao}</span>
-                    <span className="text-sm break-words text-muted-foreground">
+                    <span className="font-medium wrap-anywhere">{honorario.descricao}</span>
+                    <span className="text-sm wrap-anywhere text-muted-foreground">
                       {honorario.cliente.nome} · {pagas} de {honorario.parcelas.length} {honorario.parcelas.length === 1 ? "parcela paga" : "parcelas pagas"}
                     </span>
                   </span>

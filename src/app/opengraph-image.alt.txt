@@ -1,1 +1,1 @@
-Tempestivo: nunca perca um prazo e receba seus honorários. Exemplo de prazo com data final calculada e meta interna.
+Tempestivo: nunca perca um prazo e receba seus honorários. Contagem de um prazo fictício, dia a dia, com meta interna e vencimento.
