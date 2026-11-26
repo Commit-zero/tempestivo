@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { BotaoEnviar, Campo, MensagemDoFormulario } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
+import type { EstadoDoFormulario } from "@/lib/formulario";
 
 export type EstadoDoInicio = { erro?: string; qrCode?: string; chave?: string };
 export type EstadoDaConfirmacao = { erro?: string; codigos?: string[] };
@@ -14,23 +15,52 @@ type Props = {
   emailConfirmado: boolean;
   acaoIniciar: Acao<EstadoDoInicio>;
   acaoConfirmar: Acao<EstadoDaConfirmacao>;
+  acaoGerarCodigos: Acao<EstadoDaConfirmacao>;
+  acaoDesativar: Acao<EstadoDoFormulario>;
 };
 
 const botao = "sm:justify-self-start sm:px-5";
 
 // Um componente só para todas as fases: ao ligar, a página muda `ligado` e os códigos
 // de recuperação, que só existem no estado daqui, continuam na tela.
-export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirmar }: Props) {
+export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirmar, acaoGerarCodigos, acaoDesativar }: Props) {
   const [inicio, iniciar] = useActionState(acaoIniciar, {});
   const [confirmacao, confirmar] = useActionState(acaoConfirmar, {});
+  const [novos, gerar] = useActionState(acaoGerarCodigos, {});
+  const [desligamento, desativar] = useActionState(acaoDesativar, {});
 
-  if (confirmacao.codigos) return <CodigosDeRecuperacao codigos={confirmacao.codigos} />;
+  const codigos = ligado ? (novos.codigos ?? confirmacao.codigos) : undefined;
+  if (codigos) return <CodigosDeRecuperacao codigos={codigos} />;
 
   if (ligado) {
     return (
-      <p className="text-sm text-positivo">
-        <strong>Ligada.</strong> O login pede o código do aplicativo.
-      </p>
+      <div className="grid gap-6">
+        <p className="text-sm text-positivo">
+          <strong>Ligada.</strong> O login pede o código do aplicativo.
+        </p>
+        <form action={gerar} className="grid gap-4">
+          <MensagemDoFormulario estado={novos} />
+          <Campo
+            rotulo="Sua senha, para gerar códigos novos"
+            name="senha"
+            type="password"
+            autoComplete="current-password"
+            required
+            maxLength={128}
+            dica="Os códigos de recuperação anteriores deixam de valer."
+          />
+          <BotaoEnviar variant="outline" enviando="Gerando…" className={botao}>
+            Gerar códigos novos
+          </BotaoEnviar>
+        </form>
+        <form action={desativar} className="grid gap-4 border-t pt-6">
+          <MensagemDoFormulario estado={desligamento} />
+          <Campo rotulo="Sua senha, para desativar" name="senha" type="password" autoComplete="current-password" required maxLength={128} />
+          <BotaoEnviar variant="destructive" enviando="Desativando…" className={botao}>
+            Desativar a verificação em duas etapas
+          </BotaoEnviar>
+        </form>
+      </div>
     );
   }
 
@@ -67,7 +97,7 @@ export function SegundoFator({ ligado, emailConfirmado, acaoIniciar, acaoConfirm
 
   return (
     <form action={iniciar} className="grid gap-4">
-      <MensagemDoFormulario estado={inicio} />
+      <MensagemDoFormulario estado={desligamento.aviso ? desligamento : inicio} />
       <Campo rotulo="Sua senha, para ligar" name="senha" type="password" autoComplete="current-password" required maxLength={128} />
       <BotaoEnviar enviando="Preparando…" className={botao}>
         Ligar a verificação em duas etapas
@@ -108,6 +138,10 @@ export function CodigosDeRecuperacao({ codigos }: { codigos: string[] }) {
       <p aria-live="polite" className="text-sm text-muted-foreground">
         {copiados === null ? "" : copiados ? "Códigos copiados." : "Não foi possível copiar. Anote os códigos."}
       </p>
+      {/* Recarregar tira os códigos da memória da página. */}
+      <Button type="button" onClick={() => window.location.reload()} className={botao}>
+        Já guardei os códigos
+      </Button>
     </div>
   );
 }

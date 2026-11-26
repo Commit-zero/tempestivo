@@ -6,5 +6,8 @@ export {
   confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao, haPassoPendente, MOTIVOS_DE_RECOMECO,
   type MotivoDeRecomeco, type ResultadoDoSegundoFator,
 } from "./segundo-fator";
-export { confirmarAtivacao, iniciarAtivacao, segundoFatorLigado, type FimDaAtivacao, type InicioDaAtivacao } from "./ativacao";
+export {
+  confirmarAtivacao, desativarSegundoFator, gerarNovosCodigos, iniciarAtivacao, segundoFatorLigado,
+  type FimDaAtivacao, type InicioDaAtivacao,
+} from "./ativacao";
 export { exigirSessao, obterSessao, ROTA_DE_ENTRADA, type Sessao } from "./sessao";

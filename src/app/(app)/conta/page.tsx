@@ -6,8 +6,8 @@ import { MARGEM_MAXIMA, obterConta } from "@/modules/conta";
 import { exigirSessao, segundoFatorLigado } from "@/platform/auth";
 import { Button } from "@/components/ui/button";
 import {
-  acaoAtivarAgenda, acaoConfirmarSegundoFator, acaoDefinirMargem, acaoDesativarAgenda, acaoExcluirConta, acaoIniciarSegundoFator,
-  acaoSalvarConta, acaoTrocarSenha,
+  acaoAtivarAgenda, acaoConfirmarSegundoFator, acaoDefinirMargem, acaoDesativarAgenda, acaoDesativarSegundoFator, acaoExcluirConta,
+  acaoGerarCodigos, acaoIniciarSegundoFator, acaoSalvarConta, acaoTrocarSenha,
 } from "./acoes";
 import { FormularioDaMargem, PainelDaAgenda } from "./agenda";
 import { FormularioDaConta, FormularioDeExclusaoDaConta } from "./formularios";
@@ -82,6 +82,8 @@ export default async function PaginaDaConta() {
             emailConfirmado={sessao.emailConfirmado}
             acaoIniciar={acaoIniciarSegundoFator}
             acaoConfirmar={acaoConfirmarSegundoFator}
+            acaoGerarCodigos={acaoGerarCodigos}
+            acaoDesativar={acaoDesativarSegundoFator}
           />
         </Cartao>
       </Secao>

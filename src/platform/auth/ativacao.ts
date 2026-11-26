@@ -7,7 +7,7 @@ import { getConfig } from "@/platform/config";
 import { getPrisma } from "@/platform/database";
 import { getLogger, getMailer } from "@/platform/runtime";
 import { getAuth } from "./auth";
-import { enviarAvisoDeSeguranca } from "./avisos";
+import { enviarAvisoDeSeguranca, type AvisoDeSeguranca } from "./avisos";
 import { MUITAS_TENTATIVAS, registrarFalha } from "./comum";
 import { FORA_DO_FORMATO, registrarCodigoUsado, schemaDoCodigo } from "./segundo-fator";
 import { cabecalhosComCookiesAtuais } from "./sessao";
@@ -97,8 +97,55 @@ export async function confirmarAtivacao(titular: Titular, codigo: unknown): Prom
   } catch (falha) {
     getLogger().error("falha depois de ligar o segundo fator", { tipo: falha instanceof Error ? falha.name : typeof falha });
   }
-  await enviarAvisoDeSeguranca("segundo-fator-ligado", titular, { mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL });
+  await avisar("segundo-fator-ligado", titular);
   // Função só de servidor da biblioteca; o id vem da sessão, nunca do navegador.
   const { backupCodes } = await getAuth().api.viewBackupCodes({ body: { userId: titular.usuarioId } });
   return { ok: true, codigos: backupCodes };
+}
+
+// --- Com a proteção ligada --------------------------------------------------------
+
+// Não é zerado quando dá certo: cada ação manda um e-mail.
+const senhasNaGestao = criarLimitador({ maximo: 5, janelaMs: QUINZE_MINUTOS });
+const DESLIGADA = "A verificação em duas etapas não está ligada.";
+
+/** A senha atual é pedida de novo: uma sessão esquecida aberta não mexe na proteção. */
+async function comSenha<T>(
+  operacao: string,
+  titular: Titular,
+  senha: unknown,
+  acao: (senha: string) => Promise<T>,
+): Promise<{ ok: true; valor: T } | { ok: false; erro: string }> {
+  const validada = schemaDaSenha.safeParse(senha);
+  if (!validada.success) return { ok: false, erro: validada.error.issues[0]?.message ?? "Informe a sua senha." };
+  if (!(await segundoFatorLigado(titular.usuarioId))) return { ok: false, erro: DESLIGADA };
+  if (!senhasNaGestao.permitir(titular.usuarioId)) return { ok: false, erro: MUITAS_TENTATIVAS };
+  try {
+    return { ok: true, valor: await acao(validada.data) };
+  } catch (falha) {
+    registrarFalha(operacao, falha);
+    if (falha instanceof APIError && falha.body?.code === "INVALID_PASSWORD") return { ok: false, erro: "Senha incorreta." };
+    return { ok: false, erro: "Não foi possível concluir agora. Tente de novo." };
+  }
+}
+
+const avisar = (aviso: AvisoDeSeguranca, titular: Titular) =>
+  enviarAvisoDeSeguranca(aviso, titular, { mailer: getMailer(), logger: getLogger(), appUrl: getConfig().APP_URL });
+
+export async function gerarNovosCodigos(titular: Titular, senha: unknown): Promise<FimDaAtivacao> {
+  const resultado = await comSenha("códigos novos", titular, senha, async (password) =>
+    getAuth().api.generateBackupCodes({ body: { password }, headers: await headers() }),
+  );
+  if (!resultado.ok) return resultado;
+  await avisar("codigos-gerados", titular);
+  return { ok: true, codigos: resultado.valor.backupCodes };
+}
+
+export async function desativarSegundoFator(titular: Titular, senha: unknown): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const resultado = await comSenha("desativação do segundo fator", titular, senha, async (password) =>
+    getAuth().api.disableTwoFactor({ body: { password }, headers: await headers() }),
+  );
+  if (!resultado.ok) return resultado;
+  await avisar("segundo-fator-desligado", titular);
+  return { ok: true };
 }

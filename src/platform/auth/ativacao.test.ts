@@ -6,7 +6,7 @@ import { getMailer } from "@/platform/runtime";
 import { novoNavegador, usarNavegador } from "@/test/next-headers";
 import { codigoTotp } from "@/test/totp";
 import { cadastrar, entrar } from "./acoes";
-import { confirmarAtivacao, iniciarAtivacao, segundoFatorLigado } from "./ativacao";
+import { confirmarAtivacao, desativarSegundoFator, gerarNovosCodigos, iniciarAtivacao, segundoFatorLigado } from "./ativacao";
 import { confirmarCodigoDeEntrada, confirmarCodigoDeRecuperacao } from "./segundo-fator";
 import { obterSessao } from "./sessao";
 
@@ -158,5 +158,73 @@ describe("ativação do segundo fator (integração)", () => {
 
     expect(codigos.at(-1)).toEqual(muitas);
     expect(senhas.at(-1)).toEqual(muitas);
+  });
+});
+
+describe("gerenciar o segundo fator (integração)", () => {
+  async function comProtecaoLigada() {
+    const dados = await titularLogado();
+    const { chave } = await iniciar(dados.titular);
+    const ligada = await confirmarAtivacao(dados.titular, codigoTotp(chave));
+    if (!ligada.ok) throw new Error(ligada.erro);
+    return { ...dados, chave, codigos: ligada.codigos };
+  }
+  const entrarNovo = async (email: string) => {
+    outroNavegador();
+    return entrar({ email, senha: SENHA });
+  };
+
+  it.each([
+    ["gerar códigos novos", gerarNovosCodigos],
+    ["desativar", desativarSegundoFator],
+  ])("%s exige a senha atual", async (_caso, acao) => {
+    const { titular } = await comProtecaoLigada();
+
+    expect(await acao(titular, "senha-errada-de-teste")).toEqual({ ok: false, erro: "Senha incorreta." });
+    expect(await acao(titular, "")).toEqual({ ok: false, erro: "Informe a sua senha." });
+    expect(await segundoFatorLigado(titular.usuarioId)).toBe(true);
+  });
+
+  it("códigos novos invalidam os antigos e avisam", async () => {
+    const { email, titular, codigos } = await comProtecaoLigada();
+
+    const resultado = await gerarNovosCodigos(titular, SENHA);
+
+    if (!resultado.ok) throw new Error(resultado.erro);
+    expect(resultado.codigos).toHaveLength(10);
+    expect(resultado.codigos).not.toContain(codigos[0]);
+    expect(enviados().filter((e) => e.para === email && e.assunto.startsWith("Novos códigos"))).toHaveLength(1);
+    await entrarNovo(email);
+    expect(await confirmarCodigoDeRecuperacao(codigos[0])).toMatchObject({ ok: false });
+    expect(await confirmarCodigoDeRecuperacao(resultado.codigos[0])).toEqual({ ok: true });
+  });
+
+  it("desativar apaga o segredo, mantém a sessão, avisa e o login volta a pedir só a senha", async () => {
+    const { email, titular } = await comProtecaoLigada();
+
+    expect(await desativarSegundoFator(titular, SENHA)).toEqual({ ok: true });
+
+    expect(await segundoFatorLigado(titular.usuarioId)).toBe(false);
+    expect(await gravados(titular.usuarioId)).toBe(0);
+    expect(await obterSessao()).toMatchObject({ email });
+    expect(enviados().filter((e) => e.para === email && e.assunto.includes("desligada"))).toHaveLength(1);
+    expect(await entrarNovo(email)).toEqual({ ok: true });
+  });
+
+  it("desligada, não há o que gerar nem desativar", async () => {
+    const { titular } = await titularLogado();
+    const desligada = { ok: false, erro: "A verificação em duas etapas não está ligada." };
+
+    expect(await gerarNovosCodigos(titular, SENHA)).toEqual(desligada);
+    expect(await desativarSegundoFator(titular, SENHA)).toEqual(desligada);
+  });
+
+  it("limita as tentativas de senha", async () => {
+    const { titular } = await comProtecaoLigada();
+    const resultados = [];
+    for (let vez = 0; vez < 6; vez += 1) resultados.push(await desativarSegundoFator(titular, "senha-errada-de-teste"));
+
+    expect(resultados.at(-1)).toEqual({ ok: false, erro: "Muitas tentativas. Aguarde alguns minutos e tente de novo." });
+    expect(await segundoFatorLigado(titular.usuarioId)).toBe(true);
   });
 });

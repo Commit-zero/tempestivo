@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { ativarAgenda, atualizarConta, definirMargemDeSeguranca, desativarAgenda, excluirConta } from "@/modules/conta";
-import { confirmarAtivacao, confirmarSenhaAtual, exigirSessao, iniciarAtivacao, trocarSenha } from "@/platform/auth";
+import {
+  confirmarAtivacao, confirmarSenhaAtual, desativarSegundoFator, exigirSessao, gerarNovosCodigos, iniciarAtivacao, trocarSenha,
+} from "@/platform/auth";
 import { getConfig } from "@/platform/config";
 import { getMailer } from "@/platform/runtime";
 import type { EstadoDaAgenda } from "./agenda";
@@ -46,6 +48,18 @@ export async function acaoConfirmarSegundoFator(_anterior: EstadoDaConfirmacao, 
   if (!resultado.ok) return { erro: resultado.erro };
   revalidatePath("/conta");
   return { codigos: resultado.codigos };
+}
+
+export async function acaoGerarCodigos(_anterior: EstadoDaConfirmacao, formulario: FormData): Promise<EstadoDaConfirmacao> {
+  const resultado = await gerarNovosCodigos(await exigirSessao(), formulario.get("senha"));
+  return resultado.ok ? { codigos: resultado.codigos } : { erro: resultado.erro };
+}
+
+export async function acaoDesativarSegundoFator(_anterior: EstadoDoFormulario, formulario: FormData): Promise<EstadoDoFormulario> {
+  const resultado = await desativarSegundoFator(await exigirSessao(), formulario.get("senha"));
+  if (!resultado.ok) return { erro: resultado.erro };
+  revalidatePath("/conta");
+  return { aviso: "Verificação em duas etapas desligada. O login volta a pedir só a senha." };
 }
 
 // Pede a senha atual: uma sessão esquecida aberta não basta para apagar tudo.
