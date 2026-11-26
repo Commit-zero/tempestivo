@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import { Busca } from "@/components/app/busca";
 import { CabecalhoDaPagina, EstadoVazio, ItemDeLink, ListaDeLinks } from "@/components/app/pagina";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export default async function PaginaDeClientes({ searchParams }: PageProps<"/cli
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Clientes" acao={novo} />
       <Busca rotulo="Buscar por nome" valor={termo} />
+      <BaixarPlanilha lista="clientes" filtros={{ busca: termo }} />
       {clientes.length === 0 ? (
         <EstadoVazio
           titulo={termo ? "Nenhum cliente com esse nome." : "Nenhum cliente cadastrado."}
