@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPlanilha } from "@/lib/planilha";
 import { criarCliente, listarClientes } from "@/modules/clientes";
+import { criarHonorario, definirPagamentoDaParcela, listarHonorarios } from "@/modules/honorarios";
 import { cadastrarPrazo, listarPrazos, marcarComoCumprido } from "@/modules/prazos";
 import { criarProcesso, listarProcessos, mudarStatusDoProcesso } from "@/modules/processos";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
@@ -207,5 +208,46 @@ describe("planilha de prazos", () => {
     // 24/11/2026 23:30 em São Paulo.
     expect(aba("Prazos").linhas[1]![10]).toMatchObject({ formato: "dd/mm/yyyy hh:mm" });
     expect(aba("Prazos").linhas[1]![10]!.valor).toBeCloseTo(46_350 + 23.5 / 24, 6);
+  });
+});
+
+describe("planilha de honorários", () => {
+  beforeAll(async () => {
+    for (const conta of [contaA, contaB]) {
+      const marca = conta === contaA ? "AlfaDaContaA" : "BetaDaContaB";
+      const cliente = (await listarClientes(conta, "Ana"))[0]!;
+      // Parcelas em 26/09 (paga), 26/10 (em atraso), 26/11 (vence hoje) e 26/12 (a vencer).
+      const criado = await criarHonorario(conta, {
+        clienteId: cliente.id, processoId: "", descricao: `Honorário ${marca}`, valorTotal: "1.000,01", parcelas: "4",
+        primeiroVencimento: "2026-09-26",
+      });
+      if (!criado.ok) throw new Error(criado.erro);
+      const [primeira] = (await listarHonorarios(conta, AGORA))[0]!.parcelas;
+      await definirPagamentoDaParcela(conta, primeira!.id, true, new Date("2026-09-27T01:00:00Z"));
+    }
+  });
+
+  it("a aba de honorários soma as parcelas, em dinheiro", async () => {
+    const { aba, cabecalho, tudo } = await abrir(contaA, "honorarios");
+
+    expect(cabecalho("Honorários")).toEqual(["Cliente", "Descrição", "Processo", "Total", "Pago", "Em aberto", "Em atraso"]);
+    // 1.000,01 em 4: 250,01 + 250,00 + 250,00 + 250,00.
+    expect(valores(aba("Honorários"))).toEqual([
+      ["Ana AlfaDaContaA", "Honorário AlfaDaContaA", null, 1000.01, 250.01, 750, 250],
+    ]);
+    expect(aba("Honorários").linhas[1]![3]!.formato).toBe('"R$" #,##0.00');
+    expect(tudo).not.toContain("BetaDaContaB");
+  });
+
+  it("a aba de parcelas traz a situação e as datas de cada uma", async () => {
+    const { aba, cabecalho } = await abrir(contaA, "honorarios");
+
+    expect(cabecalho("Parcelas")).toEqual(["Cliente", "Descrição", "Parcela", "Valor", "Vencimento", "Situação", "Paga em"]);
+    const linhas = valores(aba("Parcelas"));
+    expect(linhas.map((linha) => [linha[2], linha[3], linha[5]])).toEqual([
+      ["1 de 4", 250.01, "paga"], ["2 de 4", 250, "em atraso"], ["3 de 4", 250, "vence hoje"], ["4 de 4", 250, "a vencer"],
+    ]);
+    // Paga às 22:00 de 26/09 em São Paulo, ainda dia 26.
+    expect(aba("Parcelas").linhas[1]![6]!.valor).toBeCloseTo(46_291 + 22 / 24, 6);
   });
 });
