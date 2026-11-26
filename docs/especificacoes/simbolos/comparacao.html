@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Três opções de símbolo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Archivo, "Segoe UI", system-ui, sans-serif; background: #dfe2e8; color: #122240; padding: 16px; line-height: 1.5; }
+  p, h1, h2 { max-width: 900px; margin: 0 auto 12px; }
+  h1 { font-size: 22px; }
+  article { max-width: 900px; margin: 0 auto 20px; }
+  h2 { font-size: 17px; margin-bottom: 4px; }
+  .temas { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 8px; }
+  .tema { border-radius: 10px; padding: 18px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px; }
+  .claro { background: #F4F6FA; color: #4C5A74; }
+  .escuro { background: #0D1424; color: #A9B4CB; }
+  .escuro img { box-shadow: 0 0 0 1px rgba(255,255,255,.2); border-radius: 22%; }
+  figure { display: grid; justify-items: center; gap: 6px; font-size: 12px; }
+  .marca { display: flex; align-items: center; gap: 10px; flex-basis: 100%; font-size: 22px; font-weight: 750; color: #122240; }
+  .escuro .marca { color: #EEF1F8; }
+</style>
+</head>
+<body>
+<h1>Três opções de símbolo (nenhuma está aplicada)</h1>
+<p>Tamanhos: 16 px (aba do navegador), 32 px, 180 px (ícone no iPhone) e 512 px (instalação), este reduzido para caber. Nenhum usa letra nem o nome, que é provisório.</p>
+<main id="lista"></main>
+<script>
+  const opcoes = [
+    ["opcao-1-quadra.svg", "1. Quadra", "Quatro dias: o vazado é o sem expediente; o maior, conferido, é o vencimento. É a que mais mostra a contagem."],
+    ["opcao-2-degraus.svg", "2. Degraus", "A contagem avança até o vencimento. A mais simples, mas pode ser lida como gráfico."],
+    ["opcao-3-carimbo.svg", "3. Carimbo", "Carimbo de protocolo com a borda em dias. O sinal de conferido é o que mais se destaca; os dias da borda se juntam em 16 px. É a mais próxima do símbolo atual."],
+  ];
+  const tamanhos = [[16, 16], [32, 32], [180, 120], [512, 160]];
+  document.getElementById("lista").innerHTML = opcoes.map(([arquivo, nome, texto]) => `
+    <article><h2>${nome}</h2><p>${texto}</p><div class="temas">${["claro", "escuro"].map((tema) => `
+      <div class="tema ${tema}"><div class="marca"><img src="${arquivo}" width="30" height="30" alt="">Tempestivo</div>
+      ${tamanhos.map(([real, mostrado]) => `<figure><img src="${arquivo}" width="${mostrado}" height="${mostrado}" alt="${nome} em ${real} px"><figcaption>${real} px</figcaption></figure>`).join("")}</div>`).join("")}
+    </div></article>`).join("");
+</script>
+</body>
+</html>
