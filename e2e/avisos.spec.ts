@@ -45,3 +45,59 @@ test("o aviso sai ao mudar de tela e não volta", async ({ page }) => {
   await page.goBack();
   await expect(regiao(page)).toBeEmpty();
 });
+
+test("tarefas avisam a cada ação, inclusive a mesma duas vezes seguidas", async ({ page }) => {
+  await page.goto("/tarefas");
+  for (const titulo of [unico("Tarefa fictícia"), unico("Tarefa fictícia")]) {
+    await page.getByLabel("Nova tarefa").fill(titulo);
+    await page.getByRole("button", { name: "Adicionar tarefa" }).click();
+    await esperarAviso(page, "Tarefa adicionada.");
+    await regiao(page).getByRole("button", { name: "Fechar o aviso" }).click();
+    await expect(regiao(page)).toBeEmpty();
+  }
+});
+
+test("honorários, audiências, prazos e catálogo avisam cada ação", async ({ page }) => {
+  const cliente = unico("Cliente Fictício");
+  const assunto = unico("Ação fictícia");
+  await cadastrarCliente(page, cliente);
+  await cadastrarProcesso(page, cliente, assunto);
+
+  await page.goto("/honorarios/novo");
+  await page.getByLabel("Cliente").selectOption({ label: cliente });
+  await page.getByLabel("Descrição").fill(unico("Honorário fictício"));
+  await page.getByLabel("Valor total").fill("100,00");
+  await page.getByLabel("Primeiro vencimento").fill("2026-12-10");
+  await page.getByRole("button", { name: "Cadastrar honorário" }).click();
+  await esperarAviso(page, "Honorário cadastrado.");
+  await page.getByRole("button", { name: "Marcar como paga a parcela 1" }).click();
+  await esperarAviso(page, "Parcela marcada como paga.");
+  await page.getByRole("button", { name: "Desfazer o pagamento da parcela 1" }).click();
+  await esperarAviso(page, "Pagamento da parcela desfeito.");
+
+  await page.goto("/prazos/novo");
+  await page.getByRole("button", { name: "Digitar a data final" }).click();
+  await page.getByLabel("Processo").selectOption({ index: 1 });
+  await page.getByLabel("Descrição").fill(unico("Prazo fictício"));
+  await page.getByLabel("Data final").fill("2027-02-10");
+  const conferi = page.getByRole("checkbox");
+  if (await conferi.count()) await conferi.last().check();
+  await page.getByRole("button", { name: "Salvar prazo" }).click();
+  await esperarAviso(page, "Prazo salvo.");
+  await page.getByRole("button", { name: "Li e conferi" }).click();
+  await esperarAviso(page, "Conferência registrada.");
+  await page.getByRole("button", { name: "Marcar como cumprido" }).click();
+  await esperarAviso(page, "Prazo marcado como cumprido.");
+  await page.getByRole("button", { name: "Desfazer cumprido" }).click();
+  await esperarAviso(page, "Cumprido desfeito.");
+
+  await page.goto("/prazos/catalogo");
+  const secao = page.getByRole("region", { name: "Dias sem expediente" }).or(page.locator("section").filter({ hasText: "Dias sem expediente" }).last());
+  const motivo = unico("Portaria fictícia");
+  await secao.getByLabel("Data").fill("2027-03-15");
+  await secao.getByLabel("Motivo").fill(motivo);
+  await secao.getByRole("button", { name: /Cadastrar|Adicionar/ }).click();
+  await expect(page.getByText(motivo)).toBeVisible();
+  await page.getByRole("listitem").filter({ hasText: motivo }).getByRole("button", { name: /Excluir o dia/ }).click();
+  await esperarAviso(page, "Dia sem expediente excluído.");
+});

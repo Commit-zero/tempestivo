@@ -37,7 +37,7 @@ export default async function PaginaDoCatalogo() {
               <div className="flex flex-wrap items-start gap-2">
                 <FormularioDeAjuste acao={acaoAjustarTipo.bind(null, tipo.id)} nome={tipo.nome} dias={tipo.dias} contagem={tipo.contagem} key={`${tipo.dias}-${tipo.contagem}`} />
                 {tipo.registroId ? (
-                  <form action={acaoRemoverTipo.bind(null, tipo.registroId)}>
+                  <form action={acaoRemoverTipo.bind(null, tipo.registroId, "tipo-restaurado")}>
                     <Button type="submit" variant="ghost">
                       Voltar ao padrão
                     </Button>
@@ -60,7 +60,7 @@ export default async function PaginaDoCatalogo() {
                     {tipo.dias} dias {tipo.contagem === "uteis" ? "úteis" : "corridos"}
                   </span>
                 </span>
-                <form action={acaoRemoverTipo.bind(null, tipo.registroId ?? "")}>
+                <form action={acaoRemoverTipo.bind(null, tipo.registroId ?? "", "tipo-excluido")}>
                   <Button type="submit" variant="ghost" aria-label={`Excluir o tipo ${tipo.nome}`}>
                     Excluir
                   </Button>

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { valoresDe, type EstadoDoFormulario } from "@/lib/formulario";
 import { atualizarAudiencia, criarAudiencia, excluirAudiencia } from "@/modules/audiencias";
 import { exigirId } from "@/lib/ids";
+import { avisar } from "../avisar";
 import { exigirSessao } from "@/platform/auth";
 
 const CAMPOS = ["processoId", "tipo", "data", "hora", "duracaoMin", "local", "linkVirtual", "observacoes"] as const;
@@ -22,6 +23,7 @@ export async function acaoSalvarAudiencia(id: string | null, _anterior: EstadoDo
   const resultado = id === null ? await criarAudiencia(contaId, valores) : await atualizarAudiencia(contaId, id, valores);
   if (!resultado.ok) return { erro: resultado.erro, valores };
   atualizarTelas();
+  await avisar(id === null ? "audiencia-cadastrada" : "audiencia-salva");
   redirect("/audiencias");
 }
 
@@ -31,5 +33,6 @@ export async function acaoExcluirAudiencia(id: string): Promise<EstadoDoFormular
   const excluida = await excluirAudiencia(contaId, id);
   if (!excluida.ok) return { erro: excluida.erro };
   atualizarTelas();
+  await avisar("audiencia-excluida");
   redirect("/audiencias");
 }
