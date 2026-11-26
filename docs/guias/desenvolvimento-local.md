@@ -95,4 +95,5 @@ Os testes estão descritos no [guia de testes](testes.md).
 | `Configuração inválida. Corrija as variáveis: ...` | Preencha as variáveis listadas no `.env` ([referência](../referencia/configuracao.md)) |
 | Módulo `@/generated/prisma/client` não encontrado | Rode `pnpm prisma generate` |
 | O Playwright não abre o Chromium baixado | Use um navegador instalado: `PLAYWRIGHT_CHANNEL=msedge pnpm e2e` |
+| `pnpm verificar` falha com `packages field missing or empty` | O script chama o `pnpm` instalado no sistema, de outra versão. Rode `corepack enable` (no Windows, em um terminal como administrador) ou execute `lint`, `typecheck`, `test` e `build` um a um com `corepack pnpm` |
 | Um teste de alertas estoura o tempo | O banco local acumulou contas de execuções anteriores. Use um banco vazio |
