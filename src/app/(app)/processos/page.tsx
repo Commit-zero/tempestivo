@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Busca } from "@/components/app/busca";
@@ -47,6 +48,7 @@ export default async function PaginaDeProcessos({ searchParams }: PageProps<"/pr
           ))}
         </select>
       </Busca>
+      <BaixarPlanilha lista="processos" filtros={{ busca: termo, status: filtro }} />
       {processos.length === 0 ? (
         <EstadoVazio
           titulo={semFiltro ? "Nenhum processo ativo." : "Nenhum processo encontrado."}

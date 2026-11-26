@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPlanilha } from "@/lib/planilha";
 import { criarCliente, listarClientes } from "@/modules/clientes";
-import { criarProcesso } from "@/modules/processos";
+import { criarProcesso, listarProcessos, mudarStatusDoProcesso } from "@/modules/processos";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { lerPlanilha, valores } from "@/test/ler-planilha";
 import { ehLista, montarPlanilha, permitirPlanilha, type FiltrosDaPlanilha, type Lista } from "./index";
@@ -105,5 +105,42 @@ describe("planilha de clientes", () => {
     const { aba } = await abrir(contaA, "clientes", { busca: "BetaDaContaB" });
 
     expect(aba("Clientes").linhas).toHaveLength(1);
+  });
+});
+
+describe("planilha de processos", () => {
+  beforeAll(async () => {
+    const cliente = (await listarClientes(contaA, "Zeca"))[0]!;
+    const arquivado = await criarProcesso(contaA, {
+      clienteId: cliente.id, numero: "0009999-60.2026.8.26.0100", tribunal: "TJSP", vara: "", assunto: "Ação arquivada fictícia", parteContraria: "",
+    });
+    if (!arquivado.ok) throw new Error(arquivado.erro);
+    await mudarStatusDoProcesso(contaA, arquivado.valor.id, "arquivado");
+  });
+
+  it("traz o número CNJ formatado, como texto, e só da própria conta", async () => {
+    const { aba, cabecalho, tudo } = await abrir(contaA, "processos");
+
+    expect(cabecalho("Processos")).toEqual([
+      "Número", "Cliente", "Assunto", "Tribunal", "Vara", "Parte contrária", "Situação", "Cadastrado em",
+    ]);
+    expect(aba("Processos").linhas[1]![0]).toMatchObject({ tipo: "texto", valor: "0001234-03.2026.8.26.0100" });
+    expect(valores(aba("Processos"))[0]!.slice(1, 7)).toEqual([
+      "Ana AlfaDaContaA", "Ação de cobrança AlfaDaContaA", "TJSP", "Vara AlfaDaContaA", "Parte AlfaDaContaA", "Ativo",
+    ]);
+    expect(tudo).not.toContain("BetaDaContaB");
+  });
+
+  it.each([
+    [{}, { status: "ativo" }],
+    [{ status: "arquivado" }, { status: "arquivado" }],
+    [{ status: "todos" }, {}],
+    [{ status: "valor-inventado" }, { status: "ativo" }],
+    [{ status: "todos", busca: "arquivada" }, { busca: "arquivada" }],
+  ] as const)("o filtro %j é o mesmo da tela", async (filtros, naTela) => {
+    const { aba } = await abrir(contaA, "processos", filtros);
+    const esperados = await listarProcessos(contaA, naTela);
+
+    expect(valores(aba("Processos")).map((linha) => linha[2])).toEqual(esperados.map((processo) => processo.assunto));
   });
 });
