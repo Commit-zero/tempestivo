@@ -86,6 +86,8 @@ A calculadora tem regras próprias (skill `calculadora-de-prazos`):
 
 ## No CI
 
+O CI roda em todo pull request, inclusive de fork, e em todo push na `main`. `src/lint/workflows.test.ts` confere os gatilhos, a ausência de segredos e as actions fixadas por SHA.
+
 | Job | Testes |
 |---|---|
 | `qualidade` | lint, tipos, migração pendente, `pnpm test:cobertura` (Postgres 17 e Mailpit como serviços), build |

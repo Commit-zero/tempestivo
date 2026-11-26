@@ -8,7 +8,7 @@ O Tempestivo guarda dados de clientes de advogados (dados pessoais, LGPD) e praz
 
 ## O que é verificado automaticamente
 
-A cada push, em qualquer branch (e toda segunda-feira, para CVE novas):
+Em todo pull request, inclusive de fork, e em todo push na `main` (e toda segunda-feira, para CVE novas):
 
 | Verificação | Ferramenta | Bloqueia em |
 |---|---|---|
@@ -49,7 +49,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - O limitador de tentativas fica em memória (vale por instância) e identifica o cliente pelo `X-Forwarded-For`: o proxy da hospedagem precisa sobrescrever esse cabeçalho.
 - A CSP permite `'unsafe-inline'` em scripts e estilos, exigência da hidratação do Next.js sem *nonce*.
 - O teto diário de e-mails por conta usa o banco; o limite de trocas de substituto fica em memória.
-- `/api/health` devolve a versão do app, como pede a especificação (RF12).
+- `/api/health` é público e diz só se o app e o banco respondem, sem a versão do app.
 - Supressões do Trivy ficam em `.trivyignore`, com motivo e data de expiração.
 - O TruffleHog ignora só os arquivos listados, por caminho exato, em `.trufflehog-ignorar`: hoje, os dois testes de TLS cujo histórico tem strings de conexão fictícias (o motivo está no `seguranca.yml`). Um segredo real colocado nesses arquivos não seria detectado; por isso a lista não deve crescer.
 
