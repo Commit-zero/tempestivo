@@ -1,3 +1,4 @@
+import { BaixarPlanilha } from "@/components/app/baixar-planilha";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
@@ -70,6 +71,7 @@ export default async function PaginaDeTarefas() {
   return (
     <div className="grid gap-6">
       <CabecalhoDaPagina titulo="Tarefas" />
+      <BaixarPlanilha lista="tarefas" />
       <Cartao className="max-w-2xl">
         <FormularioDeTarefa acao={acaoCriarTarefa} processos={processos.map((processo) => ({ id: processo.id, rotulo: `${processo.cliente.nome} · ${processo.assunto}` }))} />
       </Cartao>

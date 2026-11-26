@@ -1,9 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPlanilha } from "@/lib/planilha";
 import { criarCliente, listarClientes } from "@/modules/clientes";
+import { criarAudiencia } from "@/modules/audiencias";
 import { criarHonorario, definirPagamentoDaParcela, listarHonorarios } from "@/modules/honorarios";
 import { cadastrarPrazo, listarPrazos, marcarComoCumprido } from "@/modules/prazos";
 import { criarProcesso, listarProcessos, mudarStatusDoProcesso } from "@/modules/processos";
+import { criarTarefa, moverTarefa } from "@/modules/tarefas";
 import { apagarContaDeTeste, criarContaDeTeste } from "@/test/banco";
 import { lerPlanilha, valores } from "@/test/ler-planilha";
 import { ehLista, montarPlanilha, permitirPlanilha, type FiltrosDaPlanilha, type Lista } from "./index";
@@ -249,5 +251,54 @@ describe("planilha de honorários", () => {
     ]);
     // Paga às 22:00 de 26/09 em São Paulo, ainda dia 26.
     expect(aba("Parcelas").linhas[1]![6]!.valor).toBeCloseTo(46_291 + 22 / 24, 6);
+  });
+});
+
+const LINK_DE_SALA = "https://sala.exemplo.test/entrar?senha=SENHA-DA-SALA";
+
+describe("planilhas de audiências e de tarefas", () => {
+  beforeAll(async () => {
+    for (const conta of [contaA, contaB]) {
+      const marca = conta === contaA ? "AlfaDaContaA" : "BetaDaContaB";
+      const processo = (await listarProcessos(conta, { status: "ativo" }))[0]!;
+      for (const [tipo, data, hora] of [["Instrução", "2026-12-01", "23:30"], ["Conciliação", "2026-11-10", "09:00"]]) {
+        const criada = await criarAudiencia(conta, {
+          processoId: processo.id, tipo: `${tipo} ${marca}`, data, hora, duracaoMin: "45", local: `Fórum ${marca}`,
+          linkVirtual: LINK_DE_SALA, observacoes: `Obs ${marca}`,
+        });
+        if (!criada.ok) throw new Error(criada.erro);
+      }
+      const tarefa = await criarTarefa(conta, { titulo: `Protocolar ${marca}`, descricao: "Descrição fictícia", limite: "2026-12-03", processoId: processo.id });
+      if (!tarefa.ok) throw new Error(tarefa.erro);
+      await moverTarefa(conta, tarefa.valor.id, "fazendo");
+    }
+  });
+
+  it("separa próximas e realizadas, no horário de São Paulo", async () => {
+    const { aba, cabecalho, tudo } = await abrir(contaA, "audiencias");
+
+    expect(cabecalho("Próximas")).toEqual([
+      "Data", "Hora", "Duração em minutos", "Tipo", "Cliente", "Processo", "Número", "Local", "Observações",
+    ]);
+    expect(valores(aba("Próximas")).map((linha) => linha.slice(0, 4))).toEqual([[46_357, "23:30", 45, "Instrução AlfaDaContaA"]]);
+    expect(valores(aba("Realizadas")).map((linha) => linha.slice(0, 4))).toEqual([[46_336, "09:00", 45, "Conciliação AlfaDaContaA"]]);
+    expect(tudo).not.toContain("BetaDaContaB");
+  });
+
+  it("o link da sala virtual não aparece em parte nenhuma do arquivo", async () => {
+    const { tudo } = await abrir(contaA, "audiencias");
+
+    expect(tudo).not.toContain("SENHA-DA-SALA");
+    expect(tudo).not.toContain("sala.exemplo.test");
+  });
+
+  it("tarefas saem com o nome da coluna do quadro", async () => {
+    const { aba, cabecalho, tudo } = await abrir(contaA, "tarefas");
+
+    expect(cabecalho("Tarefas")).toEqual(["Título", "Descrição", "Coluna do quadro", "Data limite", "Processo"]);
+    expect(valores(aba("Tarefas"))).toEqual([
+      ["Protocolar AlfaDaContaA", "Descrição fictícia", "Fazendo", 46_359, "Ação de cobrança AlfaDaContaA"],
+    ]);
+    expect(tudo).not.toContain("BetaDaContaB");
   });
 });
