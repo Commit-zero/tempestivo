@@ -26,6 +26,9 @@ model User {
   sessions      Session[]
   accounts      Account[]
   conta         Conta?
+  // Verificação em duas etapas (plugin `twoFactor` do Better Auth).
+  twoFactorEnabled Boolean?    @default(false)
+  twoFactors       TwoFactor[]
 
   @@map("user")
 }
@@ -75,6 +78,23 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// O segredo do aplicativo autenticador e os códigos de recuperação são gravados
+// cifrados com o AUTH_SECRET.
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([secret])
+  @@index([userId])
+  @@map("twoFactor")
 }
 
 // ---------------------------------------------------------------------------
