@@ -186,7 +186,7 @@ pnpm e2e
 pnpm test:cobertura
 ```
 
-A cobertura de `src/modules`, `src/lib` e `src/platform` tem metas mínimas que falham o CI: 90% das instruções, 85% dos ramos, 90% das funções e das linhas (em 26/11/2026: 95,4%, 89,8%, 97,0% e 97,2%). Ficam de fora só a montagem do Better Auth e a leitura da sessão, cobertas pelos testes de tela. Um teste lê `globals.css` e confere o contraste WCAG de cada par de cores, no tema claro e no escuro.
+A cobertura de `src/modules`, `src/lib` e `src/platform` tem metas mínimas que falham o CI: 90% das instruções, 85% dos ramos, 90% das funções e das linhas (em 26/11/2026: 95,6%, 89,9%, 97,5% e 97,3%). Ficam de fora só a montagem do Better Auth e a leitura da sessão, cobertas pelos testes de tela. Um teste lê `globals.css` e confere o contraste WCAG de cada par de cores, no tema claro e no escuro.
 
 Os testes de tela rodam contra o build de produção, em 360, 768 e 1280 px, e conferem que nenhuma tela tem rolagem horizontal. Toda rota, logada ou pública, passa por uma verificação de acessibilidade: idioma da página, um único `h1` e um único `main`, títulos sem salto de nível, campos com rótulo, botões e links com nome, imagens com texto alternativo e nada focável escondido de leitor de tela. Também há um teste de reflow a 320 px. A verificação automática não substitui o teste com teclado e leitor de tela. Na primeira vez, instale o navegador com `pnpm exec playwright install chromium`. Se a máquina bloquear o Chromium baixado, use o Edge ou o Chrome instalados: `PLAYWRIGHT_CHANNEL=msedge pnpm e2e`.
 

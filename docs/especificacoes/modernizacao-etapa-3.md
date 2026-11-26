@@ -1,6 +1,6 @@
 # Etapa 3: planilhas Excel (`exportacoes`)
 
-**Situação:** aprovada em 26/11/2026 (Vitor), com as recomendações das três perguntas. Tarefas no [plano da Etapa 3](modernizacao-etapa-3-plano.md).
+**Situação:** aprovada em 26/11/2026 (Vitor), com as recomendações das três perguntas, e pronta na branch. O que foi e o que não foi verificado está no "Andamento" do plano. Tarefas no [plano da Etapa 3](modernizacao-etapa-3-plano.md).
 
 Faz parte do [mapa da modernização](modernizacao.md) (pedido 7). A branch `modernizacao/etapa-3-exportacoes` parte da branch da [Etapa 2](modernizacao-etapa-2.md). Nada vai para a `main` antes do fim da final de 27/11/2026.
 
@@ -107,12 +107,12 @@ PDF e CSV; importação de planilha; relatório por período ou com gráficos; e
 
 ## Critérios de aceite
 
-1. As seis listas têm o botão, e o arquivo respeita o filtro e a busca da tela; a Conta tem a planilha completa com o Resumo.
+1. As seis listas, quando têm registros, têm o botão, e o arquivo respeita o filtro e a busca da tela; a Conta tem a planilha completa com o Resumo.
 2. Uma conta nunca recebe dado de outra.
 3. Datas ordenam como datas e aparecem em dd/mm/aaaa no horário de São Paulo; valores somam.
 4. Nenhuma célula vinda de texto digitado é fórmula.
 5. Prazos levam "cálculo auxiliar, confira" no cabeçalho da data e na aba Leia-me.
-6. Link de sala virtual, identificadores e segredos não aparecem.
+6. O campo de link da sala virtual, identificadores e segredos não aparecem.
 7. Sem sessão, 401; lista desconhecida, 404; o limite funciona; nada é armazenado.
 8. Lint, tipos, testes com cobertura, build e testes de tela passam; documentação atualizada. Informar o que não foi verificado, como a abertura em cada programa de planilha.
 

@@ -1,6 +1,6 @@
 # Etapa 3: plano de tarefas
 
-Plano da [especificação da Etapa 3](modernizacao-etapa-3.md), aprovada em 26/11/2026. **Situação:** plano proposto, aguardando aprovação. Tudo fica na branch `modernizacao/etapa-3-exportacoes`, sem push antes do fim da final.
+Plano da [especificação da Etapa 3](modernizacao-etapa-3.md), aprovada em 26/11/2026. **Situação:** plano aprovado em 26/11/2026; T1 a T8 prontas na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-3-exportacoes`, sem push antes do fim da final.
 
 ## Decisões do plano
 
@@ -74,6 +74,22 @@ Cada tarefa é um commit, com o teste escrito antes, e deixa o app funcionando.
 - Verificação: todos os comandos, `revisor-seguranca-lgpd`, `qa-responsivo` e revisão de código; resumo do que ficou de fora e por quê.
 - Arquivos: `docs/`, `README.md`, `SECURITY.md`.
 - Depende de: T7. Tamanho: P.
+
+## Andamento
+
+**T1 a T8, prontas em 26/11/2026.** Passaram: lint, tipos, 576 testes com cobertura (95,6% das instruções, 89,9% dos ramos, 97,5% das funções e 97,3% das linhas) e o build, feito pelo próprio comando dos testes de tela. Nos testes de tela (Edge, 360, 768 e 1280 px), na última rodada completa, 195 passaram, 6 foram pulados e 1 falhou.
+
+- **A falha:** no celular, "exporta os dados da conta e exclui a conta", com a conexão caindo (`ECONNRESET`) no pedido feito depois da exclusão, sem erro no log do servidor. Repetido 4 vezes em cada largura, passou em todas. A causa não foi confirmada; a etapa não muda a rota JSON.
+- **Banco de testes acumulado:** com 401 contas de rodadas anteriores, o teste do teto diário de e-mails passou do limite de 20 s. Num banco vazio, como no CI, passou. As verificações finais usaram um banco vazio.
+- **Arquivo grande:** só a geração, com 11 colunas e dados fictícios, sem o banco: 1.000 linhas em 100 ms (65 KB), 5.000 em 274 ms (310 KB, cerca de 11 MB a mais de memória) e 20.000 em 1,1 s (1,25 MB, cerca de 70 MB). Cabe com folga no volume de um escritório individual.
+- **Biblioteca:** um texto igual ao nome de uma propriedade do JavaScript (`constructor`, `__proto__`) corrompia o arquivo. `src/lib/planilha.ts` contorna acrescentando um caractere invisível, e um teste prova o caso.
+- **Revisão de segurança e de código:** nada crítico ou alto. Corrigidos: o atributo `download`, que escondia as mensagens de limite e de erro; testes fracos; documentos que prometiam mais do que o código faz sobre o link da sala; texto no padrão `_xHHHH_`; datas anteriores a março de 1900; pedido vindo de outro site e `HEAD`; parâmetro repetido; e a falta deste registro.
+- **QA responsivo:** nada que impedisse o uso. Corrigidos: as mensagens de limite e de sessão vencida viraram uma página legível, com o caminho de volta; o botão só aparece quando há registros; em Tarefas, vem depois do quadro; tamanho do botão e do aviso. Na Conta, o aviso sobre dados pessoais aparece duas vezes, e ficou assim.
+- **Sem nova rodada de revisão e de QA** depois dessas correções: elas foram conferidas só pelos testes.
+
+**Não verificado:** abrir o arquivo no Excel, no Google Planilhas e no LibreOffice (os testes conferem o conteúdo do XML); aparelho físico, Safari, Firefox, leitor de tela e app instalado; build da imagem Docker, Trivy e os workflows no GitHub (branch sem push).
+
+**Limites que continuam:** textos livres vão como foram digitados, mesmo com um link colado ali; o limite de 10 por minuto vale por instância.
 
 ## Publicação, depois da final e com confirmação
 
