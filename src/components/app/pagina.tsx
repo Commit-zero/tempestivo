@@ -23,7 +23,7 @@ export function CabecalhoDaPagina({
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="grid min-w-0 gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance break-words">{titulo}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance wrap-anywhere">{titulo}</h1>
           {descricao ? <p className="text-sm text-muted-foreground">{descricao}</p> : null}
         </div>
         {acao}
@@ -75,9 +75,9 @@ export function ItemDeLink({ href, children }: { href: string; children: ReactNo
 
 export function Definicao({ termo, children }: { termo: string; children: ReactNode }) {
   return (
-    <div className="grid gap-0.5">
+    <div className="grid min-w-0 gap-0.5">
       <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{termo}</dt>
-      <dd className="break-words">{children}</dd>
+      <dd className="wrap-anywhere">{children}</dd>
     </div>
   );
 }

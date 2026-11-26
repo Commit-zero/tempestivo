@@ -36,7 +36,7 @@ export default async function PaginaDeConferencia({ params }: PageProps<"/confer
             <dl className="grid gap-3">
               <div>
                 <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Prazo</dt>
-                <dd className="font-medium break-words">{prazo.descricao}</dd>
+                <dd className="font-medium wrap-anywhere">{prazo.descricao}</dd>
               </div>
               <div>
                 <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Data final</dt>

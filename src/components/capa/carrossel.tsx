@@ -14,6 +14,7 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
   // Tela para onde um botão ou seta mandou rolar. Até chegar lá, os eventos de rolagem
   // do meio do caminho não mudam a posição (o primeiro deles ainda aponta a anterior).
   const destinoDaRolagem = useRef<number | null>(null);
+  const prazoDoDestino = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [atual, setAtual] = useState(0);
   const [comBotoes, setComBotoes] = useState(false);
   const total = nomes.length;
@@ -21,12 +22,23 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
   // Os botões só aparecem quando o JavaScript está rodando.
   useEffect(() => {
     const quadro = requestAnimationFrame(() => setComBotoes(true));
-    return () => cancelAnimationFrame(quadro);
+    return () => {
+      cancelAnimationFrame(quadro);
+      clearTimeout(prazoDoDestino.current);
+    };
   }, []);
 
   function irPara(indice: number) {
     const destino = Math.max(0, Math.min(total - 1, indice));
+    // Na ponta não há o que rolar: guardar o destino travaria a posição.
+    if (destino === atual) return;
     destinoDaRolagem.current = destino;
+    // Se a rolagem for interrompida por outro meio, a posição volta a seguir a tela.
+    clearTimeout(prazoDoDestino.current);
+    prazoDoDestino.current = setTimeout(() => {
+      aoRolarAMao();
+      aoRolar();
+    }, 1_200);
     setAtual(destino);
     const faixa = trilho.current;
     // A rolagem suave é desligada pelo CSS para quem pede menos movimento.
@@ -50,6 +62,7 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
   }
 
   function aoTeclar(evento: KeyboardEvent) {
+    if (evento.altKey || evento.ctrlKey || evento.metaKey) return; // atalhos do navegador
     if (evento.key !== "ArrowLeft" && evento.key !== "ArrowRight") return;
     evento.preventDefault();
     irPara(atual + (evento.key === "ArrowRight" ? 1 : -1));
@@ -60,6 +73,8 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
       <div
         ref={trilho}
         data-testid="trilho-do-carrossel"
+        role="group"
+        aria-label="Telas, use as setas para trocar"
         tabIndex={0}
         onScroll={aoRolar}
         onKeyDown={aoTeclar}
@@ -84,7 +99,7 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
           <Button
             type="button"
             variant="outline"
-            className="size-11 aria-disabled:opacity-40"
+            className="size-11 aria-disabled:opacity-40 md:size-11"
             aria-disabled={atual === 0}
             onClick={() => irPara(atual - 1)}
           >
@@ -97,7 +112,7 @@ export function Carrossel({ rotulo, nomes, children }: { rotulo: string; nomes: 
           <Button
             type="button"
             variant="outline"
-            className="size-11 aria-disabled:opacity-40"
+            className="size-11 aria-disabled:opacity-40 md:size-11"
             aria-disabled={atual === total - 1}
             onClick={() => irPara(atual + 1)}
           >

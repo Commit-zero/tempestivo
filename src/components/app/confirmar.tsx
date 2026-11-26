@@ -44,9 +44,9 @@ export function ConfirmacaoDoEnvio({
         </AlertDialog.Trigger>
         <AlertDialog.Portal>
           <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-black/60" />
-          <AlertDialog.Content className="fixed top-1/2 left-1/2 z-[60] grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-popover p-5 text-popover-foreground shadow-xl">
-            <AlertDialog.Title className="text-lg font-semibold tracking-tight break-words">{titulo}</AlertDialog.Title>
-            <AlertDialog.Description className="text-sm break-words text-muted-foreground">{descricao}</AlertDialog.Description>
+          <AlertDialog.Content className="fixed top-1/2 left-1/2 z-[60] grid grid-cols-[minmax(0,1fr)] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-popover p-5 text-popover-foreground shadow-xl">
+            <AlertDialog.Title className="text-lg font-semibold tracking-tight wrap-anywhere">{titulo}</AlertDialog.Title>
+            <AlertDialog.Description className="text-sm wrap-anywhere text-muted-foreground">{descricao}</AlertDialog.Description>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <AlertDialog.Cancel asChild>
                 <Button type="button" variant="outline" className="h-11 md:h-9">

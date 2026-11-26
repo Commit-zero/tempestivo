@@ -116,6 +116,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* O que a pessoa digita pode não ter espaços (um endereço colado num título). Sem
+     isto, uma palavra assim alarga a página e o diálogo. Só quebra quando não cabe. */
+  main,
+  [role="alertdialog"] {
+    overflow-wrap: anywhere;
+  }
   /* Títulos usam a largura maior da Archivo; o texto fica na largura normal. */
   h1 {
     font-stretch: 112%;

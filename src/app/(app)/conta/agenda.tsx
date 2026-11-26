@@ -64,6 +64,7 @@ function LinkDaAgenda({ link }: { link: string }) {
         <input
           id="link-da-agenda"
           readOnly
+          size={1}
           value={link}
           onFocus={(evento) => evento.currentTarget.select()}
           className="h-11 min-w-0 flex-1 rounded-lg border border-input bg-card px-2.5 font-mono text-sm md:h-9"

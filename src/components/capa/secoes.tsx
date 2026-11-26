@@ -5,7 +5,7 @@ const PROBLEMAS_E_SOLUCOES = [
   {
     problema: "Contar o prazo no meio de feriado e suspensão",
     solucao:
-      "A calculadora conta em dias úteis, pula feriados e a suspensão de 20/12 a 20/01 e mostra o passo a passo. Dias de portaria do tribunal você cadastra, e ela passa a pular.",
+      "A calculadora conta em dias úteis, pula fins de semana, feriados nacionais, o 9 de julho e a suspensão de 20/12 a 20/01, e mostra o passo a passo. Feriado municipal e dia de portaria você cadastra, e valem nos cálculos seguintes. Quando conta um dia que pode não ter tido expediente, ela avisa.",
   },
   {
     problema: "Achar que alguém já conferiu",
@@ -14,7 +14,7 @@ const PROBLEMAS_E_SOLUCOES = [
   {
     problema: "Descobrir o vencimento tarde demais",
     solucao:
-      "E-mails 5, 2 e 1 dia útil antes e no dia do vencimento. A meta interna marca quando o trabalho deve estar pronto e vai para o calendário do seu celular.",
+      "E-mails 5, 2 e 1 dia útil antes e no dia do vencimento, que saem depois que você confirma o seu e-mail. A meta interna marca quando o trabalho deve estar pronto e aparece no seu calendário se você assinar a agenda.",
   },
   {
     problema: "Não saber quem está devendo",
@@ -23,11 +23,11 @@ const PROBLEMAS_E_SOLUCOES = [
 ];
 
 const DIFERENCIAIS = [
-  { titulo: "A contagem vem explicada", texto: "Dia de começo, dias pulados e o motivo de cada um, com as regras usadas." },
+  { titulo: "A contagem vem explicada", texto: "O dia do começo, os feriados e dias sem expediente que ficaram de fora, com o motivo, e as regras usadas." },
   { titulo: "Status honesto", texto: "“Conferido há 3 dias” diz mais que um sinal verde que ninguém verificou." },
   {
     titulo: "O leitor de intimação só sugere",
-    texto: "Você cola o texto e recebe um rascunho com o trecho de onde saiu cada dado. O prazo só existe depois da sua confirmação, e o texto não vai para terceiros.",
+    texto: "Você cola o texto e recebe um rascunho que mostra os trechos usados. O prazo só existe depois da sua confirmação, e o texto não vai para terceiros.",
   },
   {
     titulo: "Um colega é avisado",
@@ -57,7 +57,7 @@ export function Diferenciais() {
   return (
     <section aria-labelledby="titulo-diferenciais" className="grid gap-6">
       <h2 id="titulo-diferenciais" className="text-2xl font-bold tracking-tight sm:text-3xl">
-        O que não é igual em outras agendas
+        No que o Tempestivo insiste
       </h2>
       <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
         {DIFERENCIAIS.map(({ titulo, texto }) => (

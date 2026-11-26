@@ -36,7 +36,7 @@ function Linha({ rotulo, valor, evidencia }: { rotulo: string; valor: string | n
     <div className="grid gap-0.5">
       <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{rotulo}</dt>
       <dd className={valor ? "font-medium" : "text-muted-foreground"}>{valor ?? "não encontrado"}</dd>
-      {evidencia ? <dd className="text-sm text-muted-foreground italic break-words">“{evidencia}”</dd> : null}
+      {evidencia ? <dd className="text-sm text-muted-foreground italic wrap-anywhere">“{evidencia}”</dd> : null}
     </div>
   );
 }

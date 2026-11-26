@@ -62,7 +62,11 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             O que ele não faz
           </h2>
           <ul className="grid max-w-[65ch] list-disc gap-2 pl-5">
-            <li>Não substitui a sua conferência: o cálculo é auxiliar e vale só para o TJSP e o TRT-2. Nos outros, a data é digitada.</li>
+            <li>
+              Não substitui a sua conferência: o cálculo é auxiliar e vale só para o TJSP e o TRT-2 (os Juizados Especiais ficam de fora). Nos
+              outros casos, a data é digitada.
+            </li>
+            <li>As regras de contagem ainda não foram validadas por um advogado.</li>
             <li>Ele não se conecta a tribunais nem busca intimações sozinho.</li>
             <li>Nesta fase de testes, cadastre só dados fictícios.</li>
           </ul>

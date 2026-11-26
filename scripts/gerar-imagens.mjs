@@ -20,6 +20,7 @@ const FAIXA = "I 1 F F 2 3 4 5 F F F 6 7 8 9 10 F F 11 12 13M 14 15V";
 
 // O símbolo sem o fundo arredondado, para os ícones de fundo inteiro (Apple e mascarável).
 const simboloSemFundo = simbolo.replace(/<rect width="64" height="64" rx="14" fill="#4136A8"\/>/, "");
+if (simboloSemFundo === simbolo) throw new Error("O fundo do icon.svg mudou: ajuste este roteiro.");
 
 function paginaDeIcone(tamanho, { fundoInteiro, zonaSegura = 1 }) {
   const svg = fundoInteiro ? simboloSemFundo : simbolo;

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { formatarData } from "@/lib/datas";
 import { EXEMPLO_DE_CONTAGEM as exemplo } from "@/lib/exemplo-de-contagem";
 
 // O símbolo e o exemplo aparecem em arquivos que não se importam entre si (o SVG, o
@@ -33,6 +34,9 @@ describe("imagem de compartilhamento", () => {
       .map((dia) => (dia.tipo === "intimacao" ? "I" : dia.tipo === "sem-expediente" ? "F" : `${dia.numero}${dia.data === exemplo.metaInterna ? "M" : ""}${dia.data === exemplo.vencimento ? "V" : ""}`))
       .join(" ");
 
-    expect(ler("scripts/gerar-imagens.mjs")).toContain(`const FAIXA = "${esperado}";`);
+    const roteiro = ler("scripts/gerar-imagens.mjs");
+    expect(roteiro).toContain(`const FAIXA = "${esperado}";`);
+    expect(roteiro).toContain(`Vence em ${formatarData(exemplo.vencimento)}<`);
+    expect(roteiro).toContain(`Meta interna: ${formatarData(exemplo.metaInterna)}<`);
   });
 });

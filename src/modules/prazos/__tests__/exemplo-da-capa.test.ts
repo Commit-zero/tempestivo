@@ -19,6 +19,12 @@ describe("exemplo da faixa de contagem da capa", () => {
     expect(metaInterna(exemplo.vencimento, MARGEM_PADRAO_DIAS_UTEIS, calendario)).toBe(exemplo.metaInterna);
   });
 
+  it("o slide mostra exatamente os passos, os avisos e as regras que a calculadora devolve", () => {
+    expect(resultado).toMatchObject({
+      passos: exemplo.passos, avisos: exemplo.avisos, regrasAplicadas: exemplo.regrasAplicadas,
+    });
+  });
+
   it("vai da intimação ao vencimento, um dia de cada vez", () => {
     expect(exemplo.faixa[0]).toMatchObject({ data: exemplo.intimacao, tipo: "intimacao" });
     expect(exemplo.faixa.at(-1)?.data).toBe(exemplo.vencimento);

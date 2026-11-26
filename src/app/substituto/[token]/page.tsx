@@ -20,7 +20,7 @@ export default async function PaginaDoConvite({ params }: PageProps<"/substituto
         {convite ? (
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Ser advogado substituto</h1>
-            <p className="text-sm break-words">
+            <p className="text-sm wrap-anywhere">
               <strong>{convite.titular}</strong> indicou você como substituto no Tempestivo.
             </p>
             <ul className="grid list-disc gap-1.5 pl-5 text-sm text-muted-foreground">

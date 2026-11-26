@@ -18,9 +18,10 @@ async function pequenos(page: Page): Promise<string[]> {
         const caixa = elemento.getBoundingClientRect();
         // Fora da conta: o que está oculto ou só existe para o teclado ("pular para o conteúdo").
         if (caixa.width <= 1 || caixa.height <= 1 || elemento.closest(".sr-only, [hidden]") || elemento.classList.contains("sr-only")) return false;
-        return caixa.height < minimo - 0.5 && !noMeioDaFrase(elemento);
+        const estreito = elemento.tagName === "A" && caixa.width < minimo - 0.5;
+        return (caixa.height < minimo - 0.5 || estreito) && !noMeioDaFrase(elemento);
       })
-      .map((elemento) => `${elemento.tagName.toLowerCase()} "${(elemento.textContent || elemento.getAttribute("aria-label") || "").trim().slice(0, 40)}" ${Math.round(elemento.getBoundingClientRect().height)}px`);
+      .map((elemento) => `${elemento.tagName.toLowerCase()} "${(elemento.textContent || elemento.getAttribute("aria-label") || "").trim().slice(0, 40)}" ${Math.round(elemento.getBoundingClientRect().width)}x${Math.round(elemento.getBoundingClientRect().height)}px`);
   }, MINIMO);
 }
 
@@ -28,6 +29,9 @@ async function conferir(page: Page, rotas: readonly string[]) {
   const problemas: string[] = [];
   for (const rota of rotas) {
     await page.goto(rota);
+    // Medir a tela errada (login no lugar da tela logada) daria um falso "passou".
+    expect(new URL(page.url()).pathname).toBe(rota);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     problemas.push(...(await pequenos(page)).map((item) => `${rota}: ${item}`));
     await semRolagemHorizontal(page);
   }

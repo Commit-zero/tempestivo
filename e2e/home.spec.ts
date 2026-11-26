@@ -29,11 +29,15 @@ test("a capa mostra a contagem, os problemas e soluções, os diferenciais e os 
   await expect(page.getByText("Regras aplicadas (0)")).toHaveCount(0);
 
   for (const titulo of [
-    "Onde o prazo se perde, e o que o Tempestivo faz", "O que não é igual em outras agendas", "O que ele não faz",
+    "Onde o prazo se perde, e o que o Tempestivo faz", "No que o Tempestivo insiste", "O que ele não faz",
   ]) {
     await expect(page.getByRole("heading", { level: 2, name: titulo })).toBeVisible();
   }
   await expect(page.getByRole("main")).toContainText("vale só para o TJSP e o TRT-2");
+  await expect(page.getByRole("main")).toContainText("Juizados Especiais ficam de fora");
+  // O que o app avisa em todo cálculo, a capa também diz.
+  await expect(page.getByRole("main")).toContainText("ainda não foram validadas por um advogado");
+  await expect(page.getByRole("main")).toContainText("depois que você confirma o seu e-mail");
   await expect(page.getByRole("main")).toContainText("não se conecta a tribunais");
   await expect(page.getByRole("main")).toContainText("só dados fictícios");
   await expect(page.getByRole("link", { name: "Criar conta gratuita" })).toHaveCount(2);
@@ -87,7 +91,14 @@ test("carrossel: botões e teclado trocam de tela, sem rodar sozinho", async ({ 
 
   await proxima.press("Enter");
   await expect(posicao).toHaveText(`2 de 4: ${TELAS[1]}`);
-  await expect(tela(TELAS[1]!)).toBeInViewport({ ratio: 0.6 });
+  // A segunda tela ocupa a faixa (compara só na horizontal: ela pode ser mais alta que a janela).
+  await expect
+    .poll(async () => {
+      const faixa = (await carrossel.getByTestId("trilho-do-carrossel").boundingBox())!;
+      const caixa = (await tela(TELAS[1]!).boundingBox())!;
+      return Math.round(Math.abs(caixa.x - faixa.x));
+    })
+    .toBeLessThanOrEqual(2);
   await expect(proxima).toBeFocused();
   await proxima.click();
   await proxima.click();
@@ -97,9 +108,31 @@ test("carrossel: botões e teclado trocam de tela, sem rodar sozinho", async ({ 
   await expect(posicao).toHaveText(`3 de 4: ${TELAS[2]}`);
 
   // A faixa das telas rola com as setas quando está em foco.
-  await carrossel.getByTestId("trilho-do-carrossel").focus();
+  const trilho = carrossel.getByRole("group", { name: "Telas, use as setas para trocar" });
+  await trilho.focus();
   await page.keyboard.press("ArrowRight");
   await expect(posicao).toHaveText(`4 de 4: ${TELAS[3]}`);
+  await page.keyboard.press("ArrowLeft");
+  await expect(posicao).toHaveText(`3 de 4: ${TELAS[2]}`);
+  // Atalho com modificador é do navegador, não do carrossel.
+  const atalhoInterceptado = await trilho.evaluate((elemento) => {
+    const tecla = new KeyboardEvent("keydown", { key: "ArrowRight", altKey: true, bubbles: true, cancelable: true });
+    elemento.dispatchEvent(tecla);
+    return tecla.defaultPrevented;
+  });
+  expect(atalhoInterceptado).toBe(false);
+
+  // Insistir na ponta não pode travar a posição: depois, a rolagem por outro meio vale.
+  await proxima.click();
+  await expect(posicao).toHaveText(`4 de 4: ${TELAS[3]}`);
+  await proxima.click({ force: true });
+  await trilho.evaluate((elemento) => elemento.scrollTo({ left: 0, behavior: "instant" }));
+  await expect(posicao).toHaveText(`1 de 4: ${TELAS[0]}`);
+
+  for (const botao of [anterior, proxima]) {
+    const caixa = (await botao.boundingBox())!;
+    expect([Math.round(caixa.width), Math.round(caixa.height)]).toEqual([44, 44]);
+  }
   await semRolagemHorizontal(page);
   await verificarAcessibilidade(page);
 });
@@ -112,7 +145,12 @@ test.describe("sem JavaScript", () => {
     const carrossel = page.getByRole("region", { name: "Telas do Tempestivo" });
 
     for (const nome of TELAS) await expect(carrossel.getByRole("heading", { level: 3, name: nome })).toHaveCount(1);
-    await carrossel.getByRole("heading", { level: 3, name: TELAS[3] }).scrollIntoViewIfNeeded();
+    // Rolagem de verdade, como a de quem usa: com `overflow` escondido, nada andaria.
+    const trilho = carrossel.getByRole("group", { name: "Telas, use as setas para trocar" });
+    await expect(trilho).toHaveCSS("overflow-x", "auto");
+    await trilho.scrollIntoViewIfNeeded();
+    await trilho.hover();
+    await page.mouse.wheel(10_000, 0);
     await expect(carrossel.getByRole("heading", { level: 3, name: TELAS[3] })).toBeInViewport();
     await expect(carrossel.getByRole("button")).toHaveCount(0);
     await semRolagemHorizontal(page);

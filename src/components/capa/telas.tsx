@@ -2,9 +2,8 @@ import type { ReactNode } from "react";
 import { MemoriaDoCalculo } from "@/components/app/memoria";
 import { SeloDeVencimento, TextoDaConferencia } from "@/components/app/prazo";
 import { ResumoFinanceiro } from "@/components/app/resumo-financeiro";
-import { buttonVariants } from "@/components/ui/button";
 import { EXEMPLO_DE_CONTAGEM as exemplo } from "@/lib/exemplo-de-contagem";
-import { AVISO_CALCULO_AUXILIAR, type Situacao } from "@/modules/prazos";
+import type { Situacao } from "@/modules/prazos";
 
 // As telas do carrossel são feitas com os componentes do próprio app, com dados
 // fictícios: não são imagens, então mudam junto com o produto. Nada aqui é clicável.
@@ -45,16 +44,13 @@ const EVENTOS = [
 
 export function TelasDoProduto() {
   return [
-    <Tela key="prazo" titulo={NOMES_DAS_TELAS[0]} texto="A data calculada nunca aparece sem os passos e os avisos.">
+    <Tela key="prazo" titulo={NOMES_DAS_TELAS[0]} texto="Na tela do prazo, a data calculada vem com os passos, os avisos e as regras usadas.">
       <div className="rounded-md border bg-card p-4">
         <MemoriaDoCalculo
           dataFinal={exemplo.vencimento}
-          avisos={[AVISO_CALCULO_AUXILIAR]}
-          passos={[
-            "Intimação em 12/11/2026: é o dia do começo, que não entra na contagem.",
-            "A contagem começa em 13/11/2026, o primeiro dia útil seguinte.",
-            "Contados 15 dias úteis, sem sábados, domingos, feriados e dias sem expediente.",
-          ]}
+          avisos={exemplo.avisos}
+          passos={exemplo.passos}
+          // Sem o item que abre e fecha: dentro do carrossel nada é clicável.
           regrasAplicadas={[]}
         />
       </div>
@@ -72,22 +68,21 @@ export function TelasDoProduto() {
           </li>
         ))}
       </ul>
+      <p className="text-xs text-muted-foreground">Cálculo auxiliar, confira.</p>
     </Tela>,
     <Tela key="honorarios" titulo={NOMES_DAS_TELAS[2]} texto="O que falta receber, o que atrasou e a cobrança pronta. Quem envia é você.">
       <ResumoFinanceiro
         resumo={{ aReceberCentavos: 450_000, emAtrasoCentavos: 90_000, parcelasEmAtraso: 1, recebidoNoMesCentavos: 180_000 }}
       />
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-card p-4">
-        <span className="grid">
-          <span className="font-medium">Parcela 2 de 5, R$ 900,00</span>
-          <span className="text-sm text-destructive">em atraso desde 10/11/2026</span>
-        </span>
-        <span aria-hidden="true" className={buttonVariants({ variant: "outline" })}>
-          Cobrar pelo WhatsApp
+      <div className="grid gap-1 rounded-md border bg-card p-4">
+        <span className="font-medium">Parcela 2 de 5, R$ 900,00</span>
+        <span className="text-sm text-destructive">em atraso desde 10/11/2026</span>
+        <span className="text-sm text-muted-foreground">
+          No app, o botão “Cobrar pelo WhatsApp” abre a mensagem pronta nesta parcela.
         </span>
       </div>
     </Tela>,
-    <Tela key="agenda" titulo={NOMES_DAS_TELAS[3]} texto="Você assina o link uma vez, e o calendário que já usa passa a mostrar prazos, metas e audiências. Nomes de clientes não vão para ele.">
+    <Tela key="agenda" titulo={NOMES_DAS_TELAS[3]} texto="Depois que você cria e assina o link, o calendário que já usa mostra prazos, metas e audiências. O cadastro dos clientes não vai para ele, mas o que você escrever na descrição do prazo, no tipo e no local da audiência vai junto.">
       <ul className="divide-y rounded-md border bg-card">
         {EVENTOS.map(({ dia, titulo, detalhe }) => (
           <li key={titulo} className="grid grid-cols-[3.5rem_1fr] gap-3 px-4 py-3">
@@ -99,6 +94,7 @@ export function TelasDoProduto() {
           </li>
         ))}
       </ul>
+      <p className="text-xs text-muted-foreground">Cálculo auxiliar, confira.</p>
     </Tela>,
   ];
 }

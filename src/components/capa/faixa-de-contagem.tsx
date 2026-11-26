@@ -29,7 +29,7 @@ function Celula({ dia, posicao }: { dia: DiaDaFaixa; posicao: number }) {
       )}
     >
       <span className="sr-only">{descrever(dia)}</span>
-      <span aria-hidden="true" className={cn("text-[0.7rem] leading-tight", !vencimento && !meta && "text-muted-foreground")}>
+      <span aria-hidden="true" className={cn("text-xs leading-tight", !vencimento && !meta && "text-muted-foreground")}>
         {nomeDoDiaDaSemana(dia.data).slice(0, 3)}
         <br />
         {Number(dia.data.slice(8))}
@@ -37,7 +37,7 @@ function Celula({ dia, posicao }: { dia: DiaDaFaixa; posicao: number }) {
       <span aria-hidden="true" className="text-lg leading-tight font-bold tabular-nums">
         {dia.tipo === "contado" ? dia.numero : dia.tipo === "intimacao" ? "•" : "–"}
       </span>
-      <span aria-hidden="true" className="min-h-3.5 text-[0.65rem] leading-tight font-semibold">
+      <span aria-hidden="true" className="min-h-4 text-xs leading-tight font-semibold">
         {vencimento ? "vence" : meta ? "meta" : ""}
       </span>
     </li>
@@ -71,7 +71,7 @@ export function FaixaDeContagem() {
       <div className="flex flex-wrap gap-x-5 gap-y-1 border-t pt-3">
         <p className="font-bold">Vence em {formatarData(exemplo.vencimento)}</p>
         <p className="font-semibold text-atencao">Meta interna: {formatarData(exemplo.metaInterna)}</p>
-        <p className="text-muted-foreground">Cálculo auxiliar, confira.</p>
+        <p className="text-muted-foreground">Cálculo auxiliar, confira. Regras ainda sem validação de um advogado.</p>
       </div>
     </figure>
   );
