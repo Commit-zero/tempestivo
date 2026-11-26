@@ -1,6 +1,6 @@
 # Etapa 2: identidade visual (`identidade-visual`)
 
-**Situação:** aprovada em 26/11/2026 (Vitor), com a direção A, o carrossel sem rotação automática e o símbolo feito agora. Tarefas no [plano da Etapa 2](modernizacao-etapa-2-plano.md).
+**Situação:** aprovada em 26/11/2026 (Vitor), com a direção A, o carrossel sem rotação automática e o símbolo feito agora. Tarefas no [plano da Etapa 2](modernizacao-etapa-2-plano.md). Símbolo escolhido: opção 1, Quadra. Implementada na branch em 26/11/2026, sem publicar.
 
 Faz parte do [mapa da modernização](modernizacao.md) (pedidos 1, 2 e 8). A branch `modernizacao/etapa-2-identidade` parte da branch da [Etapa 1](modernizacao-etapa-1.md), porque mexe nas telas que ela criou. Por isso, só pode ser publicada depois dela. Nada vai para a `main` antes do fim da final de 27/11/2026.
 

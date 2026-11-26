@@ -1,6 +1,6 @@
 # Etapa 2: plano de tarefas
 
-Plano da [especificação da Etapa 2](modernizacao-etapa-2.md), aprovada em 26/11/2026. **Situação:** plano aprovado em 26/11/2026; bloco A pronto na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-2-identidade`, sem push antes do fim da final.
+Plano da [especificação da Etapa 2](modernizacao-etapa-2.md), aprovada em 26/11/2026. **Situação:** plano aprovado em 26/11/2026; T1 a T13 prontas na branch (ver "Andamento"). Tudo fica na branch `modernizacao/etapa-2-identidade`, sem push antes do fim da final.
 
 ## Decisões do plano
 
@@ -122,6 +122,15 @@ Lint, tipos, testes com cobertura, build, testes de tela, e revisão de código.
 - **T7:** um botão de envio escondido, no primeiro desenho do diálogo, seria "apertado" pelo Enter e apagaria a conta sem confirmação. Virou um campo escondido, com teste. Trocar e desligar o link da agenda também pedem confirmação.
 - **Revisão de segurança e código:** nada crítico nem alto. Corrigidos: sucesso antigo depois de uma ação que não avisa, link morto no painel da agenda, repetição não anunciada, faixa lateral, anúncio do link novo, tela desatualizada da agenda e foco ao fechar o aviso. Essas correções não passaram por nova revisão. Quando uma ação sem formulário falha em silêncio, o aviso antigo some, mas não aparece erro.
 - **Em aberto, anterior à etapa:** em `prazos`, `audiencias` e `honorarios`, alguns serviços ignoram o retorno da gravação. Se o registro for apagado em outra aba no instante de salvar, o aviso diz que deu certo. Mexer em `prazos` pede o `revisor-de-prazos`.
+
+**Bloco B (T8 a T13), pronto em 26/11/2026.** O Vitor escolheu o símbolo **1, Quadra**, já aplicado. Resultado final: lint, tipos, 523 testes em 48 arquivos com cobertura acima das metas, build e 187 testes de tela no Edge (6 pulados de propósito: os alvos de toque só são medidos no celular). **Não rodaram:** build da imagem Docker, Trivy e os workflows no GitHub.
+
+- **Diferenças do plano:** a capa junta problemas e soluções em pares numa só seção; "Diferenciais" ganhou o título "No que o Tempestivo insiste"; o componente dos passos do cálculo passou para `src/components/app/memoria.tsx`.
+- **Revisão de código:** o achado mais sério era a capa prometer mais que o sistema. O exemplo omitia o aviso de **regras não validadas por advogado** (agora na faixa, no slide e nos limites), os passos eram escritos à mão (agora são a saída da calculadora, conferida por teste) e havia frases absolutas sobre feriados, calendário e e-mails. Corrigidos também defeitos do carrossel e testes que passariam com o recurso quebrado.
+- **QA responsivo:** texto sem espaços quebrava o diálogo e várias telas; o link da agenda alargava a conta em 320 px. Corrigidos, com testes.
+- As correções da revisão e do QA passaram pelos testes, mas não por nova revisão.
+- **Ficaram como estão:** o aviso pode cobrir botões no meio da página até ser fechado ou a pessoa rolar (no fim da página não cobre); as caixas de marcar têm 20 px (o rótulo também marca); ao adicionar tarefa pelo Enter, o foco vai para o início da página; os rótulos da barra inferior têm 11 px.
+- **Não verificado:** leitor de tela, celular físico, Safari e Firefox, texto a 200% e desempenho medido.
 
 ## Publicação, depois da final e com confirmação
 
