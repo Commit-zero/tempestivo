@@ -50,7 +50,7 @@ Projeto do Startup Challenge UMC 2026 (Mestres da Web), com infraestrutura de cu
 | Testes | Vitest com cobertura mínima (unidade e integração com Postgres e SMTP reais), Playwright (telas em 320, 360, 768 e 1280 px, com verificação de acessibilidade) |
 | Entrega | GitHub Actions, Docker, Vercel |
 
-Todas as dependências têm licença permissiva (MIT, Apache-2.0, BSD).
+As licenças dos componentes de terceiros estão em [AVISOS-DE-TERCEIROS.md](AVISOS-DE-TERCEIROS.md).
 
 ## Arquitetura
 
@@ -142,3 +142,7 @@ A lista completa, com o que está fora do escopo, está nos [requisitos](docs/re
 ## Documentação
 
 O índice está em [docs/README.md](docs/README.md). Para contribuir, leia o [CONTRIBUTING.md](CONTRIBUTING.md); as mudanças estão no [CHANGELOG.md](CHANGELOG.md); falhas de segurança, no [SECURITY.md](SECURITY.md).
+
+## Licença
+
+**Proprietária, com todos os direitos reservados.** O código é público para consulta e avaliação; usar, copiar, modificar ou distribuir exige autorização dos autores. Ver [LICENSE](LICENSE) e os [avisos de terceiros](AVISOS-DE-TERCEIROS.md).
