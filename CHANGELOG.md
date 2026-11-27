@@ -17,7 +17,7 @@ Mudanças relevantes para quem usa ou mantém o Tempestivo, da mais recente para
 - O build passou a gerar o cliente do Prisma.
 
 ### Corrigido
-- Vulnerabilidade do `apt` na imagem Docker (CVE-2026-109518).
+- Vulnerabilidades do `apt` (CVE-2026-109518) e do PAM (CVE-2025-6020) na imagem Docker.
 
 ### Banco de dados
 - Migração `20261126030015_segundo_fator`, que só acrescenta.
