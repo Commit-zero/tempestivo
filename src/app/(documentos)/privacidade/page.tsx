@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { VERSAO_DOS_TERMOS } from "@/lib/termos";
+import { EMAIL_DE_PRIVACIDADE, VERSAO_DOS_TERMOS } from "@/lib/termos";
 
 export const metadata: Metadata = { title: "Política de privacidade" };
 
@@ -58,7 +58,7 @@ export default function PaginaDePrivacidade() {
           </tr>
           <tr>
             <td>Data e versão do aceite destes documentos</td>
-            <td>Registro do consentimento</td>
+            <td>Registro do aceite</td>
           </tr>
         </tbody>
       </table>
@@ -66,13 +66,32 @@ export default function PaginaDePrivacidade() {
         O texto colado no leitor de intimação é lido no próprio servidor do Tempestivo e <strong>não é guardado</strong> nem
         enviado a terceiros.
       </p>
+      <p>
+        O endereço IP também é usado, em memória e por pouco tempo, para limitar tentativas repetidas.
+      </p>
 
-      <h2>3. Com quem compartilhamos</h2>
+      <h2>3. Cookies</h2>
+      <p>Usamos só os cookies necessários para o serviço funcionar. Não há cookies de publicidade nem de análise de uso.</p>
+      <ul>
+        <li>
+          <strong>Sessão:</strong> mantém você conectado. Vale por 7 dias, renovados com o uso.
+        </li>
+        <li>
+          <strong>Verificação em duas etapas:</strong> guarda por 10 minutos o login que aguarda o código.
+        </li>
+        <li>
+          <strong>Aviso de resultado (tempestivo.aviso):</strong> dura 20 segundos e leva só o código da mensagem que a tela
+          mostra depois de uma ação, sem dado pessoal.
+        </li>
+      </ul>
+
+      <h2>4. Com quem compartilhamos</h2>
       <p>
         Só com os fornecedores necessários para o serviço funcionar: hospedagem do aplicativo, banco de dados e envio de
         e-mail. Eles tratam os dados em nome do Tempestivo. Não vendemos dados e não usamos os seus dados para publicidade
         nem para treinar inteligência artificial.
       </p>
+      <p>Alguns desses fornecedores podem tratar dados fora do Brasil.</p>
       <p>Os e-mails ao advogado substituto levam só o seu nome e a data do prazo, nunca o processo ou o cliente.</p>
       <p>
         Se você ligar a agenda no celular, o serviço de calendário que você escolher (Google, Apple, Microsoft ou outro) passa
@@ -81,13 +100,22 @@ export default function PaginaDePrivacidade() {
         trocar ou desligar o link a qualquer momento na tela Conta.
       </p>
 
-      <h2>4. Por quanto tempo</h2>
-      <p>
-        Enquanto a conta existir. Ao excluir a conta, a conta, o login, as sessões e todos os dados cadastrados são apagados
-        na hora, sem possibilidade de recuperação.
-      </p>
+      <h2>5. Por quanto tempo</h2>
+      <ul>
+        <li>
+          <strong>Conta e dados cadastrados:</strong> enquanto a conta existir. Ao excluir a conta, a conta, o login, as
+          sessões e todos os dados cadastrados são apagados na hora, sem possibilidade de recuperação.
+        </li>
+        <li>
+          <strong>Sessões (com IP e navegador) e códigos temporários:</strong> depois de vencidos, são apagados por uma
+          rotina automática, que roda várias vezes ao dia.
+        </li>
+        <li>
+          <strong>Registros técnicos e cópias de segurança dos fornecedores:</strong> seguem os prazos de cada fornecedor.
+        </li>
+      </ul>
 
-      <h2>5. Seus direitos</h2>
+      <h2>6. Seus direitos</h2>
       <ul>
         <li>
           <strong>Acesso e portabilidade:</strong> exporte todos os dados em JSON na tela{" "}
@@ -108,11 +136,21 @@ export default function PaginaDePrivacidade() {
         as ferramentas para atendê-los.
       </p>
 
-      <h2>6. Segurança</h2>
+      <h2>7. Como falar conosco</h2>
+      <p>
+        Para exercer os seus direitos, tirar dúvidas sobre os seus dados ou relatar um problema de privacidade, escreva para{" "}
+        <a href={`mailto:${EMAIL_DE_PRIVACIDADE}`} className="inline-flex min-h-11 items-center break-all underline">
+          {EMAIL_DE_PRIVACIDADE}
+        </a>
+        . Podemos pedir informações para confirmar a sua identidade antes de atender. Você também pode apresentar uma
+        reclamação à Autoridade Nacional de Proteção de Dados (ANPD).
+      </p>
+
+      <h2>8. Segurança</h2>
       <p>
         Conexão cifrada, senhas com Argon2id, isolamento dos dados de cada conta, logs sem dados pessoais e verificações
         automáticas de segurança no código. Nenhum sistema é infalível: se suspeitar de um problema, exclua os dados
-        sensíveis e nos avise.
+        sensíveis e avise pelo canal acima.
       </p>
     </>
   );

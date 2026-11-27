@@ -96,7 +96,7 @@ A imagem roda sem root, sem gerenciador de pacotes e tem `HEALTHCHECK` em `/api/
 
 ## Agendador (alertas de prazo)
 
-O workflow **Jobs agendados** (`jobs.yml`) chama `/api/jobs/ping` e `/api/jobs/alertas` a cada 2 horas, com os segredos `APP_URL` e `JOBS_SECRET`. Sem eles, o job termina com um aviso e não chama nada. Os jobs são idempotentes: repetir uma chamada não duplica e-mail. O `ping` também mantém ativo o banco do plano gratuito, que pausa por inatividade.
+O workflow **Jobs agendados** (`jobs.yml`) chama `/api/jobs/ping`, `/api/jobs/alertas` e `/api/jobs/limpeza` a cada 2 horas, com os segredos `APP_URL` e `JOBS_SECRET`. Sem eles, o job termina com um aviso e não chama nada. Os jobs são idempotentes: repetir uma chamada não duplica e-mail. O `ping` também mantém ativo o banco do plano gratuito, que pausa por inatividade.
 
 Qualquer outro agendador que faça `POST` com `Authorization: Bearer <JOBS_SECRET>` serve no lugar dele.
 
