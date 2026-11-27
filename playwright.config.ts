@@ -7,7 +7,7 @@ const noCI = Boolean(process.env.CI);
 // de Controle de Aplicativo do Windows): PLAYWRIGHT_CHANNEL=msedge ou chrome usa o navegador instalado.
 const canal = process.env.PLAYWRIGHT_CHANNEL || undefined;
 
-// Três larguras exigidas pela regra 8 do projeto, todas no Chromium.
+// Três larguras exigidas pelo projeto (mobile-first), todas no Chromium.
 // Cada largura se apresenta como um cliente diferente (X-Forwarded-For próprio), como a
 // Vercel faz com o IP real de cada usuário. Sem isso, as três larguras dividiriam o
 // limite de cadastros por IP do app, que existe justamente para barrar rajadas.

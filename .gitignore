@@ -30,4 +30,7 @@ npm-debug.log*
 
 # hospedagem e ferramentas locais
 .vercel
-.claude/settings.local.json
+
+# arquivos de assistentes de IA ficam só na máquina de cada pessoa
+/.claude/
+/CLAUDE.md

@@ -59,7 +59,7 @@ Todas as actions são fixadas por SHA de commit, as imagens por digest e os bin�
 - Quem já tem a senha pode tentar adivinhar o código no limite do bloqueio (10 erros a cada 15 minutos, em ciclos) sem que o titular seja avisado. A chance por tentativa é de cerca de 3 em 1 milhão, mas se acumula com o tempo; trocar a senha encerra o ataque. Evolução: avisar sobre erros repetidos e limitar por dia.
 - O bloqueio de 10 erros é da biblioteca e é conferido antes de a falha ser contada: muitos envios simultâneos, em passos pendentes diferentes e de vários endereços, podem passar do teto antes de o bloqueio ser gravado.
 - Excluir a conta e exportar os dados não pedem o código do segundo fator (a exclusão pede a senha).
-- Perda do celular e dos códigos depende de atendimento manual, com identidade conferida principalmente pelo e-mail ([docs/operacao.md](docs/operacao.md#perda-do-celular-e-dos-códigos)).
+- Perda do celular e dos códigos depende de atendimento manual, com identidade conferida principalmente pelo e-mail ([runbook](docs/operacao/runbooks/perda-do-segundo-fator.md)).
 - `/api/health` é público e diz só se o app e o banco respondem, sem a versão do app.
 - Supressões do Trivy ficam em `.trivyignore`, com motivo e data de expiração.
 - O TruffleHog ignora só os arquivos listados, por caminho exato, em `.trufflehog-ignorar`: hoje, os dois testes de TLS cujo histórico tem strings de conexão fictícias (o motivo está no `seguranca.yml`). Um segredo real colocado nesses arquivos não seria detectado; por isso a lista não deve crescer.
