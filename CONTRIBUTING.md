@@ -2,6 +2,8 @@
 
 Para configurar o ambiente, siga [Rodar o projeto na sua máquina](docs/guias/desenvolvimento-local.md).
 
+O Tempestivo tem [licença proprietária](LICENSE). Quem não é da equipe precisa combinar com os autores os direitos sobre a contribuição antes de enviá-la.
+
 ## Regras que valem sempre
 
 1. **Custo zero.** Nada que exija cartão, plano pago ou serviço pago.
@@ -66,7 +68,7 @@ O prazo perdido é o pior erro possível no produto.
 
 ## Dependências
 
-Antes de adicionar uma, confira a licença (permissiva), o custo (zero), a manutenção e o que ela traz junto. Registre a conferência no pull request.
+Antes de adicionar uma, confira a licença (permissiva; copyleft pede decisão à parte, porque o produto é proprietário), o custo (zero), a manutenção e o que ela traz junto. Registre a conferência no pull request. Código copiado de terceiros entra em [AVISOS-DE-TERCEIROS.md](AVISOS-DE-TERCEIROS.md).
 
 ## Segurança
 

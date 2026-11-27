@@ -12,7 +12,21 @@ Inventário técnico dos dados pessoais que o sistema trata, montado a partir de
 | Clientes, processos e demais registros do escritório | o advogado | Tempestivo |
 | Advogado substituto (nome e e-mail) | informado pelo advogado | Tempestivo |
 
-Esta é a divisão descrita na Política de privacidade publicada (`/privacidade`), que cita a execução de contrato (art. 7º, V) para os dados da conta. As demais bases legais não estão registradas e precisam ser definidas.
+Esta é a divisão descrita na Política de privacidade publicada (`/privacidade`).
+
+**Canal do titular:** vemaxtechbr@gmail.com, publicado na Política e definido em `EMAIL_DE_PRIVACIDADE` (`src/lib/termos.ts`). A Resolução CD/ANPD nº 2/2022 dispensa o agente de pequeno porte de indicar encarregado, desde que ofereça um canal ao titular (art. 11), mas a dispensa não vale em todos os casos, como o tratamento de alto risco. O enquadramento do projeto precisa ser confirmado.
+
+## Bases legais
+
+Só a primeira está na Política publicada. As outras são **propostas, a validar** por um profissional.
+
+| Tratamento | Base proposta (art. 7º) |
+| --- | --- |
+| Dados da conta, para prestar o serviço | execução de contrato (V) |
+| IP, navegador e limites de tentativa | legítimo interesse, pela segurança (IX) |
+| Registro do aceite dos documentos | exercício regular de direitos (VI) |
+| Nome e e-mail do substituto, antes do aceite do convite | legítimo interesse (IX) |
+| Dados de clientes e processos | definida pelo advogado, que é o controlador |
 
 ## Inventário
 
@@ -20,7 +34,7 @@ Esta é a divisão descrita na Política de privacidade publicada (`/privacidade
 | --- | --- | --- | --- | --- |
 | Nome e e-mail do advogado | `user`, `conta` | acesso e alertas | acesso só pela própria conta | exclusão da conta |
 | Senha | `account` | autenticação | só o resumo Argon2id | exclusão da conta |
-| IP e navegador da sessão | `session` | segurança | sessão em cookie `HttpOnly` | a sessão vence em 7 dias sem uso; a exclusão da conta remove os registros |
+| IP e navegador da sessão | `session` | segurança | sessão em cookie `HttpOnly` | vence em 7 dias sem uso e é apagada pela rotina de limpeza; a exclusão da conta remove na hora |
 | Chave do autenticador e códigos de recuperação | `twoFactor` | segundo fator | cifrados com o `AUTH_SECRET` | desativação do segundo fator ou exclusão da conta |
 | Nome, CPF ou CNPJ, e-mail, telefone e observações de clientes | `cliente` | o serviço | isolamento por conta | exclusão do cliente ou da conta |
 | Número do processo, assunto, vara e parte contrária | `processo` | o serviço | isolamento por conta | exclusão do processo ou da conta |
@@ -32,6 +46,19 @@ Esta é a divisão descrita na Política de privacidade publicada (`/privacidade
 O texto colado no leitor de intimação é processado no servidor e **não é gravado**.
 
 Não há campo destinado a dado pessoal sensível. Os campos de texto livre podem recebê-lo, a critério de quem digita.
+
+## Retenção
+
+| Dado | Quando é apagado |
+| --- | --- |
+| Sessões e códigos temporários vencidos | pelo job `POST /api/jobs/limpeza`, chamado junto com os outros jobs |
+| Conta e registros do escritório | quando o titular exclui o registro ou a conta |
+| Logs e cópias de segurança dos fornecedores | conforme cada fornecedor; **os prazos não foram levantados** |
+| Cópias feitas à mão com `pg_dump` | **sem prazo definido**: guarde só o necessário e apague as antigas |
+
+O agendador gratuito atrasa. Entre o vencimento e a limpeza podem passar várias horas.
+
+> **Antes de cobrar pelo produto:** o Marco Civil da Internet (Lei 12.965/2014, art. 15) obriga a empresa que oferece aplicação com fins econômicos a guardar registros de acesso por seis meses. Hoje o projeto não é comercial, e a limpeza apaga as sessões vencidas. Reveja este ponto com um advogado antes de comercializar.
 
 ## Cookies
 
@@ -73,12 +100,13 @@ Os procedimentos de atendimento estão em [operação](../operacao/README.md#ped
 
 ## Pendências
 
-| Item | Impacto |
+| Item | Quem resolve |
 | --- | --- |
-| Revisão jurídica dos Termos de uso e da Política de privacidade | os textos não foram validados |
-| A Política de privacidade não cita o cookie `tempestivo.aviso` | transparência |
-| Prazo de retenção de logs e de cópias de segurança | não definido; depende dos fornecedores e da rotina manual |
-| Encarregado e canal de contato para titulares | não definidos no repositório |
-| Trilha de auditoria de acesso e de downloads | não existe |
+| Revisar os Termos de uso, a Política e as bases legais propostas | advogado |
+| Confirmar o enquadramento como agente de pequeno porte | advogado |
+| Levantar os prazos de retenção de logs e cópias nos fornecedores e a região de tratamento de cada um | responsável pelo serviço |
+| Conferir se os contratos dos fornecedores cobrem o tratamento como operador e a transferência internacional | responsável pelo serviço, com o advogado |
+| Quem aceitou uma versão anterior da Política não é avisado da nova | produto |
+| Trilha de auditoria de acesso e de downloads | produto |
 
 Em caso de incidente, siga o [runbook de suspeita de vazamento](../operacao/runbooks/suspeita-de-vazamento.md).

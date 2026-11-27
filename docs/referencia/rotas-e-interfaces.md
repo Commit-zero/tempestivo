@@ -32,6 +32,7 @@ Um id de outra conta na URL (`/prazos/<id-de-outra-conta>`) dá 404, igual a um 
 | `GET /api/health` | nenhuma | `200 {"status":"ok","banco":"ok"}` ou `503 {"status":"erro","banco":"erro"}`, `no-store` | Monitor, `HEALTHCHECK` do Docker, CI |
 | `GET` ou `POST /api/jobs/alertas` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok, ...resumo}`; `502` se algum envio falhou; `401`; `500` | `jobs.yml` (a cada 2 horas) |
 | `GET` ou `POST /api/jobs/ping` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok:true}`; `503` sem banco; `401` | `jobs.yml`; mantém o banco gratuito ativo |
+| `GET` ou `POST /api/jobs/limpeza` | `Authorization: Bearer $JOBS_SECRET` | `200 {ok, sessoes, codigos}` com as quantidades apagadas; `401`; `500` | `jobs.yml`; retenção de sessões e códigos |
 | `GET /api/auth/reset-password/<token>` | token do e-mail | redireciona para `/redefinir-senha` | Link do e-mail de redefinição |
 | `GET /api/auth/verify-email?token=...` | token do e-mail | confirma o e-mail e redireciona | Link do e-mail de confirmação |
 | qualquer outra `/api/auth/*` | — | `404` | Fechada de propósito ([ADR 0006](../adr/0006-login-proprio-com-api-fechada.md)) |

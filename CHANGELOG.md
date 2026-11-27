@@ -2,6 +2,16 @@
 
 Mudanças relevantes para quem usa ou mantém o Tempestivo, da mais recente para a mais antiga. O projeto ainda não marca versões no Git: cada entrada corresponde à data em que a mudança entrou na `main`.
 
+## 27/11/2026
+
+### Adicionado
+- Canal para titulares de dados na Política de privacidade, com a seção de cookies e os prazos de guarda.
+- Rotina que apaga sessões e códigos temporários vencidos.
+- Licença proprietária e avisos de terceiros.
+
+### Alterado
+- Nova versão dos Termos de uso e da Política de privacidade.
+
 ## 26/11/2026
 
 ### Adicionado

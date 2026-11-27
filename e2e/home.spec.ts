@@ -69,6 +69,8 @@ test("os termos de uso e a política de privacidade abrem sem login e ligam um a
   await page.getByRole("contentinfo").getByRole("link", { name: "Política de privacidade" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Política de privacidade" })).toBeVisible();
   await expect(page.getByRole("main")).toContainText("não é guardado");
+  await expect(page.getByRole("main")).toContainText("tempestivo.aviso");
+  await expect(page.getByRole("main").getByRole("link", { name: "vemaxtechbr@gmail.com" })).toHaveAttribute("href", "mailto:vemaxtechbr@gmail.com");
   await semRolagemHorizontal(page);
 });
 

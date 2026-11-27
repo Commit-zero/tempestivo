@@ -37,7 +37,7 @@ jobs:
             exit 0
           fi
           falhou=0
-          for job in ping alertas; do
+          for job in ping alertas limpeza; do
             codigo=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 -X POST \
               -H "Authorization: Bearer ${JOBS_SECRET}" "${APP_URL}/api/jobs/${job}" || echo 000)
             echo "job ${job}: HTTP ${codigo}"

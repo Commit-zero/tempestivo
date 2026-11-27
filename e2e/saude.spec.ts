@@ -9,7 +9,7 @@ test("a rota de saúde confirma o banco sem vazar detalhes", async ({ request })
 });
 
 test("as rotas de job recusam chamada sem o segredo", async ({ request }) => {
-  for (const job of ["ping", "alertas"]) {
+  for (const job of ["ping", "alertas", "limpeza"]) {
     expect((await request.post(`/api/jobs/${job}`)).status()).toBe(401);
     expect((await request.post(`/api/jobs/${job}`, { headers: { Authorization: "Bearer errado" } })).status()).toBe(401);
   }

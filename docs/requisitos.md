@@ -69,6 +69,7 @@ Os caminhos de teste partem de `src/`, exceto os que começam por `e2e/`.
 | RNF-06 | Cobertura de testes | No mínimo 90% das instruções, 85% dos ramos, 90% das funções e das linhas em `src/modules`, `src/lib` e `src/platform` | `pnpm test:cobertura` |
 | RNF-07 | Custo | Nenhum serviço pago é necessário para rodar | [guia de publicação](guias/publicacao.md) |
 | RNF-08 | Privacidade | Dados pessoais fora dos logs e dos nomes de arquivo | `platform/logger/json-logger.test.ts`, [dados pessoais](seguranca/privacidade-e-dados.md) |
+| RNF-09 | Retenção | Sessões e códigos temporários vencidos são apagados por rotina automática | `platform/auth/limpeza.test.ts` |
 
 A verificação automática de acessibilidade não substitui o teste com teclado e leitor de tela. Não há requisito de desempenho medido.
 

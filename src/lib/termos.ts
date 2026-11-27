@@ -3,4 +3,7 @@
  * `src/app/(documentos)/termos` ou de `privacidade`? Troque a data: o aceite de
  * cada conta guarda a versão que a pessoa leu.
  */
-export const VERSAO_DOS_TERMOS = "2026-11-26";
+export const VERSAO_DOS_TERMOS = "2026-11-27";
+
+/** Canal para o titular de dados pessoais, publicado na Política de privacidade. */
+export const EMAIL_DE_PRIVACIDADE = "vemaxtechbr@gmail.com";
